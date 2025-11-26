@@ -1,0 +1,288 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Patient {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String        @unique
+  email        String?       @unique
+  dob          DateTime?
+  consentAt    DateTime?
+  createdAt    DateTime      @default(now())
+  appointments Appointment[]
+  addresses    PatientAddress[]
+  documents    PatientDocument[]
+  profilePhotoKey String?
+  otps         PatientOtp[]
+}
+
+model Provider {
+  id                 String         @id @default(cuid())
+  name               String
+  phone              String?
+  speciality         String
+  languages          String[]
+  licenseNo          String
+  // NEW: RMP / council details
+  registrationNumber String? // State / NMC reg no
+  councilName        String? // e.g. "Karnataka Medical Council"
+  qualification      String? // e.g. "MBBS, MD (Dermatology)"
+  profilePhotoKey    String?
+  licenseDocKey      String?
+  registrationDocKey String?
+  isActive           Boolean        @default(true)
+  is24x7             Boolean        @default(false)
+  slots              Slot[]
+  users              ProviderUser[]
+  appointments       Appointment[]
+  slug               String         @unique @db.VarChar(120)
+}
+
+model Slot {
+  id           String        @id @default(cuid())
+  providerId   String
+  startsAt     DateTime
+  endsAt       DateTime
+  isBooked     Boolean       @default(false)
+  provider     Provider      @relation(fields: [providerId], references: [id])
+  appointments Appointment[] // <-- back relation (many appointments per slot)
+
+  @@unique([providerId, startsAt])
+}
+
+model Appointment {
+  id           String   @id @default(cuid())
+  patientId    String
+  providerId   String
+  slotId       String?
+  status       String   @default("PENDING")
+  videoRoom    String?
+  recordingKey String?
+  paymentId    String?
+  visitMode    String   @default("VIDEO")
+  deliveryOpt  String?
+  deliveryAddressId String?
+  deliveryAddressSnapshot Json?
+  uploadLinkSentAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  waStatus     String?
+  waError      String?
+
+  // NEW: telemedicine consent
+  consentType String? // "IMPLIED" | "EXPLICIT"
+  consentText String? // copy of text shown on booking
+  consentMode String? // "APP_SCREEN" | "WHATSAPP" | etc.
+  consentAt   DateTime? // when patient accepted
+
+  patient       Patient                    @relation(fields: [patientId], references: [id])
+  provider      Provider                   @relation(fields: [providerId], references: [id])
+  slot          Slot?                      @relation(fields: [slotId], references: [id])
+  deliveryAddress PatientAddress? @relation("AppointmentDeliveryAddress", fields: [deliveryAddressId], references: [id])
+  prescription  Prescription?
+  visitNote     VisitNote?
+  messages      OutboundMessage[]
+  statusHistory AppointmentStatusHistory[]
+  payment       Payment?
+  patientDocuments PatientDocument[]
+  pharmacyFulfillment PharmacyFulfillment?
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  gateway       String
+  orderId       String   @unique
+  paymentRef    String?
+  amount        Int
+  currency      String   @default("INR")
+  status        String
+  appointmentId String?  @unique
+  receiptUrl    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) // TEMP: optional of @updatedAt removed
+
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+}
+
+model PatientAddress {
+  id           String   @id @default(cuid())
+  patientId    String
+  label        String?
+  contactName  String?
+  contactPhone String?
+  line1        String
+  line2        String?
+  city         String
+  state        String
+  postalCode   String
+  instructions String?
+  savedAt      DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastUsedAt   DateTime?
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointments Appointment[] @relation("AppointmentDeliveryAddress")
+
+  @@index([patientId])
+  @@index([contactPhone])
+}
+
+model PatientDocument {
+  id            String   @id @default(cuid())
+  appointmentId String
+  patientId     String
+  key           String
+  fileName      String
+  contentType   String?
+  createdAt     DateTime @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient     Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId])
+}
+
+model PatientOtp {
+  id             String   @id @default(cuid())
+  patientId      String?
+  phoneRaw       String
+  phoneCanonical String
+  last10         String
+  otpHash        String
+  expiresAt      DateTime
+  attempts       Int      @default(0)
+  lastSentAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  usedAt         DateTime?
+
+  patient Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  @@index([phoneCanonical])
+  @@index([last10])
+}
+
+model Prescription {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  pdfKey        String
+  meds          Json
+  createdAt     DateTime    @default(now())
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actorType String
+  action    String
+  meta      Json
+  at        DateTime @default(now())
+}
+
+model WebhookEvent {
+  id        String   @id @default(cuid())
+  source    String
+  eventId   String   @unique
+  type      String
+  orderId   String?
+  payload   Json
+  createdAt DateTime @default(now())
+}
+
+model ProviderUser {
+  id           String   @id @default(cuid())
+  providerId   String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("provider")
+  createdAt    DateTime @default(now())
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model VisitNote {
+  id            String   @id @default(cuid())
+  appointmentId String   @unique
+  text          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+}
+
+// Track every status transition by a provider or system
+model AppointmentStatusHistory {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  // e.g. "CONFIRMED" -> "CANCELED"
+  fromStatus String
+  toStatus   String
+
+  // who/what did it
+  actorType String // "PROVIDER" | "SYSTEM"
+  actorId   String? // providerUser.id when actorType=PROVIDER
+  reason    String? // optional free-text or enum ("patient_requested", "provider_unavailable", ...)
+
+  createdAt DateTime @default(now())
+
+  @@index([appointmentId, createdAt])
+}
+
+// Persist every outbound message (WhatsApp/SMS/email) we send
+model OutboundMessage {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  channel  String // "WHATSAPP" | "SMS" | "EMAIL"
+  toPhone  String?
+  toEmail  String?
+  template String? // template name used, if any
+  body     String? // rendered text we attempted to send
+
+  status String // "QUEUED" | "SENT" | "FAILED"
+  error  String?
+
+  createdAt DateTime @default(now())
+  kind      String? // e.g. "REMINDER_24H" | "REMINDER_10M" | "RX_PDF"
+
+  @@index([appointmentId, createdAt])
+  @@index([appointmentId, template, status])
+  @@index([appointmentId, kind, status])
+}
+
+model PharmacyFulfillment {
+  id            String   @id @default(cuid())
+  appointmentId String   @unique
+  status        String   @default("READY")
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+}
+
+model OfflineRequest {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  speciality String?
+  notes     String?
+  status    String   @default("RECEIVED")
+  createdAt DateTime @default(now())
+  resolvedAt DateTime?
+}
