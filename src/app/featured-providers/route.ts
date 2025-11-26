@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const providers = await prisma.provider.findMany({
     take: 6,
-    orderBy: { createdAt: "desc" }, // or rating, or curated flag
+    orderBy: { name: "asc" }, // fallback to alphabetical until createdAt exists
     select: {
       id: true,
       slug: true,
