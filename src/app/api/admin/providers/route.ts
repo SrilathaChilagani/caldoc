@@ -93,23 +93,7 @@ export async function POST(req: NextRequest) {
     if (formData) {
       const uploads: Record<string, string | undefined> = {};
 
-      async function handleFile(field: string, folder: string) {
-        const file = formData!.get(field);
-        if (file instanceof File && file.size > 0) {
-          const arrayBuffer = await file.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const filename = file.name || `${field}.pdf`;
-          const key = `providers/${provider.id}/${folder}/${filename}`;
-          await uploadToS3({
-            key,
-            body: buffer,
-            contentType: file.type || "application/octet-stream",
-          });
-          uploads[field] = key;
-        }
-      }
-
-      async function handleFile(field: string, folder: string, aliases: string[] = []) {
+      const processUpload = async (field: string, folder: string, aliases: string[] = []) => {
         let file = formData!.get(field);
         if (!(file instanceof File) || file.size === 0) {
           for (const alias of aliases) {
@@ -132,11 +116,11 @@ export async function POST(req: NextRequest) {
           });
           uploads[field] = key;
         }
-      }
+      };
 
-      await handleFile("profilePhoto", "profile");
-      await handleFile("licenseDocument", "documents", ["licenseDoc"]);
-      await handleFile("registrationDocument", "documents", ["registrationDoc"]);
+      await processUpload("profilePhoto", "profile");
+      await processUpload("licenseDocument", "documents", ["licenseDoc"]);
+      await processUpload("registrationDocument", "documents", ["registrationDoc"]);
 
       if (Object.keys(uploads).length) {
         await prisma.provider.update({
