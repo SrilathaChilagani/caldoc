@@ -98,7 +98,7 @@ export default async function PharmacyDashboardPage() {
       patientDocuments: appt.patientDocuments,
       fulfillmentStatus,
       fulfillmentLabel: STATUS_LABELS[fulfillmentStatus],
-      fulfillmentFlow: isDelivery ? "DELIVERY" : "WHATSAPP",
+      fulfillmentFlow: (isDelivery ? "DELIVERY" : "WHATSAPP") as "DELIVERY" | "WHATSAPP",
     };
   });
 
