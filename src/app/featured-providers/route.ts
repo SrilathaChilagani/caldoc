@@ -11,11 +11,9 @@ export async function GET() {
       id: true,
       slug: true,
       name: true,
-      title: true,     // if you have it
-      rating: true,    // if you have it
-      reviews: true,   // if you have it
-      imageUrl: true,  // if you have it (or map to your image field)
-      specialty: true, // optional
+      speciality: true,
+      profilePhotoKey: true,
+      languages: true,
     },
   });
 
