@@ -6,12 +6,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './src/screens/HomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
+import VisitScreen from './src/screens/VisitScreen';
 import { getToken } from './src/lib/auth';
 
 type RootStackParamList = {
   Login: undefined;
   Dashboard: undefined;
   Web: undefined;
+  Visit: { appointmentId: string; role?: 'patient' | 'provider'; name?: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -47,6 +49,7 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Web" component={HomeScreen} />
+        <Stack.Screen name="Visit" component={VisitScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -11,14 +11,14 @@ type Appointment = {
   startsAt: string;
 };
 
-type Props = NativeStackScreenProps<
-  {
-    Dashboard: undefined;
-    Login: undefined;
-    Web: undefined;
-  },
-  'Dashboard'
->;
+type RootStackParamList = {
+  Dashboard: undefined;
+  Login: undefined;
+  Web: undefined;
+  Visit: { appointmentId: string; role?: 'patient' | 'provider'; name?: string };
+};
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
 export default function DashboardScreen({ navigation }: Props) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -67,9 +67,25 @@ export default function DashboardScreen({ navigation }: Props) {
           appointments.map((appt) => (
             <View
               key={appt.id}
-              style={{ borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 16, padding: 16, gap: 4 }}>
+              style={{
+                borderWidth: 1,
+                borderColor: '#e5e7eb',
+                borderRadius: 16,
+                padding: 16,
+                gap: 8,
+              }}>
               <Text style={{ fontWeight: '600' }}>{appt.providerName}</Text>
               <Text>{new Date(appt.startsAt).toLocaleString()}</Text>
+              <Button
+                title="Join visit"
+                onPress={() =>
+                  navigation.push('Visit', {
+                    appointmentId: appt.id,
+                    role: 'patient',
+                    name: appt.providerName,
+                  })
+                }
+              />
             </View>
           ))
         )}
