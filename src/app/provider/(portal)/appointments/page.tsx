@@ -24,6 +24,12 @@ const timeframeTabs = [
   { value: "FUTURE", label: "Future" },
 ] as const;
 
+type StatusValue = (typeof statusTabs)[number]["value"];
+
+function isStatusValue(value: string): value is StatusValue {
+  return statusTabs.some((tab) => tab.value === value);
+}
+
 function formatSlot(date: Date) {
   return date.toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -61,9 +67,8 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
   const statusParam = Array.isArray(sp.status) ? sp.status[0] : sp.status;
   const timeframeParam = Array.isArray(sp.timeframe) ? sp.timeframe[0] : sp.timeframe;
 
-  const allowedStatus = new Set(statusTabs.map((tab) => tab.value));
   const requestedStatus = (statusParam || "").toUpperCase();
-  const statusFilterValue = allowedStatus.has(requestedStatus) ? requestedStatus : "ALL";
+  const statusFilterValue: StatusValue = isStatusValue(requestedStatus) ? requestedStatus : "ALL";
 
   const normalizedTimeframe = (timeframeParam || "").toUpperCase();
   const explicitTimeframe =
@@ -144,7 +149,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
     { key: "RESCHEDULED", label: "Rescheduled" },
   ] as const;
 
-  const knownKeys = new Set(summaryConfig.map((entry) => entry.key));
+  const knownKeys = new Set<string>(summaryConfig.map((entry) => entry.key));
   const extras = statusDistribution
     .filter((row) => !knownKeys.has(row.status))
     .map((row) => ({

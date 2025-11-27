@@ -122,7 +122,7 @@ export default function RoomClient({
             : typeof (err as { error?: unknown })?.error === "string"
             ? (err as { error?: string }).error
             : "Join failed";
-        setErr(message);
+        setErr(message ?? "Join failed");
       });
 
     // Cleanup on unmount

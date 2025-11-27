@@ -66,7 +66,9 @@ export async function sendWhatsAppTemplate(opts: SendTemplateOpts) {
     throw new Error("Recipient phone missing/invalid (must be E.164, e.g. +9198XXXXXXXX)");
   }
 
-  const parameters = (opts.vars ?? []).map((v) => ({ type: "text", text: String(v) }));
+  const parameters = (opts.vars ?? []).map(
+    (v): TemplateComponent["parameters"][number] => ({ type: "text", text: String(v) })
+  );
 
   // Build template WITHOUT spreading an array into the object
   const template: TemplatePayload = {

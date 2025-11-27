@@ -1,6 +1,6 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { SignatureV4MultiRegion } from "@aws-sdk/signature-v4-multi-region";
-import { Hash } from "@aws-sdk/hash-node";
+import { Sha256 } from "@aws-crypto/sha256-js";
 import { HttpRequest } from "@smithy/protocol-http";
 import { formatUrl } from "@aws-sdk/util-format-url";
 
@@ -68,7 +68,7 @@ export async function getSignedS3Url(key: string, expiresInSeconds = 60) {
     credentials: resolvedCredentials,
     region: resolvedRegion,
     service: "s3",
-    sha256: Hash,
+    sha256: Sha256,
   });
 
   const request = new HttpRequest({

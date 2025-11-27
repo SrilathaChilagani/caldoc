@@ -13,8 +13,10 @@ export default async function RoomPage({ params, searchParams }: Props) {
   const sp = (await searchParams) ?? {};
 
   // Allow passing role & display name via query params for labeling
+  const allowedRoles = new Set(["provider", "patient", "guest"]);
+  const roleParam = Array.isArray(sp.role) ? sp.role[0] : sp.role;
   const role =
-    (Array.isArray(sp.role) ? sp.role[0] : sp.role) || "guest"; // "patient" | "provider" | "guest"
+    roleParam && allowedRoles.has(roleParam) ? (roleParam as "provider" | "patient" | "guest") : "guest";
   const displayName =
     (Array.isArray(sp.name) ? sp.name[0] : sp.name) ||
     (role === "provider" ? "Doctor" : "Patient");

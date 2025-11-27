@@ -36,20 +36,21 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
   const sp = (await searchParams) || {};
   const q = (sp.q || "").trim();
   const specialty = (sp.specialty || "").trim();
+  const INSENSITIVE: Prisma.QueryMode = "insensitive";
 
   const filters: Prisma.ProviderWhereInput[] = [];
   if (specialty) {
-    filters.push({ speciality: { contains: specialty, mode: "insensitive" } });
+    filters.push({ speciality: { contains: specialty, mode: INSENSITIVE } });
   }
   if (q) {
     const terms = q.split(/\s+/).filter(Boolean);
     const termClauses = terms.map((term) => ({
       OR: [
-        { name: { contains: term, mode: "insensitive" } },
-        { speciality: { contains: term, mode: "insensitive" } },
+        { name: { contains: term, mode: INSENSITIVE } },
+        { speciality: { contains: term, mode: INSENSITIVE } },
         { languages: { has: term.toUpperCase() } },
-        { slug: { contains: term, mode: "insensitive" } },
-        { licenseNo: { contains: term, mode: "insensitive" } },
+        { slug: { contains: term, mode: INSENSITIVE } },
+        { licenseNo: { contains: term, mode: INSENSITIVE } },
       ],
     }));
     filters.push(...termClauses);

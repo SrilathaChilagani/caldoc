@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { getErrorMessage } from "./errors";
+import { Prisma } from "@prisma/client";
 
 type ActorType = "PROVIDER" | "ADMIN" | "PATIENT" | "SYSTEM";
 
@@ -19,7 +20,7 @@ export async function logAudit(entry: AuditEntry) {
         action: entry.action,
         actorType: entry.actorType,
         actorId: entry.actorId ?? null,
-        meta: entry.meta ?? {},
+        meta: entry.meta ? (entry.meta as Prisma.InputJsonValue) : Prisma.JsonNull,
       },
     });
   } catch (err) {
