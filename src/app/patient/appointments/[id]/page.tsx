@@ -194,7 +194,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
             </div>
           </dl>
           <p className="mt-4 text-xs text-slate-500">
-            Consultations on CalDoc follow the CalDocicine Practice Guidelines (India, 2020). For emergencies or red-flag
+            Consultations on CalDoc follow the TELEMEDICINE Practice Guidelines (India, 2020). For emergencies or red-flag
             symptoms, call local emergency services or visit the nearest hospital immediately.
           </p>
         </section>

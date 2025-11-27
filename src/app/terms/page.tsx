@@ -11,7 +11,7 @@ export default function TermsPage() {
       <ol className="list-decimal space-y-2 pl-6 text-sm text-slate-700">
         <li>CalDoc India is a technology platform. Consultations are performed solely by licensed registered medical practitioners.</li>
         <li>Patients must provide accurate demographic, consent, and payment information before a visit.</li>
-        <li>Providers agree to follow the CalDocicine Practice Guidelines 2020 and maintain medical records.</li>
+        <li>Providers agree to follow the TELEMEDICINE Practice Guidelines 2020 and maintain medical records.</li>
         <li>Payments and refunds run through Razorpay and follow the clinic&apos;s cancellation policies.</li>
         <li>Use of this site implies acceptance of future updates to these terms.</li>
       </ol>

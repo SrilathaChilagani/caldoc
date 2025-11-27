@@ -163,7 +163,7 @@ export default function LoginClient({ next }: { next: string }) {
       )}
 
       <p className="mt-4 text-xs text-slate-500">
-        By continuing you agree to our privacy policy and terms. CalDocicine services are not for emergency care.
+        By continuing you agree to our privacy policy and terms. TELEMEDICINE services are not for emergency care.
       </p>
     </div>
   );

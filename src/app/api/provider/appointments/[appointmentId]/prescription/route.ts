@@ -77,7 +77,7 @@ function buildPdf(opts: {
     doc
       .fontSize(10)
       .text(
-        "Issued under the CalDocicine Practice Guidelines (2020). This prescription is for non-emergency use. Seek in-person care for red-flag symptoms or adverse reactions.",
+        "Issued under the TELEMEDICINE Practice Guidelines (2020). This prescription is for non-emergency use. Seek in-person care for red-flag symptoms or adverse reactions.",
         { align: "left" },
       );
     doc.moveDown(0.5);

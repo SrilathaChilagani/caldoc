@@ -83,7 +83,7 @@ export default async function Home() {
         <div className="relative container mx-auto px-4 pt-16 pb-24 md:pt-20 md:pb-8">
           <div className="max-w-3xl space-y-6">
             <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-              CalDocicine made simple
+              TELEMEDICINE made simple
             </p>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
               Book teleconsultations with verified doctors, fast.

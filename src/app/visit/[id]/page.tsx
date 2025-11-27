@@ -144,9 +144,9 @@ export default async function VisitPage({ params }: Props) {
           </div>
 
           <div className="mt-8 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-xs text-amber-800">
-            <p className="font-semibold">CalDocicine compliance</p>
+            <p className="font-semibold">TELEMEDICINE compliance</p>
             <p className="mt-1">
-              This visit summary follows the CalDocicine Practice Guidelines (India, 2020). Emergency care is not
+              This visit summary follows the TELEMEDICINE Practice Guidelines (India, 2020). Emergency care is not
               provided on this platform. If your symptoms worsen, please visit the nearest hospital or call local
               emergency services immediately.
             </p>
