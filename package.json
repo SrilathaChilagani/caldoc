@@ -23,6 +23,7 @@
     "bcryptjs": "^3.0.3",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.1",
+    "eas-cli": "^16.28.0",
     "jsonwebtoken": "^9.0.2",
     "next": "16.0.1",
     "pdf-lib": "^1.17.1",

@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "next.config.ts",
+    "next.config.js",
+    "next.config.mjs",
+    "middleware.ts",
+    "sentry.edge.config.ts",
+    "sentry.server.config.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "prisma/**/*.ts",
+    "scripts/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "caldoc-app",
+    "caldoc-app/**/*",
+    "./caldoc-app/**/*"
+  ]
+}
