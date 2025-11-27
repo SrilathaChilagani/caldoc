@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Button, SafeAreaView, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import * as Linking from 'expo-linking';
 
 import { API_BASE } from '../config/env';
 import { getToken, logout } from '../lib/auth';
@@ -64,30 +65,36 @@ export default function DashboardScreen({ navigation }: Props) {
         {appointments.length === 0 ? (
           <Text>No appointments yet.</Text>
         ) : (
-          appointments.map((appt) => (
-            <View
-              key={appt.id}
-              style={{
-                borderWidth: 1,
-                borderColor: '#e5e7eb',
-                borderRadius: 16,
-                padding: 16,
-                gap: 8,
-              }}>
-              <Text style={{ fontWeight: '600' }}>{appt.providerName}</Text>
-              <Text>{new Date(appt.startsAt).toLocaleString()}</Text>
-              <Button
-                title="Join visit"
-                onPress={() =>
-                  navigation.push('Visit', {
-                    appointmentId: appt.id,
-                    role: 'patient',
-                    name: appt.providerName,
-                  })
-                }
-              />
-            </View>
-          ))
+          appointments.map((appt) => {
+            const deepLink = Linking.createURL(
+              `visit/${appt.id}?role=patient&name=${encodeURIComponent(appt.providerName)}`
+            );
+            return (
+              <View
+                key={appt.id}
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#e5e7eb',
+                  borderRadius: 16,
+                  padding: 16,
+                  gap: 8,
+                }}>
+                <Text style={{ fontWeight: '600' }}>{appt.providerName}</Text>
+                <Text>{new Date(appt.startsAt).toLocaleString()}</Text>
+                <Button
+                  title="Join visit"
+                  onPress={() =>
+                    navigation.push('Visit', {
+                      appointmentId: appt.id,
+                      role: 'patient',
+                      name: appt.providerName,
+                    })
+                  }
+                />
+                <Button title="Open via deep link" onPress={() => Linking.openURL(deepLink)} />
+              </View>
+            );
+          })
         )}
         <Button title="Open full site" onPress={() => navigation.push('Web')} />
         <Button title="Sign out" onPress={handleLogout} />
