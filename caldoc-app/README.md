@@ -1,50 +1,61 @@
-# Welcome to your Expo app 👋
+# CalDoc Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This Expo project wraps the existing CalDoc web experience and adds native patient flows (login, dashboard, visit deep links). The backend is the same Next.js deployment (`https://www.caldoc.in`), so no extra APIs are required.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Scripts
 
 ```bash
-npm run reset-project
+npm start          # Expo dev server
+npm run ios        # Open iOS simulator (needs Xcode)
+npm run android    # Open Android emulator (needs Android Studio)
+npm run lint       # Expo lint checks
+npm run build:ios  # EAS production build for iOS
+npm run build:android # EAS production build for Android
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Environment
 
-## Learn more
+- `EXPO_PUBLIC_API_BASE` (configured in `app.json`) points to the deployed CalDoc site. Update if you need staging vs production.
+- Deep links use the `caldoc://` scheme plus `https://www.caldoc.in/app`. Example: `caldoc://visit/<appointmentId>?role=patient`.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Building with EAS
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. Install the CLI once: `npm install -g eas-cli` (or use `npx eas`).
+2. Authenticate: `eas login`.
+3. Configure secrets/certs in the Expo dashboard (Apple developer + Google Play keystore).
+4. For QA/internal:
+   ```bash
+   eas build --profile development --platform ios
+   eas build --profile development --platform android
+   ```
+5. For preview builds sent to stakeholders:
+   ```bash
+   eas build --profile preview --platform ios
+   eas build --profile preview --platform android
+   ```
+6. For store-ready binaries:
+   ```bash
+   npm run build:ios
+   npm run build:android
+   ```
+7. Submit to stores (requires metadata ready in App Store Connect / Play Console):
+   ```bash
+   eas submit --platform ios --profile production
+   eas submit --platform android --profile production
+   ```
 
-## Join the community
+## QA Checklist
 
-Join our community of developers creating universal apps.
+- Verify login/logout (Expo SecureStore clears token).
+- Check dashboard appointments render and “Join visit” opens the in-app visit screen.
+- Test deep links:
+  - `npx uri-scheme open caldoc://visit/<id>?role=patient --ios`
+  - `adb shell am start -W -a android.intent.action.VIEW -d "caldoc://visit/<id>?role=patient" com.caldoc.app`
+- Run through a Daily/Jitsi visit in the WebView to ensure mic/camera permissions look correct on real devices.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Assets & Store Listing
+
+- Icons & splash assets live under `assets/images/`. Replace with final CalDoc branding before shipping.
+- Prepare App Store / Play Store metadata: description, screenshots, privacy policy (`https://www.caldoc.in/privacy`), support URL, and the same `.env`-backed service links.
+
+Once the build artifacts pass testing, upload them via App Store Connect / Google Play Console and roll out to TestFlight/Internal testing before production release.
