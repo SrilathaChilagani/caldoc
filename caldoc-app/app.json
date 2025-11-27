@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.srilathachilagani.caldocapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +23,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.srilathachilagani.caldocapp"
     },
     "web": {
       "output": "static",
@@ -44,7 +49,10 @@
       "reactCompiler": true
     },
     "extra": {
-      "EXPO_PUBLIC_API_BASE": "https://www.caldoc.in"
+      "EXPO_PUBLIC_API_BASE": "https://www.caldoc.in",
+      "eas": {
+        "projectId": "1e79624d-c742-4c66-9193-1141cac1ed91"
+      }
     }
   }
 }
