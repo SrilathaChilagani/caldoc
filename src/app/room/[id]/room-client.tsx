@@ -177,7 +177,7 @@ export default function RoomClient({
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-semibold">Telemed Room</h1>
+          <h1 className="text-2xl font-semibold">CalDoc Room</h1>
           <p className="text-sm text-gray-500">
             Appointment <span className="font-mono">{appointmentId}</span>{" "}
             ·{" "}
@@ -213,7 +213,7 @@ export default function RoomClient({
         <div ref={containerRef} />
       ) : (
         <iframe
-          title="Telemed Jitsi Room"
+          title="CalDoc Jitsi Room"
           src={jitsiSrc}
           allow="camera; microphone; fullscreen; display-capture; clipboard-write"
           style={{

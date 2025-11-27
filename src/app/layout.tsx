@@ -8,7 +8,7 @@ import SiteFooter from "@/components/SiteFooter";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Telemed",
+  title: "CalDoc",
   description: "Virtual consultation platform",
 };
 

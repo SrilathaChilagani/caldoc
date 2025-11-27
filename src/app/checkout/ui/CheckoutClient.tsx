@@ -81,7 +81,7 @@ export default function CheckoutClient({ appointmentId, amount }: Props) {
         const rzp = new window.Razorpay({
           key: data.key,
           order_id: data.orderId,
-          name: "Telemed Checkout",
+          name: "CalDoc Checkout",
           theme: { color: "#0f172a" },
           prefill: {
             name: data.prefill?.name,

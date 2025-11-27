@@ -20,7 +20,7 @@ export default async function AdminProviderOnboard() {
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Onboard a provider</h1>
           <p className="text-sm text-slate-500">
-            Capture basic credentials, upload supporting docs, and activate the doctor on Telemed.
+            Capture basic credentials, upload supporting docs, and activate the doctor on CalDoc.
           </p>
         </div>
       </div>

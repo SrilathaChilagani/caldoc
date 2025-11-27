@@ -62,10 +62,10 @@ export default async function VisitPage({ params }: Props) {
               ← Back home
             </Link>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Telemed visit</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">CalDoc visit</p>
           <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold text-slate-900">Your Telemed visit</h1>
+              <h1 className="text-3xl font-semibold text-slate-900">Your CalDoc visit</h1>
               <p className="text-sm text-slate-500">Appointment ID: <span className="font-mono text-slate-700">{appt.id}</span></p>
             </div>
             <span
@@ -144,9 +144,9 @@ export default async function VisitPage({ params }: Props) {
           </div>
 
           <div className="mt-8 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-xs text-amber-800">
-            <p className="font-semibold">Telemedicine compliance</p>
+            <p className="font-semibold">CalDocicine compliance</p>
             <p className="mt-1">
-              This visit summary follows the Telemedicine Practice Guidelines (India, 2020). Emergency care is not
+              This visit summary follows the CalDocicine Practice Guidelines (India, 2020). Emergency care is not
               provided on this platform. If your symptoms worsen, please visit the nearest hospital or call local
               emergency services immediately.
             </p>

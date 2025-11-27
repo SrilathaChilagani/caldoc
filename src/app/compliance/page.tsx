@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Compliance & DPDP | Telemed India",
+  title: "Compliance & DPDP | CalDoc India",
 };
 
 export default function CompliancePage() {
@@ -9,7 +9,7 @@ export default function CompliancePage() {
         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-500">Compliance</p>
         <h1 className="text-3xl font-semibold text-slate-900">Digital Personal Data Protection (DPDP) readiness</h1>
         <p className="text-sm text-slate-600">
-          Telemed India follows the Telemedicine Practice Guidelines 2020 and the DPDP Act, 2023. This page
+          CalDoc India follows the CalDocicine Practice Guidelines 2020 and the DPDP Act, 2023. This page
           summarises how we collect, process, and protect personal data across the platform.
         </p>
       </div>

@@ -20,7 +20,7 @@ export default async function PatientLoginPage({ searchParams }: { searchParams:
       <div className="mx-auto flex max-w-5xl flex-col gap-10 px-4 lg:flex-row">
         <section className="flex-1 space-y-4">
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-            Telemedicine made simple
+            CalDocicine made simple
           </p>
           <h1 className="text-4xl font-semibold text-slate-900">
             Access your appointments, prescriptions, and uploads in one place.
@@ -52,7 +52,7 @@ export default async function PatientLoginPage({ searchParams }: { searchParams:
             <Link href="/privacy" className="font-medium text-blue-600 hover:text-blue-800">
               Privacy Policy
             </Link>
-            . Telemedicine services are not for emergency care.
+            . CalDocicine services are not for emergency care.
           </p>
         </section>
 

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 const CONSENT_TEXT =
-  "I confirm that I have read the Telemed disclaimer and consent to receiving medical advice via telemedicine.";
+  "I confirm that I have read the CalDoc disclaimer and consent to receiving medical advice via telemedicine.";
 
 type SlotInfo = {
   id: string;

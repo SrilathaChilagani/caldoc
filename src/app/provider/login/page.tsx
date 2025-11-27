@@ -30,14 +30,14 @@ export default async function ProviderLoginPage({
   const portalCopy = {
     provider: {
       badge: "Provider portal",
-      headline: "Secure access for Telemed doctors",
+      headline: "Secure access for CalDoc doctors",
       body:
         "View pending visits, review patient uploads, confirm or reschedule appointments, and update your availability — all in one streamlined dashboard.",
       accent: "from-[#eef3ff] via-white to-white",
     },
     admin: {
       badge: "Admin dashboard",
-      headline: "Operations login for Telemed admins",
+      headline: "Operations login for CalDoc admins",
       body:
         "Manage providers, generate slots, review captured payments, and reconcile appointments securely.",
       accent: "from-[#fff7ed] via-white to-white",
@@ -91,7 +91,7 @@ export default async function ProviderLoginPage({
             <h2 className="text-xl font-semibold text-slate-900">Sign in to continue</h2>
             <p className="text-sm text-slate-500">
               {portalTarget === "admin"
-                ? "Use your Telemed admin credentials."
+                ? "Use your CalDoc admin credentials."
                 : portalTarget === "pharmacy"
                 ? "Access for licensed pharmacy partners."
                 : "Use your provider credentials."}

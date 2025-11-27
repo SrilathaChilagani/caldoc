@@ -55,7 +55,7 @@ function buildPdf(opts: {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    doc.fontSize(20).text("Telemed Prescription", { align: "center" });
+    doc.fontSize(20).text("CalDoc Prescription", { align: "center" });
     doc.moveDown();
     doc.fontSize(12).text(`Provider: ${opts.providerName || "Doctor"}`);
     doc.text(`Qualification: ${opts.qualification || "—"}`);
@@ -77,11 +77,11 @@ function buildPdf(opts: {
     doc
       .fontSize(10)
       .text(
-        "Issued under the Telemedicine Practice Guidelines (2020). This prescription is for non-emergency use. Seek in-person care for red-flag symptoms or adverse reactions.",
+        "Issued under the CalDocicine Practice Guidelines (2020). This prescription is for non-emergency use. Seek in-person care for red-flag symptoms or adverse reactions.",
         { align: "left" },
       );
     doc.moveDown(0.5);
-    doc.fontSize(9).fillColor("gray").text("Generated via Telemed India portal", { align: "right" });
+    doc.fontSize(9).fillColor("gray").text("Generated via CalDoc India portal", { align: "right" });
     doc.end();
   });
 }

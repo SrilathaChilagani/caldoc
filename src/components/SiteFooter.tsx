@@ -11,7 +11,7 @@ export default function SiteFooter() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold">
                 T
               </div>
-              <span className="text-base font-semibold text-black">Telemed</span>
+              <span className="text-base font-semibold text-black">CalDoc</span>
             </div>
             <p className="text-sm text-gray-600">
               Book online medical appointments with trusted providers across India.
@@ -51,7 +51,7 @@ export default function SiteFooter() {
         </div>
 
         <div className="mt-6 border-t border-gray-200 pt-6 text-xs text-gray-500">
-          © {new Date().getFullYear()} Telemed India. All rights reserved.
+          © {new Date().getFullYear()} CalDoc India. All rights reserved.
         </div>
       </div>
     </footer>

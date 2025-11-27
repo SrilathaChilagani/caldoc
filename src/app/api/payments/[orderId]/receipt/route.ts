@@ -41,7 +41,7 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
       <html lang="en">
       <head>
         <meta charset="utf-8" />
-        <title>Telemed Receipt</title>
+        <title>CalDoc Receipt</title>
         <style>
           body { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; background:#f7f9fc; padding:24px; }
           .card { background:#fff; border-radius:24px; padding:24px; max-width:640px; margin:0 auto; box-shadow:0 10px 35px rgba(15,23,42,0.08); }
@@ -52,7 +52,7 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
       </head>
       <body>
         <div class="card">
-          <h1>Telemed Receipt</h1>
+          <h1>CalDoc Receipt</h1>
           <div class="row"><span class="label">Order ID:</span> ${payment.orderId}</div>
           <div class="row"><span class="label">Appointment:</span> ${appt.id}</div>
           <div class="row"><span class="label">Amount:</span> ₹${(payment.amount / 100).toFixed(2)}</div>

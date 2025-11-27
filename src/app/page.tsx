@@ -83,7 +83,7 @@ export default async function Home() {
         <div className="relative container mx-auto px-4 pt-16 pb-24 md:pt-20 md:pb-8">
           <div className="max-w-3xl space-y-6">
             <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-              Telemedicine made simple
+              CalDocicine made simple
             </p>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
               Book teleconsultations with verified doctors, fast.
@@ -131,7 +131,7 @@ export default async function Home() {
             <p className="text-xs uppercase tracking-[0.3em] text-blue-500">Rural access</p>
             <h2 className="text-2xl font-semibold text-slate-900">Low-bandwidth & offline support</h2>
             <p className="text-sm text-slate-600">
-              Borrowing from eSanjeevani&apos;s playbook, Telemed lets you switch to audio-only consults or leave an
+              Borrowing from eSanjeevani&apos;s playbook, CalDoc lets you switch to audio-only consults or leave an
               offline request if connectivity drops.
             </p>
             <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">

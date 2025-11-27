@@ -47,7 +47,7 @@ export default function SiteHeader() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white font-bold">
             T
           </div>
-          <span className="text-lg font-semibold text-black tracking-tight">Telemed</span>
+          <span className="text-lg font-semibold text-black tracking-tight">CalDoc</span>
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

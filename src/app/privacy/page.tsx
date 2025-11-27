@@ -1,4 +1,4 @@
-export const metadata = { title: "Privacy Policy | Telemed India" };
+export const metadata = { title: "Privacy Policy | CalDoc India" };
 
 export default function PrivacyPage() {
   return (
