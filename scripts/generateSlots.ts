@@ -1,9 +1,14 @@
 // scripts/generateSlots.ts
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { zonedTimeToUtc } from "date-fns-tz";
 
 const prisma = new PrismaClient();
 const DEFAULT_FEE_PAISE = 49900;
+const providerFeeSelect = {
+  id: true,
+  defaultFeePaise: true,
+} as const satisfies Prisma.ProviderSelect;
+type ProviderWithFee = Prisma.ProviderGetPayload<{ select: typeof providerFeeSelect }>;
 
 /**
  * Generate slots in IST (Asia/Kolkata) then store as UTC.
@@ -41,13 +46,13 @@ async function main() {
   };
 
   // 1) Pick providers
-  const providers = opts.providerIds
+  const providers: ProviderWithFee[] = opts.providerIds
     ? await prisma.provider.findMany({
         where: { id: { in: opts.providerIds } },
-        select: { id: true, defaultFeePaise: true },
+        select: providerFeeSelect,
       })
     : await prisma.provider.findMany({
-        select: { id: true, defaultFeePaise: true },
+        select: providerFeeSelect,
       });
 
   if (!providers.length) {
