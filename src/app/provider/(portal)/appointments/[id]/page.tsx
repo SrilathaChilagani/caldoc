@@ -5,6 +5,7 @@ import { readProviderSession, requireAdminSession } from "@/lib/auth.server";
 import AppointmentActions from "./AppointmentActions";
 import VisitNoteForm from "./VisitNoteForm";
 import PrescriptionForm from "./PrescriptionForm";
+import AppointmentFeeForm from "./AppointmentFeeForm";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,15 @@ function formatIST(date: Date | null | undefined) {
     dateStyle: "full",
     timeStyle: "short",
   });
+}
+
+function formatINR(paise?: number | null) {
+  if (typeof paise !== "number" || Number.isNaN(paise) || paise <= 0) return "—";
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+  }).format(paise / 100);
 }
 
 export default async function ProviderAppointmentDetail({ params, searchParams }: PageProps) {
@@ -99,6 +109,11 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
   });
 
   const readOnly = Boolean(adminSess && cameFromAdmin);
+  const effectiveFeePaise =
+    appointment.feePaise ??
+    appointment.slot?.feePaise ??
+    appointment.provider?.defaultFeePaise ??
+    null;
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-10 text-gray-900">
@@ -145,6 +160,18 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
             <dd className="text-sm text-slate-900">
               {formatIST(appointment.slot?.startsAt)}
             </dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Consultation fee</dt>
+            <dd className="text-sm text-slate-900">
+              {formatINR(effectiveFeePaise)}
+            </dd>
+            {!readOnly && (
+              <AppointmentFeeForm
+                appointmentId={appointment.id}
+                initialFeePaise={effectiveFeePaise}
+              />
+            )}
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide text-slate-500">Consult mode</dt>

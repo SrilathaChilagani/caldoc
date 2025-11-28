@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "e0ece457-8570-48cb-a4ab-103b799741ff"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.srilathachilagani.telemedin",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.srilathachilagani.telemedin"
+    }
+  }
+}

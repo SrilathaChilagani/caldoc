@@ -9,6 +9,7 @@ const CONSENT_TEXT =
 type SlotInfo = {
   id: string;
   startsAt: string;
+  feePaise?: number;
 };
 
 type Props = {
@@ -17,6 +18,7 @@ type Props = {
     name: string;
     speciality: string;
     qualification?: string | null;
+    defaultFeePaise?: number | null;
   };
   slots: SlotInfo[];
   initialSlotId?: string;
@@ -44,6 +46,15 @@ function formatSlotLabel(value: string) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function formatFeeFromPaise(paise?: number | null) {
+  if (typeof paise !== "number" || Number.isNaN(paise) || paise <= 0) return null;
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+  }).format(paise / 100);
 }
 
 export default function BookClient({ provider, slots, initialSlotId }: Props) {
@@ -83,6 +94,17 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
     const slot = slots.find((s) => s.id === selectedSlot);
     return slot ? formatSlotLabel(slot.startsAt) : "";
   }, [slots, selectedSlot]);
+
+  const selectedSlotFeePaise = useMemo(() => {
+    const slot = slots.find((s) => s.id === selectedSlot);
+    if (slot?.feePaise && slot.feePaise > 0) return slot.feePaise;
+    return provider.defaultFeePaise ?? null;
+  }, [slots, selectedSlot, provider.defaultFeePaise]);
+
+  const selectedSlotFeeLabel = useMemo(
+    () => formatFeeFromPaise(selectedSlotFeePaise),
+    [selectedSlotFeePaise],
+  );
 
   const pageSize = 6;
   const pagedSlots = slots.slice(slotIndex, slotIndex + pageSize);
@@ -219,6 +241,9 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                       }`}
                     >
                       {formatSlotLabel(slot.startsAt)}
+                      <span className="mt-2 block text-xs font-semibold">
+                        {formatFeeFromPaise(slot.feePaise ?? provider.defaultFeePaise) ?? "Fee TBD"}
+                      </span>
                     </button>
                   ))}
               </div>
@@ -277,6 +302,20 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 </p>
               )}
             </div>
+
+            {selectedSlotFeeLabel && (
+              <div className="rounded-2xl border border-slate-200 bg-white/60 p-4 text-sm">
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Consultation fee for this slot
+                </p>
+                <p className="text-xl font-semibold text-slate-900">
+                  {selectedSlotFeeLabel}
+                </p>
+                <p className="text-xs text-slate-500">
+                  This amount will be reserved during checkout. Fees may vary by provider and time.
+                </p>
+              </div>
+            )}
 
             <label className="flex items-start gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
               <input
@@ -452,10 +491,10 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 <dd>{deliverySummary}</dd>
               </div>
               {amount !== null && (
-                <div>
-                  <dt className="font-medium text-slate-900">Amount</dt>
-                  <dd>₹{(amount / 100).toFixed(2)}</dd>
-                </div>
+             <div>
+               <dt className="font-medium text-slate-900">Amount</dt>
+               <dd>₹{(amount / 100).toFixed(2)}</dd>
+             </div>
               )}
             </dl>
 

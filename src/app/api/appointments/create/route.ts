@@ -50,12 +50,20 @@ export async function POST(req: Request) {
 
       const slotRecord = await tx.slot.findUnique({
         where: { id: slotId },
-        select: { startsAt: true },
+        select: {
+          startsAt: true,
+          feePaise: true,
+          provider: {
+            select: { defaultFeePaise: true },
+          },
+        },
       });
 
       if (!slotRecord) {
         throw new Error("Slot not found");
       }
+
+      const slotFeePaise = slotRecord.feePaise ?? slotRecord.provider?.defaultFeePaise ?? DEFAULT_AMOUNT;
 
       const locked = await tx.slot.updateMany({
         where: { id: slotId, providerId, isBooked: false },
@@ -73,12 +81,20 @@ export async function POST(req: Request) {
           slotId,
           status: "PENDING",
           visitMode: body.visitMode === "AUDIO" ? "AUDIO" : "VIDEO",
+          feePaise: slotFeePaise,
+          feeCurrency: "INR",
           ...consentPayload,
         },
         select: { id: true },
       });
 
-      return { appointmentId: appointment.id, patientName: patient.name, slotStartsAt: slotRecord.startsAt, providerId };
+      return {
+        appointmentId: appointment.id,
+        patientName: patient.name,
+        slotStartsAt: slotRecord.startsAt,
+        providerId,
+        feePaise: slotFeePaise,
+      };
     });
 
     const providerContact = await prisma.provider.findUnique({
@@ -98,7 +114,7 @@ export async function POST(req: Request) {
       });
     }
 
-    return NextResponse.json({ appointmentId: result.appointmentId, amount: DEFAULT_AMOUNT });
+    return NextResponse.json({ appointmentId: result.appointmentId, amount: result.feePaise ?? DEFAULT_AMOUNT });
   } catch (err) {
     const message = getErrorMessage(err);
     const status = message.includes("slot") ? 409 : 500;

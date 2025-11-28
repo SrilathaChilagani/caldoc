@@ -38,6 +38,7 @@ model Provider {
   registrationDocKey String?
   isActive           Boolean        @default(true)
   is24x7             Boolean        @default(false)
+  defaultFeePaise    Int            @default(49900)
   slots              Slot[]
   users              ProviderUser[]
   appointments       Appointment[]
@@ -50,6 +51,7 @@ model Slot {
   startsAt     DateTime
   endsAt       DateTime
   isBooked     Boolean       @default(false)
+  feePaise     Int?
   provider     Provider      @relation(fields: [providerId], references: [id])
   appointments Appointment[] // <-- back relation (many appointments per slot)
 
@@ -74,6 +76,8 @@ model Appointment {
   updatedAt    DateTime @updatedAt
   waStatus     String?
   waError      String?
+  feePaise     Int?
+  feeCurrency  String  @default("INR")
 
   // NEW: telemedicine consent
   consentType String? // "IMPLIED" | "EXPLICIT"

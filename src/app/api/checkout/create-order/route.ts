@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
+const DEFAULT_AMOUNT = Number(process.env.CONSULT_FEE_PAISE || 49900);
+
 function basicAuthHeader(key: string, secret: string) {
   const token = Buffer.from(`${key}:${secret}`).toString("base64");
   return `Basic ${token}`;
@@ -16,14 +18,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing appointmentId" }, { status: 400 });
     }
 
-    if (!amount || Number.isNaN(amount)) {
-      amount = 49900;
-    }
-
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
       select: {
-        id: true,
+        feePaise: true,
         patient: {
           select: {
             name: true,
@@ -35,6 +33,14 @@ export async function POST(req: NextRequest) {
 
     if (!appointment) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+    }
+
+    if (!amount || Number.isNaN(amount)) {
+      amount = appointment.feePaise ?? DEFAULT_AMOUNT;
+    }
+
+    if (!amount || Number.isNaN(amount) || amount <= 0) {
+      amount = DEFAULT_AMOUNT;
     }
 
     const key = process.env.RZP_KEY;

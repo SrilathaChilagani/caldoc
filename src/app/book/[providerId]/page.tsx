@@ -30,7 +30,7 @@ export default async function BookPage({ params, searchParams }: PageProps) {
     where: { providerId: provider.id, isBooked: false },
     orderBy: { startsAt: "asc" },
     take: 18,
-    select: { id: true, startsAt: true },
+    select: { id: true, startsAt: true, feePaise: true },
   });
 
   return (
@@ -57,8 +57,13 @@ export default async function BookPage({ params, searchParams }: PageProps) {
             name: provider.name,
             speciality: provider.speciality,
             qualification: provider.qualification,
+            defaultFeePaise: provider.defaultFeePaise,
           }}
-          slots={slots.map((s) => ({ id: s.id, startsAt: s.startsAt.toISOString() }))}
+          slots={slots.map((s) => ({
+            id: s.id,
+            startsAt: s.startsAt.toISOString(),
+            feePaise: s.feePaise ?? undefined,
+          }))}
           initialSlotId={initialSlotId}
         />
       </div>

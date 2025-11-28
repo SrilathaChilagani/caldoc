@@ -11,6 +11,7 @@ export default function ProviderSchedule() {
   const [start, setStart] = useState("09:00");
   const [end, setEnd] = useState("17:00");
   const [intervalMins, setIntervalMins] = useState(30);
+  const [feeRupees, setFeeRupees] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -47,7 +48,14 @@ export default function ProviderSchedule() {
       const res = await fetch("/api/provider/slots/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerId, date, start, end, intervalMins }),
+        body: JSON.stringify({
+          providerId,
+          date,
+          start,
+          end,
+          intervalMins,
+          feePaise: normalizeFeeInput(feeRupees),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
@@ -141,6 +149,21 @@ export default function ProviderSchedule() {
             />
           </label>
 
+          <label className="text-sm">
+            Consultation fee (₹, optional)
+            <input
+              type="number"
+              step="0.01"
+              className="mt-1 w-full rounded border p-2"
+              value={feeRupees}
+              onChange={(e) => setFeeRupees(e.target.value)}
+              placeholder="Example: 599"
+            />
+            <span className="mt-1 block text-xs text-slate-500">
+              Leave blank to reuse your default provider fee.
+            </span>
+          </label>
+
           <button
             onClick={handleGenerate}
             disabled={busy || !providerId}
@@ -154,4 +177,11 @@ export default function ProviderSchedule() {
       </div>
     </main>
   );
+}
+
+function normalizeFeeInput(value: string) {
+  if (!value) return undefined;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return undefined;
+  return Math.round(parsed * 100);
 }

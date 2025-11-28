@@ -3,6 +3,8 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
 
+const DEFAULT_FEE_PAISE = 49900;
+
 export async function POST(req: NextRequest) {
   const sess = await requireAdminSession();
   if (!sess) {
@@ -32,12 +34,14 @@ export async function POST(req: NextRequest) {
       where: {
         OR: [{ id: providerInput }, { slug: providerInput }],
       },
-      select: { id: true },
+      select: { id: true, defaultFeePaise: true },
     });
 
     if (!provider) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
+
+    const explicitFeePaise = normalizeFeePaise(body);
 
     const fromDay = new Date(`${date}T00:00:00`);
     if (isNaN(fromDay.getTime())) {
@@ -79,6 +83,7 @@ export async function POST(req: NextRequest) {
               providerId: provider.id,
               startsAt: slot.startsAt,
               endsAt: slot.endsAt,
+              feePaise: explicitFeePaise ?? provider.defaultFeePaise ?? DEFAULT_FEE_PAISE,
             },
           });
           created += 1;
@@ -123,4 +128,32 @@ function eachDayRange(start: Date, end: Date) {
     cursor.setDate(cursor.getDate() + 1);
   }
   return days;
+}
+
+function normalizeFeePaise(body: Record<string, unknown>): number | null {
+  if (body == null) return null;
+
+  const rawPaise = body.feePaise ?? body.feeAmountPaise ?? body.amountPaise;
+  if (typeof rawPaise === "number" && Number.isFinite(rawPaise) && rawPaise > 0) {
+    return Math.round(rawPaise);
+  }
+  if (typeof rawPaise === "string" && rawPaise.trim()) {
+    const parsed = parseInt(rawPaise.trim(), 10);
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  const rawRupees = body.feeRupees ?? body.feeAmount ?? body.amountRupees;
+  if (typeof rawRupees === "number" && Number.isFinite(rawRupees) && rawRupees > 0) {
+    return Math.round(rawRupees * 100);
+  }
+  if (typeof rawRupees === "string" && rawRupees.trim()) {
+    const parsed = Number(rawRupees.trim());
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      return Math.round(parsed * 100);
+    }
+  }
+
+  return null;
 }

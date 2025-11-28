@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { zonedTimeToUtc } from "date-fns-tz";
 
 const prisma = new PrismaClient();
+const DEFAULT_FEE_PAISE = 49900;
 
 /**
  * Generate slots in IST (Asia/Kolkata) then store as UTC.
@@ -18,9 +19,11 @@ type GenOpts = {
   slotMinutes: number;
   weekdays?: number[];
   providerIds?: string[]; // if omitted, do all providers
+  feePaise?: number;
 };
 
 async function main() {
+  const feePaiseFromEnv = parseFeeFromEnv();
   const opts: GenOpts = {
     days: parseInt(process.env.SLOT_DAYS ?? "14", 10),
     startHour: parseInt(process.env.SLOT_START_HOUR ?? "9", 10),
@@ -34,6 +37,7 @@ async function main() {
     providerIds: process.env.SLOT_PROVIDER_IDS
       ? process.env.SLOT_PROVIDER_IDS.split(",").map((s) => s.trim())
       : undefined,
+    feePaise: feePaiseFromEnv,
   };
 
   // 1) Pick providers
@@ -47,7 +51,7 @@ async function main() {
   }
 
   const IST = "Asia/Kolkata";
-  const created: { providerId: string; startsAt: Date; endsAt: Date }[] = [];
+  const created: { providerId: string; startsAt: Date; endsAt: Date; feePaise: number }[] = [];
 
   // 2) Generate per day, per provider
   const now = new Date();
@@ -59,6 +63,7 @@ async function main() {
     if (opts.weekdays && !opts.weekdays.includes(weekday)) continue;
 
     for (const p of providers) {
+      const slotFee = opts.feePaise ?? p.defaultFeePaise ?? DEFAULT_FEE_PAISE;
       // Build time slots in IST for this calendar day
       // Start from [year, month, date, startHour:00 IST]
       for (let hour = opts.startHour; hour < opts.endHour; hour++) {
@@ -71,7 +76,7 @@ async function main() {
           const startsAtUtc = zonedTimeToUtc(istDateStr, IST);
           const endsAtUtc = new Date(startsAtUtc.getTime() + opts.slotMinutes * 60 * 1000);
 
-          created.push({ providerId: p.id, startsAt: startsAtUtc, endsAt: endsAtUtc });
+          created.push({ providerId: p.id, startsAt: startsAtUtc, endsAt: endsAtUtc, feePaise: slotFee });
         }
       }
     }
@@ -88,6 +93,7 @@ async function main() {
           startsAt: c.startsAt,
           endsAt: c.endsAt,
           isBooked: false,
+          feePaise: c.feePaise,
         })),
         skipDuplicates: true, // requires a unique index (see note)
       });
@@ -106,6 +112,7 @@ async function main() {
               startsAt: c.startsAt,
               endsAt: c.endsAt,
               isBooked: false,
+              feePaise: c.feePaise,
             },
           });
           inserted++;
@@ -121,6 +128,22 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
+}
+
+function parseFeeFromEnv(): number | undefined {
+  const explicitPaise = process.env.SLOT_FEE_PAISE;
+  if (explicitPaise) {
+    const parsed = parseInt(explicitPaise, 10);
+    if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+  }
+  const rupees = process.env.SLOT_FEE_RUPEES;
+  if (rupees) {
+    const parsed = Number(rupees);
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      return Math.round(parsed * 100);
+    }
+  }
+  return undefined;
 }
 
 main()
