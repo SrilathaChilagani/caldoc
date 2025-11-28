@@ -42,8 +42,13 @@ async function main() {
 
   // 1) Pick providers
   const providers = opts.providerIds
-    ? await prisma.provider.findMany({ where: { id: { in: opts.providerIds } } })
-    : await prisma.provider.findMany();
+    ? await prisma.provider.findMany({
+        where: { id: { in: opts.providerIds } },
+        select: { id: true, defaultFeePaise: true },
+      })
+    : await prisma.provider.findMany({
+        select: { id: true, defaultFeePaise: true },
+      });
 
   if (!providers.length) {
     console.log("No providers found. Nothing to do.");
