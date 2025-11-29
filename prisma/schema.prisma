@@ -8,41 +8,41 @@ datasource db {
 }
 
 model Patient {
-  id           String        @id @default(cuid())
-  name         String
-  phone        String        @unique
-  email        String?       @unique
-  dob          DateTime?
-  consentAt    DateTime?
-  createdAt    DateTime      @default(now())
-  appointments Appointment[]
-  addresses    PatientAddress[]
-  documents    PatientDocument[]
+  id              String            @id @default(cuid())
+  name            String
+  phone           String            @unique
+  email           String?           @unique
+  dob             DateTime?
+  consentAt       DateTime?
+  createdAt       DateTime          @default(now())
   profilePhotoKey String?
-  otps         PatientOtp[]
+  appointments    Appointment[]
+  addresses       PatientAddress[]
+  documents       PatientDocument[]
+  PatientLoginOtp PatientLoginOtp[]
+  otps            PatientOtp[]
 }
 
 model Provider {
   id                 String         @id @default(cuid())
   name               String
-  phone              String?
   speciality         String
   languages          String[]
   licenseNo          String
-  // NEW: RMP / council details
-  registrationNumber String? // State / NMC reg no
-  councilName        String? // e.g. "Karnataka Medical Council"
-  qualification      String? // e.g. "MBBS, MD (Dermatology)"
-  profilePhotoKey    String?
-  licenseDocKey      String?
-  registrationDocKey String?
-  isActive           Boolean        @default(true)
   is24x7             Boolean        @default(false)
-  defaultFeePaise    Int            @default(49900)
-  slots              Slot[]
-  users              ProviderUser[]
-  appointments       Appointment[]
   slug               String         @unique @db.VarChar(120)
+  councilName        String?
+  qualification      String?
+  registrationNumber String?
+  isActive           Boolean        @default(true)
+  licenseDocKey      String?
+  profilePhotoKey    String?
+  registrationDocKey String?
+  phone              String?
+  defaultFeePaise    Int            @default(49900)
+  appointments       Appointment[]
+  users              ProviderUser[]
+  slots              Slot[]
 }
 
 model Slot {
@@ -51,71 +51,65 @@ model Slot {
   startsAt     DateTime
   endsAt       DateTime
   isBooked     Boolean       @default(false)
-  feePaise     Int?
+  appointments Appointment[]
   provider     Provider      @relation(fields: [providerId], references: [id])
-  appointments Appointment[] // <-- back relation (many appointments per slot)
 
   @@unique([providerId, startsAt])
 }
 
 model Appointment {
-  id           String   @id @default(cuid())
-  patientId    String
-  providerId   String
-  slotId       String?
-  status       String   @default("PENDING")
-  videoRoom    String?
-  recordingKey String?
-  paymentId    String?
-  visitMode    String   @default("VIDEO")
-  deliveryOpt  String?
-  deliveryAddressId String?
+  id                      String                     @id @default(cuid())
+  patientId               String
+  providerId              String
+  slotId                  String?
+  status                  String                     @default("PENDING")
+  videoRoom               String?
+  recordingKey            String?
+  paymentId               String?
+  deliveryOpt             String?
+  createdAt               DateTime                   @default(now())
+  updatedAt               DateTime                   @updatedAt
+  waError                 String?
+  waStatus                String?
+  consentAt               DateTime?
+  consentMode             String?
+  consentText             String?
+  consentType             String?
+  deliveryAddressId       String?
   deliveryAddressSnapshot Json?
-  uploadLinkSentAt DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  waStatus     String?
-  waError      String?
-  feePaise     Int?
-  feeCurrency  String  @default("INR")
-
-  // NEW: telemedicine consent
-  consentType String? // "IMPLIED" | "EXPLICIT"
-  consentText String? // copy of text shown on booking
-  consentMode String? // "APP_SCREEN" | "WHATSAPP" | etc.
-  consentAt   DateTime? // when patient accepted
-
-  patient       Patient                    @relation(fields: [patientId], references: [id])
-  provider      Provider                   @relation(fields: [providerId], references: [id])
-  slot          Slot?                      @relation(fields: [slotId], references: [id])
-  deliveryAddress PatientAddress? @relation("AppointmentDeliveryAddress", fields: [deliveryAddressId], references: [id])
-  prescription  Prescription?
-  visitNote     VisitNote?
-  messages      OutboundMessage[]
-  statusHistory AppointmentStatusHistory[]
-  payment       Payment?
-  patientDocuments PatientDocument[]
-  pharmacyFulfillment PharmacyFulfillment?
+  uploadLinkSentAt        DateTime?
+  visitMode               String?                    @default("VIDEO")
+  deliveryAddress         PatientAddress?            @relation("AppointmentDeliveryAddress", fields: [deliveryAddressId], references: [id])
+  patient                 Patient                    @relation(fields: [patientId], references: [id])
+  provider                Provider                   @relation(fields: [providerId], references: [id])
+  slot                    Slot?                      @relation(fields: [slotId], references: [id])
+  statusHistory           AppointmentStatusHistory[]
+  messages                OutboundMessage[]
+  patientDocuments        PatientDocument[]
+  payment                 Payment?
+  PaymentReceipt          PaymentReceipt?
+  pharmacyFulfillment     PharmacyFulfillment?
+  prescription            Prescription?
+  visitNote               VisitNote?
 }
 
 model Payment {
-  id            String   @id @default(cuid())
+  id            String       @id @default(cuid())
   gateway       String
-  orderId       String   @unique
+  orderId       String       @unique
   paymentRef    String?
   amount        Int
-  currency      String   @default("INR")
+  currency      String       @default("INR")
   status        String
-  appointmentId String?  @unique
+  appointmentId String?      @unique
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @default(now())
   receiptUrl    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now()) // TEMP: optional of @updatedAt removed
-
-  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
 }
 
 model PatientAddress {
-  id           String   @id @default(cuid())
+  id           String        @id @default(cuid())
   patientId    String
   label        String?
   contactName  String?
@@ -126,46 +120,43 @@ model PatientAddress {
   state        String
   postalCode   String
   instructions String?
-  savedAt      DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  savedAt      DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   lastUsedAt   DateTime?
-
-  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
   appointments Appointment[] @relation("AppointmentDeliveryAddress")
+  patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   @@index([patientId])
   @@index([contactPhone])
 }
 
 model PatientDocument {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   appointmentId String
   patientId     String
   key           String
   fileName      String
   contentType   String?
-  createdAt     DateTime @default(now())
-
-  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  patient     Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient       Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   @@index([appointmentId])
 }
 
 model PatientOtp {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   patientId      String?
   phoneRaw       String
   phoneCanonical String
   last10         String
   otpHash        String
   expiresAt      DateTime
-  attempts       Int      @default(0)
-  lastSentAt     DateTime @default(now())
-  createdAt      DateTime @default(now())
+  attempts       Int       @default(0)
+  lastSentAt     DateTime  @default(now())
+  createdAt      DateTime  @default(now())
   usedAt         DateTime?
-
-  patient Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  patient        Patient?  @relation(fields: [patientId], references: [id])
 
   @@index([phoneCanonical])
   @@index([last10])
@@ -204,10 +195,9 @@ model ProviderUser {
   providerId   String
   email        String   @unique
   passwordHash String
-  role         String   @default("provider")
+  role         String   @default("admin")
   createdAt    DateTime @default(now())
-
-  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider     Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 }
 
 model AdminUser {
@@ -218,52 +208,41 @@ model AdminUser {
 }
 
 model VisitNote {
-  id            String   @id @default(cuid())
-  appointmentId String   @unique
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
   text          String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 }
 
-// Track every status transition by a provider or system
 model AppointmentStatusHistory {
   id            String      @id @default(cuid())
   appointmentId String
+  fromStatus    String
+  toStatus      String
+  actorType     String
+  actorId       String?
+  reason        String?
+  createdAt     DateTime    @default(now())
   appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-
-  // e.g. "CONFIRMED" -> "CANCELED"
-  fromStatus String
-  toStatus   String
-
-  // who/what did it
-  actorType String // "PROVIDER" | "SYSTEM"
-  actorId   String? // providerUser.id when actorType=PROVIDER
-  reason    String? // optional free-text or enum ("patient_requested", "provider_unavailable", ...)
-
-  createdAt DateTime @default(now())
 
   @@index([appointmentId, createdAt])
 }
 
-// Persist every outbound message (WhatsApp/SMS/email) we send
 model OutboundMessage {
   id            String      @id @default(cuid())
   appointmentId String
+  channel       String
+  toPhone       String?
+  toEmail       String?
+  template      String?
+  body          String?
+  status        String
+  error         String?
+  createdAt     DateTime    @default(now())
+  kind          String?
   appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-
-  channel  String // "WHATSAPP" | "SMS" | "EMAIL"
-  toPhone  String?
-  toEmail  String?
-  template String? // template name used, if any
-  body     String? // rendered text we attempted to send
-
-  status String // "QUEUED" | "SENT" | "FAILED"
-  error  String?
-
-  createdAt DateTime @default(now())
-  kind      String? // e.g. "REMINDER_24H" | "REMINDER_10M" | "RX_PDF"
 
   @@index([appointmentId, createdAt])
   @@index([appointmentId, template, status])
@@ -271,22 +250,42 @@ model OutboundMessage {
 }
 
 model PharmacyFulfillment {
-  id            String   @id @default(cuid())
-  appointmentId String   @unique
-  status        String   @default("READY")
+  id            String       @id @default(cuid())
+  status        String       @default("READY")
   notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime     @default(now()) @updatedAt @db.Timestamptz(6)
+  appointmentId String?      @unique
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 }
 
 model OfflineRequest {
-  id        String   @id @default(cuid())
-  name      String
-  phone     String
+  id         String    @id @default(cuid())
+  name       String
+  phone      String
   speciality String?
-  notes     String?
-  status    String   @default("RECEIVED")
-  createdAt DateTime @default(now())
-  resolvedAt DateTime?
+  notes      String?
+  status     String    @default("RECEIVED")
+  createdAt  DateTime  @default(now()) @db.Timestamptz(6)
+  resolvedAt DateTime? @db.Timestamptz(6)
+}
+
+model PatientLoginOtp {
+  phoneKey   String   @id
+  patientId  String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  lastSentAt DateTime @default(now())
+  sendCount  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  Patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model PaymentReceipt {
+  appointmentId String      @id
+  key           String
+  createdAt     DateTime    @default(now())
+  Appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 }
