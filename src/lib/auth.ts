@@ -26,25 +26,33 @@ function normalizeCookieDomain(candidate?: string | null): string | undefined {
   return `.${domain}`;
 }
 
-function inferCookieDomain(): string | undefined {
-  const explicit = normalizeCookieDomain(process.env.SESSION_COOKIE_DOMAIN || null);
-  if (explicit) return explicit;
-
+function inferDomainFromEnv(): string | undefined {
   const urlCandidate =
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     process.env.APP_BASE_URL?.trim() ||
+    process.env.VERCEL_URL?.trim() ||
     "";
   if (!urlCandidate) return undefined;
 
   try {
-    const hostname = new URL(urlCandidate).hostname;
+    const hostname = new URL(urlCandidate.startsWith("http") ? urlCandidate : `https://${urlCandidate}`).hostname;
     return normalizeCookieDomain(hostname);
   } catch {
     return undefined;
   }
 }
 
-export const SESSION_COOKIE_DOMAIN = inferCookieDomain();
+const explicitDomain = normalizeCookieDomain(process.env.SESSION_COOKIE_DOMAIN || null);
+const inferredDomain = explicitDomain ?? inferDomainFromEnv();
+
+export const SESSION_COOKIE_DOMAIN = inferredDomain;
+
+export function resolveSessionCookieDomain(hostname?: string): string | undefined {
+  if (explicitDomain) return explicitDomain;
+  const runtime = normalizeCookieDomain(hostname || null);
+  if (runtime) return runtime;
+  return inferredDomain;
+}
 
 export type SessionPayload = {
   uid: string;
