@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, signSession } from "@/lib/auth";
+import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, SESSION_COOKIE_DOMAIN, signSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -147,6 +147,7 @@ export async function POST(req: NextRequest) {
       target.search = "";
     }
     const res = NextResponse.redirect(target, 303);
+    const domainOption = SESSION_COOKIE_DOMAIN ? { domain: SESSION_COOKIE_DOMAIN } : {};
     const cookieName = role === "admin" ? ADMIN_JWT_NAME : PROVIDER_JWT_NAME;
     res.cookies.set(cookieName, token, {
       httpOnly: true,
@@ -154,9 +155,10 @@ export async function POST(req: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
+      ...domainOption,
     });
     const otherCookie = cookieName === ADMIN_JWT_NAME ? PROVIDER_JWT_NAME : ADMIN_JWT_NAME;
-    res.cookies.set(otherCookie, "", { path: "/", maxAge: 0 });
+    res.cookies.set(otherCookie, "", { path: "/", maxAge: 0, ...domainOption });
 
 
     return res;

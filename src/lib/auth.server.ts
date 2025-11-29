@@ -2,7 +2,7 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
-import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, SessionPayload } from "./auth";
+import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, SESSION_COOKIE_DOMAIN, SessionPayload } from "./auth";
 
 function requireSecret(): string {
   const s = process.env.JWT_SECRET;
@@ -73,6 +73,7 @@ export async function requireAdminSession(): Promise<{ userId: string; role: str
 
 export async function clearSessionCookies() {
   const jar = await cookies();
-  jar.set(PROVIDER_JWT_NAME, "", { path: "/", maxAge: 0 });
-  jar.set(ADMIN_JWT_NAME, "", { path: "/", maxAge: 0 });
+  const domainOption = SESSION_COOKIE_DOMAIN ? { domain: SESSION_COOKIE_DOMAIN } : {};
+  jar.set(PROVIDER_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
+  jar.set(ADMIN_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
 }

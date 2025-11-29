@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 export const PROVIDER_JWT_NAME = "prov_session";
 export const ADMIN_JWT_NAME = "admin_sess";
 export const MAX_AGE_DAYS = 7;
+export const SESSION_COOKIE_DOMAIN = process.env.SESSION_COOKIE_DOMAIN?.trim() || undefined;
 
 export type SessionPayload = {
   uid: string;
