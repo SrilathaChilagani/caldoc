@@ -10,8 +10,8 @@ import AppointmentFeeForm from "./AppointmentFeeForm";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: Promise<{ id: string }>;
-  searchParams?: Promise<{ from?: string }>;
+  params: { id: string };
+  searchParams?: { from?: string };
 };
 
 function categoryLabel(value: unknown) {
@@ -48,13 +48,18 @@ function formatINR(paise?: number | null) {
 }
 
 export default async function ProviderAppointmentDetail({ params, searchParams }: PageProps) {
-  const { id } = await params;
-  const sp = (await searchParams) || {};
-  const cameFromAdmin = sp.from === "admin";
+  const { id } = params;
+  const sp = searchParams ?? {};
   const providerSess = await readProviderSession();
-  const adminSess = cameFromAdmin ? await requireAdminSession() : null;
-  if (!providerSess && !adminSess) {
-    redirect(`/provider/login?next=/provider/appointments/${id}`);
+  const adminSess = await requireAdminSession();
+  const viewingAsAdmin = Boolean(adminSess);
+  const cameFromAdmin = viewingAsAdmin || sp.from === "admin";
+
+  if (!providerSess && !viewingAsAdmin) {
+    const nextSearch = new URLSearchParams();
+    if (sp.from) nextSearch.set("from", sp.from);
+    const nextPath = `/provider/appointments/${id}${nextSearch.toString() ? `?${nextSearch.toString()}` : ""}`;
+    redirect(`/provider/login?next=${encodeURIComponent(nextPath)}`);
   }
 
   const appointment = await prisma.appointment.findUnique({
@@ -69,7 +74,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
     },
   });
 
-  if (!appointment || (!adminSess && providerSess && appointment.providerId !== providerSess.pid)) {
+  if (!appointment || (!viewingAsAdmin && providerSess && appointment.providerId !== providerSess.pid)) {
     return (
       <main className="mx-auto max-w-4xl space-y-4 px-4 py-10">
         <Link
@@ -108,7 +113,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
     select: { id: true, startsAt: true },
   });
 
-  const readOnly = Boolean(adminSess && cameFromAdmin);
+  const readOnly = viewingAsAdmin;
   const effectiveFeePaise =
     appointment.feePaise ??
     appointment.slot?.feePaise ??
@@ -210,17 +215,19 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
           </div>
         </dl>
 
-        <div className="mt-8">
-          <AppointmentActions
-            appointmentId={appointment.id}
-            currentStatus={appointment.status}
-            uploadLinkSent={Boolean(appointment.uploadLinkSentAt)}
-            availableSlots={availableSlots.map((slot) => ({
-              id: slot.id,
-              startsAt: slot.startsAt.toISOString(),
-            }))}
-          />
-        </div>
+        {!readOnly && (
+          <div className="mt-8">
+            <AppointmentActions
+              appointmentId={appointment.id}
+              currentStatus={appointment.status}
+              uploadLinkSent={Boolean(appointment.uploadLinkSentAt)}
+              availableSlots={availableSlots.map((slot) => ({
+                id: slot.id,
+                startsAt: slot.startsAt.toISOString(),
+              }))}
+            />
+          </div>
+        )}
       </section>
 
       <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
