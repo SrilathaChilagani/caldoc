@@ -1,12 +1,13 @@
 // src/app/provider/login/page.tsx
 import { redirect } from "next/navigation";
-import { readProviderSession } from "@/lib/auth.server";
+import { readProviderSession, readAdminSession } from "@/lib/auth.server";
 import LoginForm from "./ui/LoginForm";
 
 export default async function ProviderLoginPage({
   searchParams,
 }: { searchParams: Promise<{ next?: string; logged_out?: string; err?: string; uid?: string }> }) {
-  const sess = await readProviderSession();
+  const providerSess = await readProviderSession();
+  const adminSess = await readAdminSession();
   const sp = await searchParams;
   const next = sp?.next || "/provider/appointments";
   const loggedOut = !!sp?.logged_out;
@@ -19,13 +20,18 @@ export default async function ProviderLoginPage({
       ? "Unable to sign in right now. Please try again."
       : undefined;
 
-  if (sess) redirect(next);
-
   const portalTarget = next.includes("/admin")
     ? "admin"
     : next.includes("/pharmacy")
     ? "pharmacy"
     : "provider";
+
+  if (portalTarget === "admin" && adminSess) {
+    redirect(next);
+  }
+  if (portalTarget !== "admin" && providerSess) {
+    redirect(next);
+  }
 
   const portalCopy = {
     provider: {
