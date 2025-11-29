@@ -1,18 +1,51 @@
+import { notFound } from "next/navigation";
+import type { ReadonlyURLSearchParams } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getProviderBySlugOrId } from "@/lib/provider";
 import BookClient from "./ui/BookClient";
 
 export const dynamic = "force-dynamic";
 
+type SearchParamValue = string | string[] | undefined;
+
+type SearchParamsInput =
+  | ReadonlyURLSearchParams
+  | {
+      [key: string]: SearchParamValue;
+    };
+
 type PageProps = {
-  params: Promise<{ providerId: string }>;
-  searchParams?: Promise<{ slot?: string }>;
+  params: Promise<{ providerId?: string } | undefined>;
+  searchParams?: Promise<SearchParamsInput | undefined>;
 };
 
+function isReadonlyURLSearchParams(value: unknown): value is ReadonlyURLSearchParams {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "get" in value &&
+    typeof (value as Record<string, unknown>).get === "function"
+  );
+}
+
+function getInitialSlotId(sp?: SearchParamsInput) {
+  if (!sp) return undefined;
+  if (isReadonlyURLSearchParams(sp)) {
+    return sp.get("slot") ?? undefined;
+  }
+  const raw = sp.slot;
+  return Array.isArray(raw) ? raw[0] : raw;
+}
+
 export default async function BookPage({ params, searchParams }: PageProps) {
-  const { providerId } = await params;
-  const sp = (await searchParams) || {};
-  const initialSlotId = sp.slot;
+  const resolvedParams = (await params) ?? {};
+  const providerId = resolvedParams.providerId;
+
+  if (!providerId) {
+    notFound();
+  }
+
+  const initialSlotId = getInitialSlotId(await searchParams);
 
   const provider = await getProviderBySlugOrId(providerId);
   if (!provider) {
