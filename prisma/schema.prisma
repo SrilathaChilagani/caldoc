@@ -51,6 +51,7 @@ model Slot {
   startsAt     DateTime
   endsAt       DateTime
   isBooked     Boolean       @default(false)
+  feePaise     Int?
   appointments Appointment[]
   provider     Provider      @relation(fields: [providerId], references: [id])
 
@@ -63,6 +64,8 @@ model Appointment {
   providerId              String
   slotId                  String?
   status                  String                     @default("PENDING")
+  feePaise                Int?
+  feeCurrency             String?                    @default("INR")
   videoRoom               String?
   recordingKey            String?
   paymentId               String?
