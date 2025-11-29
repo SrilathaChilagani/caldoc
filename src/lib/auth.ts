@@ -15,8 +15,19 @@ function isIpOrLocalhost(host?: string) {
   );
 }
 
+function normalizeCookieDomain(candidate?: string | null): string | undefined {
+  if (!candidate) return undefined;
+  let domain = candidate.trim().toLowerCase();
+  if (!domain) return undefined;
+  domain = domain.replace(/^https?:\/\//, "").split("/")[0];
+  domain = domain.replace(/^\.+/, "");
+  if (domain.startsWith("www.")) domain = domain.slice(4);
+  if (!domain || isIpOrLocalhost(domain)) return undefined;
+  return `.${domain}`;
+}
+
 function inferCookieDomain(): string | undefined {
-  const explicit = process.env.SESSION_COOKIE_DOMAIN?.trim();
+  const explicit = normalizeCookieDomain(process.env.SESSION_COOKIE_DOMAIN || null);
   if (explicit) return explicit;
 
   const urlCandidate =
@@ -27,8 +38,7 @@ function inferCookieDomain(): string | undefined {
 
   try {
     const hostname = new URL(urlCandidate).hostname;
-    if (!hostname || isIpOrLocalhost(hostname)) return undefined;
-    return hostname.startsWith(".") ? hostname : hostname;
+    return normalizeCookieDomain(hostname);
   } catch {
     return undefined;
   }
