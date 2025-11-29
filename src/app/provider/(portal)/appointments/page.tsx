@@ -220,12 +220,14 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
             >
               Manage slots
             </Link>
-            <Link
-              href="/provider/logout"
-              className="inline-flex items-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-700"
-            >
-              Sign out
-            </Link>
+            <form action="/provider/logout" method="post">
+              <button
+                type="submit"
+                className="inline-flex items-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-700"
+              >
+                Sign out
+              </button>
+            </form>
           </div>
         </div>
 
