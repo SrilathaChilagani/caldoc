@@ -55,28 +55,30 @@ export async function POST(req: NextRequest) {
     }
     const defaultPassword = process.env.PROVIDER_PORTAL_DEFAULT_PASSWORD || "Passw0rd!";
 
-    let providerUser = await prisma.providerUser.findUnique({
+    const adminUser = await prisma.adminUser.findUnique({
       where: { email },
-      select: { id: true, providerId: true, role: true, passwordHash: true, email: true },
+      select: { id: true, passwordHash: true },
     });
 
-    let userId = providerUser?.id;
-    let providerId = providerUser?.providerId || "";
-    let role = providerUser ? "provider" : "provider";
-    let passwordHash = providerUser?.passwordHash;
+    let providerUser: {
+      id: string;
+      providerId: string;
+      role: string;
+      passwordHash: string;
+      email: string;
+    } | null = null;
 
-    if (!providerUser) {
-      const adminUser = await prisma.adminUser.findUnique({
+    if (!adminUser) {
+      providerUser = await prisma.providerUser.findUnique({
         where: { email },
-        select: { id: true, passwordHash: true },
+        select: { id: true, providerId: true, role: true, passwordHash: true, email: true },
       });
-      if (adminUser) {
-        userId = adminUser.id;
-        providerId = "admin";
-        role = "admin";
-        passwordHash = adminUser.passwordHash;
-      }
     }
+
+    let userId = adminUser?.id ?? providerUser?.id;
+    let providerId = adminUser ? "admin" : providerUser?.providerId || "";
+    let role = adminUser ? "admin" : providerUser ? "provider" : "provider";
+    let passwordHash = adminUser?.passwordHash ?? providerUser?.passwordHash;
 
     if (!providerUser && !passwordHash) {
       providerUser = await bootstrapProviderAccount(email, password);
