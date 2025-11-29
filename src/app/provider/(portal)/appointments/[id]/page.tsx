@@ -10,8 +10,8 @@ import AppointmentFeeForm from "./AppointmentFeeForm";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: { id: string };
-  searchParams?: { from?: string };
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ from?: string }>;
 };
 
 function categoryLabel(value: unknown) {
@@ -48,8 +48,8 @@ function formatINR(paise?: number | null) {
 }
 
 export default async function ProviderAppointmentDetail({ params, searchParams }: PageProps) {
-  const { id } = params;
-  const sp = searchParams ?? {};
+  const { id } = await params;
+  const sp = (await searchParams) ?? {};
   const providerSess = await readProviderSession();
   const adminSess = await requireAdminSession();
   const viewingAsAdmin = Boolean(adminSess);
