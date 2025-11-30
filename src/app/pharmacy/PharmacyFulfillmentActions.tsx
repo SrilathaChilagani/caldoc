@@ -11,9 +11,10 @@ type Props = {
   appointmentId: string;
   currentStatus: string;
   flow: "DELIVERY" | "WHATSAPP";
+  canUpdate: boolean;
 };
 
-export default function PharmacyFulfillmentActions({ appointmentId, currentStatus, flow }: Props) {
+export default function PharmacyFulfillmentActions({ appointmentId, currentStatus, flow, canUpdate }: Props) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function PharmacyFulfillmentActions({ appointmentId, currentStatu
             key={status}
             type="button"
             onClick={() => handleUpdate(status)}
-            disabled={pending || status === currentStatus}
+            disabled={pending || status === currentStatus || !canUpdate}
             className={`rounded-full border px-3 py-1 font-semibold ${
               status === currentStatus
                 ? "border-emerald-400 bg-emerald-50 text-emerald-700"
@@ -59,6 +60,9 @@ export default function PharmacyFulfillmentActions({ appointmentId, currentStatu
           </button>
         ))}
       </div>
+      {!canUpdate && (
+        <p className="text-[11px] text-slate-500">Prescription pending — status updates disabled.</p>
+      )}
       {message && <p>{message}</p>}
     </div>
   );

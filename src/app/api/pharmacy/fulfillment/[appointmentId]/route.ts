@@ -36,11 +36,16 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
         deliveryOpt: true,
         patient: { select: { name: true, phone: true } },
         provider: { select: { name: true } },
+        prescription: { select: { pdfKey: true } },
       },
     });
 
     if (!appointment) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+    }
+
+    if (!appointment.prescription?.pdfKey) {
+      return NextResponse.json({ error: "Prescription not ready" }, { status: 400 });
     }
 
     const allowedStatuses =

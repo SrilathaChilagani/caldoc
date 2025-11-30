@@ -99,6 +99,7 @@ export default async function PharmacyDashboardPage() {
       fulfillmentStatus,
       fulfillmentLabel: STATUS_LABELS[fulfillmentStatus],
       fulfillmentFlow: (isDelivery ? "DELIVERY" : "WHATSAPP") as "DELIVERY" | "WHATSAPP",
+      canUpdateStatus: Boolean(appt.prescription?.pdfKey),
     };
   });
 
@@ -195,6 +196,7 @@ export default async function PharmacyDashboardPage() {
                         appointmentId={appt.id}
                         currentStatus={appt.fulfillmentStatus}
                         flow={appt.fulfillmentFlow}
+                        canUpdate={appt.canUpdateStatus}
                       />
                     </div>
                   </td>
