@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requireAdminSession, readProviderSession } from "@/lib/auth.server";
 
 const DEFAULT_FEE_PAISE = 49900;
 
 export async function POST(req: NextRequest) {
-  const sess = await requireAdminSession();
-  if (!sess) {
+  const adminSess = await requireAdminSession();
+  const providerSess = adminSess ? null : await readProviderSession();
+  if (!adminSess && !providerSess) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -39,6 +40,10 @@ export async function POST(req: NextRequest) {
 
     if (!provider) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
+    if (providerSess && provider.id !== providerSess.providerId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const explicitFeePaise = normalizeFeePaise(body);
