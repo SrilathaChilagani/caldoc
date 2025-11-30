@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
 
-    if (providerSess && provider.id !== providerSess.providerId) {
+    if (providerSess && provider.id !== providerSess.pid) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

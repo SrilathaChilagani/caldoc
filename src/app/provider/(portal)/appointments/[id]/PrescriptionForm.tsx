@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -43,6 +43,14 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
   const [meds, setMeds] = useState<Medicine[]>(normalizeInitialMeds(initialMeds));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [medSuggestions, setMedSuggestions] = useState<Record<number, string[]>>({});
+  const controllersRef = useRef<Record<number, AbortController | null>>({});
+
+  useEffect(() => {
+    return () => {
+      Object.values(controllersRef.current).forEach((controller) => controller?.abort());
+    };
+  }, []);
 
   function updateMed(index: number, field: keyof Medicine, value: string) {
     setMeds((prev) => {
@@ -58,6 +66,45 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
 
   function removeRow(index: number) {
     setMeds((prev) => prev.filter((_, idx) => idx !== index));
+  }
+
+  function requestSuggestions(index: number, value: string) {
+    const term = value.trim();
+    if (term.length < 2) {
+      setMedSuggestions((prev) => {
+        if (!prev[index]) return prev;
+        const clone = { ...prev };
+        delete clone[index];
+        return clone;
+      });
+      controllersRef.current[index]?.abort();
+      controllersRef.current[index] = null;
+      return;
+    }
+    const controller = new AbortController();
+    controllersRef.current[index]?.abort();
+    controllersRef.current[index] = controller;
+    fetch(`/api/provider/medications?q=${encodeURIComponent(term)}`, {
+      cache: "no-store",
+      credentials: "include",
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data || controller.signal.aborted) return;
+        const names = Array.isArray(data.medications)
+          ? data.medications.map((m: { name?: string }) => m?.name).filter(Boolean)
+          : [];
+        setMedSuggestions((prev) => ({ ...prev, [index]: names }));
+      })
+      .catch((err) => {
+        if ((err as Error).name === "AbortError") return;
+      });
+  }
+
+  function handleNameInput(index: number, value: string) {
+    updateMed(index, "name", value);
+    requestSuggestions(index, value);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -102,11 +149,17 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
               <input
                 type="text"
                 value={med.name}
-                onChange={(e) => updateMed(idx, "name", e.target.value)}
+                onChange={(e) => handleNameInput(idx, e.target.value)}
                 className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
                 placeholder="e.g. Azithromycin 500mg"
                 required={idx === 0}
+                list={`med-suggestions-${idx}`}
               />
+              <datalist id={`med-suggestions-${idx}`}>
+                {(medSuggestions[idx] || []).map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
             </label>
             <label className="flex-1 text-sm font-medium text-slate-700">
               Sig / instructions
