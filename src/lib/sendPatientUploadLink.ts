@@ -12,7 +12,7 @@ type AppointmentForUpload = {
 };
 
 const DEFAULT_TEMPLATE =
-  process.env.WHATSAPP_TMPL_UPLOAD || "whatsapp_upload_template";
+  process.env.WHATSAPP_TMPL_UPLOAD || "WHATSAPP_UPLOAD_Template";
 
 export async function sendPatientUploadLink(
   appt: AppointmentForUpload | null,

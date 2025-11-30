@@ -5,7 +5,7 @@ import { getErrorMessage } from "@/lib/errors";
 const PROVIDER_TEMPLATE =
   process.env.WHATSAPP_PROVIDER_TEMPLATE ||
   process.env.WHATSAPP_TMPL_PROVIDER_ALERT ||
-  "provider_booking_alert";
+  "WHATSAPP_PROVIDER_TEMPLATE";
 
 function formatIST(date: Date) {
   return date.toLocaleString("en-IN", {

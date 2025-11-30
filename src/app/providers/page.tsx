@@ -28,6 +28,15 @@ function formatSlot(date: Date) {
   });
 }
 
+function formatFee(paise?: number | null) {
+  if (typeof paise !== "number" || Number.isNaN(paise) || paise <= 0) return null;
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+  }).format(paise / 100);
+}
+
 type PageProps = {
   searchParams?: Promise<{ q?: string; specialty?: string }>;
 };
@@ -71,6 +80,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
       qualification: true,
       languages: true,
       is24x7: true,
+      defaultFeePaise: true,
       slots: {
         where: {
           isBooked: false,
@@ -123,6 +133,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
 
           {providers.map((provider) => {
             const displayedSlots = provider.slots.slice(0, 3);
+            const feeLabel = formatFee(provider.defaultFeePaise);
             return (
               <div
                 key={provider.id}
@@ -139,6 +150,9 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
                       <p className="text-xs text-slate-500">
                         Languages: {provider.languages.map(formatLanguage).join(", ")}
                       </p>
+                    )}
+                    {feeLabel && (
+                      <p className="text-xs font-semibold text-slate-600">Consultation fee: {feeLabel}</p>
                     )}
                     {provider.is24x7 && (
                       <p className="text-xs font-medium text-emerald-600">Available 24x7</p>

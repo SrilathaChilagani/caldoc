@@ -2,7 +2,7 @@ import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { buildPatientPhoneMeta } from "@/lib/phone";
 import { getErrorMessage } from "@/lib/errors";
 
-const templateName = process.env.WHATSAPP_TMPL_PHARMACY_STATUS;
+const templateName = process.env.WHATSAPP_TMPL_PHARMACY_STATUS || "pharmacy_status";
 
 export async function sendPharmacyUpdate(opts: {
   phone?: string | null;
