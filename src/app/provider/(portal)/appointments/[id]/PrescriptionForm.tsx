@@ -26,6 +26,15 @@ type Props = {
   initialMeds: Medicine[];
 };
 
+type MedicationSuggestion = {
+  id: string;
+  name: string;
+  generic?: string | null;
+  form?: string | null;
+  strength?: string | null;
+  category?: string | null;
+};
+
 function normalizeInitialMeds(initial: Medicine[]): Medicine[] {
   if (!initial.length) {
     return [{ name: "", sig: "", qty: "", category: "OTC" }];
@@ -43,7 +52,9 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
   const [meds, setMeds] = useState<Medicine[]>(normalizeInitialMeds(initialMeds));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [medSuggestions, setMedSuggestions] = useState<Record<number, string[]>>({});
+  const [medSuggestions, setMedSuggestions] = useState<Record<number, MedicationSuggestion[]>>({});
+  const [openSuggestions, setOpenSuggestions] = useState<Record<number, boolean>>({});
+  const [highlighted, setHighlighted] = useState<Record<number, number>>({});
   const controllersRef = useRef<Record<number, AbortController | null>>({});
 
   useEffect(() => {
@@ -77,6 +88,18 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
         delete clone[index];
         return clone;
       });
+      setOpenSuggestions((prev) => {
+        if (!prev[index]) return prev;
+        const clone = { ...prev };
+        delete clone[index];
+        return clone;
+      });
+      setHighlighted((prev) => {
+        if (prev[index] === undefined) return prev;
+        const clone = { ...prev };
+        delete clone[index];
+        return clone;
+      });
       controllersRef.current[index]?.abort();
       controllersRef.current[index] = null;
       return;
@@ -92,10 +115,10 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data || controller.signal.aborted) return;
-        const names = Array.isArray(data.medications)
-          ? data.medications.map((m: { name?: string }) => m?.name).filter(Boolean)
-          : [];
-        setMedSuggestions((prev) => ({ ...prev, [index]: names }));
+        const meds: MedicationSuggestion[] = Array.isArray(data.medications) ? data.medications : [];
+        setMedSuggestions((prev) => ({ ...prev, [index]: meds }));
+        setOpenSuggestions((prev) => ({ ...prev, [index]: meds.length > 0 }));
+        setHighlighted((prev) => ({ ...prev, [index]: meds.length > 0 ? 0 : -1 }));
       })
       .catch((err) => {
         if ((err as Error).name === "AbortError") return;
@@ -105,6 +128,49 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
   function handleNameInput(index: number, value: string) {
     updateMed(index, "name", value);
     requestSuggestions(index, value);
+  }
+
+  function applySuggestion(index: number, suggestion: MedicationSuggestion) {
+    updateMed(index, "name", suggestion.name);
+    if (suggestion.category) {
+      updateMed(index, "category", suggestion.category as DrugCategory);
+    }
+    setOpenSuggestions((prev) => ({ ...prev, [index]: false }));
+  }
+
+  function handleKeyDown(index: number, event: React.KeyboardEvent<HTMLInputElement>) {
+    const list = medSuggestions[index] || [];
+    if (!list.length) return;
+    const current = highlighted[index] ?? -1;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      const next = current + 1 >= list.length ? 0 : current + 1;
+      setHighlighted((prev) => ({ ...prev, [index]: next }));
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      const next = current - 1 < 0 ? list.length - 1 : current - 1;
+      setHighlighted((prev) => ({ ...prev, [index]: next }));
+      return;
+    }
+    if (event.key === "Enter") {
+      if (current >= 0 && list[current]) {
+        event.preventDefault();
+        applySuggestion(index, list[current]);
+      }
+      return;
+    }
+    if (event.key === "Escape") {
+      setOpenSuggestions((prev) => ({ ...prev, [index]: false }));
+    }
+  }
+
+  function handleBlur(index: number) {
+    setTimeout(() => {
+      setOpenSuggestions((prev) => ({ ...prev, [index]: false }));
+    }, 150);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -143,24 +209,55 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
     <form onSubmit={handleSubmit} className="space-y-4">
       {meds.map((med, idx) => (
         <div key={idx} className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
-          <div className="flex flex-col gap-2 md:flex-row">
-            <label className="flex-1 text-sm font-medium text-slate-700">
-              Medicine name
-              <input
-                type="text"
-                value={med.name}
-                onChange={(e) => handleNameInput(idx, e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                placeholder="e.g. Azithromycin 500mg"
-                required={idx === 0}
-                list={`med-suggestions-${idx}`}
-              />
-              <datalist id={`med-suggestions-${idx}`}>
-                {(medSuggestions[idx] || []).map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
-            </label>
+            <div className="flex flex-col gap-2 md:flex-row">
+              <label className="flex-1 text-sm font-medium text-slate-700">
+                Medicine name
+                <div className="relative mt-1">
+                  <input
+                    type="text"
+                    value={med.name}
+                    onChange={(e) => handleNameInput(idx, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(idx, e)}
+                    onFocus={() => {
+                      if ((medSuggestions[idx] || []).length > 0) {
+                        setOpenSuggestions((prev) => ({ ...prev, [idx]: true }));
+                      }
+                    }}
+                    onBlur={() => handleBlur(idx)}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    placeholder="e.g. Azithromycin 500mg"
+                    required={idx === 0}
+                  />
+                  {openSuggestions[idx] && (medSuggestions[idx]?.length ?? 0) > 0 && (
+                    <div className="absolute z-20 mt-2 max-h-60 w-full overflow-auto rounded-2xl border border-slate-200 bg-white shadow-lg">
+                      {(medSuggestions[idx] || []).map((option, optionIdx) => {
+                        const active = highlighted[idx] === optionIdx;
+                        return (
+                          <button
+                            type="button"
+                            key={option.id}
+                            className={`flex w-full flex-col items-start px-4 py-2 text-left text-sm ${
+                              active ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:bg-slate-50"
+                            }`}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              applySuggestion(idx, option);
+                            }}
+                            onMouseEnter={() => setHighlighted((prev) => ({ ...prev, [idx]: optionIdx }))}
+                          >
+                            <span className="font-medium">{option.name}</span>
+                            {(option.generic || option.strength || option.form) && (
+                              <span className="text-xs text-slate-500">
+                                {[option.generic, option.strength, option.form].filter(Boolean).join(" · ")}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </label>
             <label className="flex-1 text-sm font-medium text-slate-700">
               Sig / instructions
               <input
