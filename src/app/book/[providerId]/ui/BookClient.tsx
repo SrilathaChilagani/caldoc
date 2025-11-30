@@ -187,12 +187,23 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       {step === "slot" && (
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
           <div className="flex flex-col gap-4">
-            <div>
+            <div className="space-y-2">
               <p className="text-xs uppercase text-slate-500">Step 1</p>
               <h2 className="text-xl font-semibold text-slate-900">Choose a slot</h2>
               <p className="text-sm text-slate-500">
                 Select a time, enter the patient details, and accept the telemedicine consent.
               </p>
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <p className="font-medium text-slate-900">Consultation fee</p>
+                <p className="text-lg font-semibold text-blue-700">
+                  {selectedSlotFeeLabel ?? "Will be confirmed before payment"}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {selectedSlotFeeLabel
+                    ? "Includes telemedicine consult and follow-up prescription."
+                    : "Final amount is shown once the doctor confirms the booking."}
+                </p>
+              </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

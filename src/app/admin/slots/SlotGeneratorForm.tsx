@@ -44,6 +44,7 @@ export default function SlotGeneratorForm({ providers }: Props) {
       const res = await fetch("/api/provider/slots/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           providerId: effectiveProviderId,
           date,

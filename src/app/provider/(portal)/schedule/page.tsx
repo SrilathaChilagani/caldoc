@@ -23,7 +23,10 @@ export default function ProviderSchedule() {
 
     async function loadSelf() {
       try {
-        const res = await fetch("/api/provider/self", { cache: "no-store" });
+        const res = await fetch("/api/provider/self", {
+          cache: "no-store",
+          credentials: "include",
+        });
         if (!res.ok) return; // no session or route missing — keep manual input
         const data = await res.json();
         if (!stopped && data?.id) {
@@ -41,6 +44,8 @@ export default function ProviderSchedule() {
     };
   }, []);
 
+  const [toDate, setToDate] = useState("");
+
   async function handleGenerate() {
     setBusy(true);
     setMsg(null);
@@ -48,9 +53,11 @@ export default function ProviderSchedule() {
       const res = await fetch("/api/provider/slots/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           providerId,
           date,
+          toDate: toDate || undefined,
           start,
           end,
           intervalMins,
@@ -108,28 +115,42 @@ export default function ProviderSchedule() {
             </label>
           )}
 
-          <label className="text-sm">
-            Date (YYYY-MM-DD)
-            <input
-              className="mt-1 w-full rounded border p-2"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              placeholder="2025-11-08"
-            />
-          </label>
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="text-sm">
+              Start date
+              <input
+                type="date"
+                className="mt-1 w-full rounded border p-2"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </label>
+            <label className="text-sm">
+              End date
+              <input
+                type="date"
+                className="mt-1 w-full rounded border p-2"
+                value={toDate}
+                min={date || undefined}
+                onChange={(e) => setToDate(e.target.value)}
+              />
+            </label>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm">
-              Start (HH:MM)
+              Start time
               <input
+                type="time"
                 className="mt-1 w-full rounded border p-2"
                 value={start}
                 onChange={(e) => setStart(e.target.value)}
               />
             </label>
             <label className="text-sm">
-              End (HH:MM)
+              End time
               <input
+                type="time"
                 className="mt-1 w-full rounded border p-2"
                 value={end}
                 onChange={(e) => setEnd(e.target.value)}
