@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import PDFDocument from "pdfkit";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { prisma } from "@/lib/db";
 import { requireProviderSession } from "@/lib/auth.server";
 import { uploadToS3 } from "@/lib/s3";
@@ -39,7 +39,7 @@ function formatCategory(value: z.infer<typeof DrugCategory>) {
   }
 }
 
-function buildPdf(opts: {
+async function buildPdf(opts: {
   providerName?: string | null;
   registrationNumber?: string | null;
   councilName?: string | null;
@@ -48,42 +48,60 @@ function buildPdf(opts: {
   appointmentId: string;
   meds: { name: string; sig?: string; qty?: string; category: z.infer<typeof DrugCategory> }[];
 }): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50 });
-    const chunks: Buffer[] = [];
-    doc.on("data", (chunk) => chunks.push(chunk as Buffer));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-    doc.on("error", reject);
+  const pdfDoc = await PDFDocument.create();
+  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const page = pdfDoc.addPage();
+  const { width, height } = page.getSize();
+  const margin = 50;
+  const contentWidth = width - margin * 2;
+  let cursor = height - margin;
 
-    doc.fontSize(20).text("CalDoc Prescription", { align: "center" });
-    doc.moveDown();
-    doc.fontSize(12).text(`Provider: ${opts.providerName || "Doctor"}`);
-    doc.text(`Qualification: ${opts.qualification || "—"}`);
-    doc.text(`RMP Registration #: ${opts.registrationNumber || "—"}`);
-    doc.text(`Council: ${opts.councilName || "—"}`);
-    doc.text(`Patient: ${opts.patientName || "Patient"}`);
-    doc.text(`Appointment ID: ${opts.appointmentId}`);
-    doc.moveDown();
-
-    opts.meds.forEach((med, index) => {
-      doc.fontSize(14).text(`${index + 1}. ${med.name}`);
-      doc.fontSize(11).text(`Category: ${formatCategory(med.category)}`);
-      if (med.sig) doc.fontSize(11).text(`Sig: ${med.sig}`);
-      if (med.qty) doc.fontSize(11).text(`Qty: ${med.qty}`);
-      doc.moveDown(0.5);
+  const drawLine = (
+    text: string,
+    options: { font?: typeof regularFont; size?: number; color?: ReturnType<typeof rgb>; gap?: number; maxWidth?: number } = {},
+  ) => {
+    const { font = regularFont, size = 12, color = rgb(0, 0, 0), gap = 6, maxWidth } = options;
+    page.drawText(text, {
+      x: margin,
+      y: cursor,
+      font,
+      size,
+      color,
+      maxWidth: maxWidth ?? contentWidth,
     });
+    cursor -= size + gap;
+  };
 
-    doc.moveDown();
-    doc
-      .fontSize(10)
-      .text(
-        "Issued under the TELEMEDICINE Practice Guidelines (2020). This prescription is for non-emergency use. Seek in-person care for red-flag symptoms or adverse reactions.",
-        { align: "left" },
-      );
-    doc.moveDown(0.5);
-    doc.fontSize(9).fillColor("gray").text("Generated via CalDoc India portal", { align: "right" });
-    doc.end();
+  drawLine("CalDoc Prescription", { font: boldFont, size: 20, gap: 14 });
+  drawLine(`Provider: ${opts.providerName || "Doctor"}`);
+  drawLine(`Qualification: ${opts.qualification || "—"}`);
+  drawLine(`RMP Registration #: ${opts.registrationNumber || "—"}`);
+  drawLine(`Council: ${opts.councilName || "—"}`);
+  drawLine(`Patient: ${opts.patientName || "Patient"}`);
+  drawLine(`Appointment ID: ${opts.appointmentId}`, { gap: 12 });
+
+  opts.meds.forEach((med, index) => {
+    drawLine(`${index + 1}. ${med.name}`, { font: boldFont, size: 14, gap: 2 });
+    drawLine(`Category: ${formatCategory(med.category)}`, { size: 11, gap: 2 });
+    if (med.sig) drawLine(`Sig: ${med.sig}`, { size: 11, gap: 2 });
+    if (med.qty) drawLine(`Qty: ${med.qty}`, { size: 11, gap: 2 });
+    cursor -= 6;
   });
+
+  cursor -= 4;
+  drawLine(
+    "Issued under the TELEMEDICINE Practice Guidelines (2020). This prescription is for non-emergency use. Seek in-person care for red-flag symptoms or adverse reactions.",
+    { size: 10, maxWidth: contentWidth, gap: 4 },
+  );
+  drawLine("Generated via CalDoc India portal", {
+    font: regularFont,
+    size: 9,
+    color: rgb(0.4, 0.4, 0.4),
+  });
+
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes);
 }
 
 export async function POST(req: NextRequest, ctx: RouteContext) {
