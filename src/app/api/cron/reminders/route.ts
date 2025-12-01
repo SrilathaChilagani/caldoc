@@ -1,0 +1,181 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { sendWhatsAppTemplate } from "@/lib/whatsapp";
+import { getErrorMessage } from "@/lib/errors";
+
+const WINDOW_MINUTES = Number(process.env.APPOINTMENT_REMINDER_WINDOW_MIN || 30);
+const REMINDER_LANG = process.env.WHATSAPP_LANG || "en_US";
+const REMINDER_24_TEMPLATE =
+  process.env.WHATSAPP_TMPL_APPT_REMINDER_24H ||
+  process.env.WHATSAPP_APPOINTMENT_REMINDER_24H ||
+  "appointment_reminder_24hr";
+const REMINDER_10_TEMPLATE =
+  process.env.WHATSAPP_TMPL_APPT_REMINDER_10M ||
+  process.env.WHATSAPP_APPOINTMENT_REMINDER_10M ||
+  "appointment_reminder_10m";
+
+const JOBS = [
+  {
+    kind: "APPT_REMINDER_24H",
+    template: REMINDER_24_TEMPLATE,
+    offsetMinutes: 24 * 60,
+    buildVars: (opts: ReminderTemplateOptions) => [
+      opts.patientFirstName,
+      opts.providerName,
+      opts.joinLink,
+      opts.rescheduleLink,
+    ],
+  },
+  {
+    kind: "APPT_REMINDER_10M",
+    template: REMINDER_10_TEMPLATE,
+    offsetMinutes: 10,
+    buildVars: (opts: ReminderTemplateOptions) => [
+      opts.patientFirstName,
+      opts.providerName,
+      opts.joinLink,
+    ],
+  },
+] as const;
+
+type ReminderTemplateOptions = {
+  patientFirstName: string;
+  providerName: string;
+  joinLink: string;
+  rescheduleLink: string;
+  visitTimeLabel: string;
+};
+
+function appBaseUrl() {
+  return (
+    process.env.APP_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://caldoc.in"
+  );
+}
+
+function formatIST(date: Date) {
+  return date.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function windowRange(offsetMinutes: number) {
+  const now = Date.now();
+  const start = new Date(now + offsetMinutes * 60 * 1000);
+  const end = new Date(start.getTime() + WINDOW_MINUTES * 60 * 1000);
+  return { start, end };
+}
+
+async function fetchAppointmentsForReminder(offsetMinutes: number, kind: string) {
+  const { start, end } = windowRange(offsetMinutes);
+  return prisma.appointment.findMany({
+    where: {
+      status: "CONFIRMED",
+      slot: { startsAt: { gte: start, lt: end } },
+      patient: { phone: { not: null } },
+      messages: { none: { kind } },
+    },
+    include: {
+      patient: { select: { name: true, phone: true } },
+      provider: { select: { name: true } },
+      slot: { select: { startsAt: true } },
+    },
+    take: 100,
+  });
+}
+
+async function logOutboundMessage(opts: {
+  appointmentId: string;
+  toPhone: string;
+  template: string;
+  body: string;
+  status: "SENT" | "FAILED";
+  kind: string;
+  error?: string;
+}) {
+  await prisma.outboundMessage.create({
+    data: {
+      appointmentId: opts.appointmentId,
+      channel: "WHATSAPP",
+      toPhone: opts.toPhone,
+      template: opts.template,
+      body: opts.body,
+      status: opts.status,
+      error: opts.error,
+      kind: opts.kind,
+    },
+  });
+}
+
+export async function GET(_req: NextRequest) {
+  const results = [];
+
+  for (const job of JOBS) {
+    const appointments = await fetchAppointmentsForReminder(
+      job.offsetMinutes,
+      job.kind
+    );
+
+    const jobStats = { kind: job.kind, attempted: appointments.length, sent: 0, failed: 0 };
+
+    for (const appt of appointments) {
+      const patientPhone = appt.patient?.phone;
+      const slotStartsAt = appt.slot?.startsAt;
+      if (!patientPhone || !slotStartsAt) {
+        continue;
+      }
+
+      const patientFirstName = (appt.patient?.name || "there").split(" ")[0];
+      const providerName = appt.provider?.name || "your doctor";
+      const baseUrl = appBaseUrl();
+      const joinLink = `${baseUrl}/visit/${appt.id}`;
+      const rescheduleLink = `${baseUrl}/patient/appointments/${appt.id}`;
+      const templateVars = job.buildVars({
+        patientFirstName,
+        providerName,
+        joinLink,
+        rescheduleLink,
+        visitTimeLabel: formatIST(slotStartsAt),
+      });
+
+      try {
+        await sendWhatsAppTemplate({
+          to: patientPhone,
+          template: job.template,
+          lang: REMINDER_LANG,
+          vars: templateVars,
+        });
+        await logOutboundMessage({
+          appointmentId: appt.id,
+          toPhone: patientPhone,
+          template: job.template,
+          body: `${job.kind} → ${formatIST(slotStartsAt)}`,
+          status: "SENT",
+          kind: job.kind,
+        });
+        jobStats.sent += 1;
+      } catch (err) {
+        jobStats.failed += 1;
+        await logOutboundMessage({
+          appointmentId: appt.id,
+          toPhone: patientPhone,
+          template: job.template,
+          body: `${job.kind} → ${formatIST(slotStartsAt)}`,
+          status: "FAILED",
+          kind: job.kind,
+          error: getErrorMessage(err),
+        });
+      }
+    }
+
+    results.push(jobStats);
+  }
+
+  return NextResponse.json({ ok: true, results });
+}
