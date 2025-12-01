@@ -18,6 +18,8 @@ type Props = {
     name: string;
     speciality: string;
     qualification?: string | null;
+    registrationNumber?: string | null;
+    councilName?: string | null;
     defaultFeePaise?: number | null;
   };
   slots: SlotInfo[];
@@ -238,6 +240,20 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
   return (
     <div className="space-y-6">
       <BookingStatusBar currentIndex={progressIndex} />
+      <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+        <p className="text-xs uppercase text-slate-500">Teleconsultation</p>
+        <h1 className="text-3xl font-semibold text-slate-900">Book {provider.name}</h1>
+        <p className="text-sm text-slate-600">
+          {provider.speciality}
+          {provider.qualification && <> · {provider.qualification}</>}
+        </p>
+        {provider.registrationNumber && (
+          <p className="text-xs text-slate-500">
+            Reg. No: <span className="font-mono">{provider.registrationNumber}</span>
+            {provider.councilName && <> ({provider.councilName})</>}
+          </p>
+        )}
+      </div>
       <Link
         href="/providers"
         className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"

@@ -69,27 +69,14 @@ export default async function BookPage({ params, searchParams }: PageProps) {
   return (
     <main className="min-h-[calc(100vh-120px)] bg-[#f7f9fc] py-10">
       <div className="mx-auto max-w-4xl space-y-6 px-4">
-        <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-          <p className="text-xs uppercase text-slate-500">Teleconsultation</p>
-          <h1 className="text-3xl font-semibold text-slate-900">Book {provider.name}</h1>
-          <p className="text-sm text-slate-600">
-            {provider.speciality}
-            {provider.qualification && <> · {provider.qualification}</>}
-          </p>
-          {provider.registrationNumber && (
-            <p className="text-xs text-slate-500">
-              Reg. No: <span className="font-mono">{provider.registrationNumber}</span>
-              {provider.councilName && <> ({provider.councilName})</>}
-            </p>
-          )}
-        </div>
-
         <BookClient
           provider={{
             id: provider.id,
             name: provider.name,
             speciality: provider.speciality,
             qualification: provider.qualification,
+            registrationNumber: provider.registrationNumber,
+            councilName: provider.councilName,
             defaultFeePaise: provider.defaultFeePaise,
           }}
           slots={slots.map((s) => ({
