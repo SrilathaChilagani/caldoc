@@ -78,7 +78,6 @@ async function fetchAppointmentsForReminder(offsetMinutes: number, kind: string)
     where: {
       status: "CONFIRMED",
       slot: { startsAt: { gte: start, lt: end } },
-      patient: { phone: { not: null } },
       messages: { none: { kind } },
     },
     include: {
