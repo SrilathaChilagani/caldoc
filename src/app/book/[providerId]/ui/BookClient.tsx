@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 const CONSENT_TEXT =
@@ -55,6 +55,64 @@ function formatFeeFromPaise(paise?: number | null) {
     currency: "INR",
     minimumFractionDigits: 2,
   }).format(paise / 100);
+}
+
+const BOOKING_PROGRESS_STEPS = [
+  { key: "provider", label: "Select provider" },
+  { key: "slot", label: "Select booking slot" },
+  { key: "payment", label: "Payment" },
+  { key: "confirmation", label: "Confirmation" },
+] as const;
+
+function BookingStatusBar({ currentIndex }: { currentIndex: number }) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Appointment booking</p>
+      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+        {BOOKING_PROGRESS_STEPS.map((progress, idx) => {
+          const isCompleted = idx < currentIndex;
+          const isActive = idx === currentIndex;
+          return (
+            <Fragment key={progress.key}>
+              <div className="flex flex-1 items-center gap-3">
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold ${
+                    isCompleted
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-600"
+                      : isActive
+                        ? "border-blue-600 bg-blue-50 text-blue-700"
+                        : "border-slate-200 bg-white text-slate-400"
+                  }`}
+                  aria-current={isActive ? "step" : undefined}
+                >
+                  {isCompleted ? "✓" : idx + 1}
+                </div>
+                <div>
+                  <p
+                    className={`text-xs uppercase tracking-wide ${
+                      isActive ? "text-blue-600" : "text-slate-500"
+                    }`}
+                  >
+                    Step {idx + 1}
+                  </p>
+                  <p
+                    className={`text-sm font-semibold ${
+                      isActive ? "text-slate-900" : isCompleted ? "text-slate-700" : "text-slate-600"
+                    }`}
+                  >
+                    {progress.label}
+                  </p>
+                </div>
+              </div>
+              {idx < BOOKING_PROGRESS_STEPS.length - 1 && (
+                <div className="hidden flex-1 border-t border-dashed border-slate-200 sm:block" aria-hidden="true" />
+              )}
+            </Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export default function BookClient({ provider, slots, initialSlotId }: Props) {
@@ -175,8 +233,11 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       ? "Prescription will be shared to the patient phone/WhatsApp."
       : `${address.contactName || patientName} · ${address.line1 || "No address"}`;
 
+  const progressIndex = step === "pay" ? 2 : 1;
+
   return (
     <div className="space-y-6">
+      <BookingStatusBar currentIndex={progressIndex} />
       <Link
         href="/providers"
         className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
