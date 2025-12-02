@@ -2,7 +2,7 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
-import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, SESSION_COOKIE_DOMAIN, SessionPayload } from "./auth";
+import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, NGO_JWT_NAME, SESSION_COOKIE_DOMAIN, SessionPayload } from "./auth";
 
 function requireSecret(): string {
   const s = process.env.JWT_SECRET;
@@ -50,6 +50,10 @@ export async function readAdminSession(): Promise<SessionPayload | null> {
   return readSessionFromCookie(ADMIN_JWT_NAME);
 }
 
+export async function readNgoSession(): Promise<SessionPayload | null> {
+  return readSessionFromCookie(NGO_JWT_NAME);
+}
+
 export async function requireProviderSession(): Promise<{
   userId: string; providerId: string; role: string;
 } | null> {
@@ -71,9 +75,21 @@ export async function requireAdminSession(): Promise<{ userId: string; role: str
   return { userId: adminUser.id, role: "admin" };
 }
 
+export async function requireNgoSession(): Promise<{ userId: string; ngoId: string; role: string; email?: string } | null> {
+  const sess = await readNgoSession();
+  if (!sess) return null;
+  const user = await prisma.ngoUser.findUnique({
+    where: { id: sess.uid },
+    select: { id: true, ngoId: true, email: true },
+  });
+  if (!user) return null;
+  return { userId: user.id, ngoId: user.ngoId, role: sess.role, email: sess.email ?? user.email };
+}
+
 export async function clearSessionCookies() {
   const jar = await cookies();
   const domainOption = SESSION_COOKIE_DOMAIN ? { domain: SESSION_COOKIE_DOMAIN } : {};
   jar.set(PROVIDER_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
   jar.set(ADMIN_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
+  jar.set(NGO_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
 }

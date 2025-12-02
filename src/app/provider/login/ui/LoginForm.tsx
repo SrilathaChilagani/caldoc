@@ -3,11 +3,12 @@ type Props = {
   loggedOut?: boolean;
   errorMessage?: string;
   defaultEmail?: string;
+  action?: string;
 };
 
-export default function LoginForm({ nextUrl, loggedOut, errorMessage, defaultEmail }: Props) {
+export default function LoginForm({ nextUrl, loggedOut, errorMessage, defaultEmail, action }: Props) {
   return (
-    <form method="POST" action="/api/provider/login" className="space-y-4">
+    <form method="POST" action={action || "/api/provider/login"} className="space-y-4">
       {loggedOut && (
         <div className="rounded-md bg-green-50 px-3 py-2 text-xs text-green-800">You have been signed out.</div>
       )}

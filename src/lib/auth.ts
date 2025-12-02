@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 
 export const PROVIDER_JWT_NAME = "prov_session";
 export const ADMIN_JWT_NAME = "admin_sess";
+export const NGO_JWT_NAME = "ngo_sess";
 export const MAX_AGE_DAYS = 7;
 
 function isIpOrLocalhost(host?: string) {

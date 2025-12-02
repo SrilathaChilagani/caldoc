@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model Patient {
@@ -43,6 +44,7 @@ model Provider {
   appointments       Appointment[]
   users              ProviderUser[]
   slots              Slot[]
+  ngoReservations    NgoReservation[]
 }
 
 model Slot {
@@ -54,6 +56,7 @@ model Slot {
   feePaise     Int?
   appointments Appointment[]
   provider     Provider      @relation(fields: [providerId], references: [id])
+  ngoReservations NgoReservation[]
 
   @@unique([providerId, startsAt])
 }
@@ -94,6 +97,7 @@ model Appointment {
   pharmacyFulfillment     PharmacyFulfillment?
   prescription            Prescription?
   visitNote               VisitNote?
+  ngoReservation          NgoReservation?
 }
 
 model Payment {
@@ -208,6 +212,56 @@ model AdminUser {
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
+}
+
+model Ngo {
+  id            String           @id @default(cuid())
+  name          String
+  slug          String           @unique
+  contactEmail  String?
+  contactPhone  String?
+  description   String?
+  isActive      Boolean          @default(true)
+  billingNotes  String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  users         NgoUser[]
+  reservations  NgoReservation[]
+
+  @@index([slug])
+}
+
+model NgoUser {
+  id           String   @id @default(cuid())
+  ngoId        String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ADMIN")
+  createdAt    DateTime @default(now())
+  ngo          Ngo      @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+}
+
+model NgoReservation {
+  id             String      @id @default(cuid())
+  ngoId          String
+  providerId     String
+  slotId         String?
+  appointmentId  String?     @unique
+  friendlyId     String      @unique
+  speciality     String?
+  notes          String?
+  status         String      @default("HELD")
+  amountPaise    Int?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  confirmedAt    DateTime?
+  ngo            Ngo         @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  provider       Provider    @relation(fields: [providerId], references: [id])
+  slot           Slot?       @relation(fields: [slotId], references: [id])
+  appointment    Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([ngoId, status])
+  @@index([providerId, status])
 }
 
 model VisitNote {
