@@ -142,24 +142,35 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
     instructions: "",
   });
 
+  const upcomingSlots = useMemo(
+    () =>
+      slots.filter((slot) => {
+        const slotStart = new Date(slot.startsAt).getTime();
+        return slotStart >= Date.now();
+      }),
+    [slots],
+  );
+
   useEffect(() => {
-    if (initialSlotId) {
+    if (initialSlotId && upcomingSlots.some((slot) => slot.id === initialSlotId)) {
       setSelectedSlot(initialSlotId);
-    } else if (!selectedSlot && slots.length) {
-      setSelectedSlot(slots[0].id);
+    } else if (!selectedSlot && upcomingSlots.length) {
+      setSelectedSlot(upcomingSlots[0].id);
+    } else if (selectedSlot && !upcomingSlots.some((slot) => slot.id === selectedSlot)) {
+      setSelectedSlot(upcomingSlots[0]?.id || "");
     }
-  }, [initialSlotId, slots, selectedSlot]);
+  }, [initialSlotId, upcomingSlots, selectedSlot]);
 
   const selectedSlotLabel = useMemo(() => {
-    const slot = slots.find((s) => s.id === selectedSlot);
+    const slot = upcomingSlots.find((s) => s.id === selectedSlot);
     return slot ? formatSlotLabel(slot.startsAt) : "";
-  }, [slots, selectedSlot]);
+  }, [upcomingSlots, selectedSlot]);
 
   const selectedSlotFeePaise = useMemo(() => {
-    const slot = slots.find((s) => s.id === selectedSlot);
+    const slot = upcomingSlots.find((s) => s.id === selectedSlot);
     if (slot?.feePaise && slot.feePaise > 0) return slot.feePaise;
     return provider.defaultFeePaise ?? null;
-  }, [slots, selectedSlot, provider.defaultFeePaise]);
+  }, [upcomingSlots, selectedSlot, provider.defaultFeePaise]);
 
   const selectedSlotFeeLabel = useMemo(
     () => formatFeeFromPaise(selectedSlotFeePaise),
@@ -167,9 +178,9 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
   );
 
   const pageSize = 6;
-  const pagedSlots = slots.slice(slotIndex, slotIndex + pageSize);
+  const pagedSlots = upcomingSlots.slice(slotIndex, slotIndex + pageSize);
   const canPrev = slotIndex > 0;
-  const canNext = slotIndex + pageSize < slots.length;
+  const canNext = slotIndex + pageSize < upcomingSlots.length;
 
   function handlePage(direction: "prev" | "next") {
     setSlotIndex((prev) => {
@@ -177,7 +188,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
         return Math.max(0, prev - pageSize);
       }
       const next = prev + pageSize;
-      const maxStart = Math.max(0, slots.length - pageSize);
+      const maxStart = Math.max(0, upcomingSlots.length - pageSize);
       return Math.min(maxStart, next);
     });
   }
@@ -303,8 +314,8 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
               </label>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button
+              <div className="flex items-center gap-3">
+                <button
                 type="button"
                 onClick={() => handlePage("prev")}
                 disabled={!canPrev}
@@ -313,11 +324,11 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 &lt;
               </button>
               <div className="grid flex-1 gap-3 sm:grid-cols-3">
-                {slots.length === 0 && (
+                {upcomingSlots.length === 0 && (
                   <p className="text-sm text-slate-500">No slots available right now. Please check back later.</p>
                 )}
-                {slots.length > 0 &&
-                  (pagedSlots.length ? pagedSlots : slots).map((slot) => (
+                {upcomingSlots.length > 0 &&
+                  (pagedSlots.length ? pagedSlots : upcomingSlots).map((slot) => (
                     <button
                       key={slot.id}
                       type="button"
