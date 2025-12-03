@@ -59,8 +59,13 @@ export default async function BookPage({ params, searchParams }: PageProps) {
     );
   }
 
+  const now = new Date();
   const slots = await prisma.slot.findMany({
-    where: { providerId: provider.id, isBooked: false },
+    where: {
+      providerId: provider.id,
+      isBooked: false,
+      startsAt: { gte: now },
+    },
     orderBy: { startsAt: "asc" },
     take: 18,
     select: { id: true, startsAt: true, feePaise: true },
