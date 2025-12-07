@@ -54,7 +54,10 @@ export default function DashboardScreen({ navigation }: Props) {
 
   async function handleLogout() {
     await logout();
-    navigation.replace('Login');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Web' }],
+    });
   }
 
   return (

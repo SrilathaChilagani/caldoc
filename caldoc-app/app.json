@@ -50,6 +50,7 @@
     },
     "extra": {
       "EXPO_PUBLIC_API_BASE": "https://www.caldoc.in",
+      "EXPO_PUBLIC_DEV_API_BASE": "http://10.0.2.2:3000",
       "eas": {
         "projectId": "1e79624d-c742-4c66-9193-1141cac1ed91"
       }

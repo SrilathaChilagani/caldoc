@@ -22,7 +22,7 @@ type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
-  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Login');
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Web');
   const [bootstrapped, setBootstrapped] = useState(false);
 
   useEffect(() => {
@@ -31,6 +31,8 @@ export default function App() {
         const token = await getToken();
         if (token) {
           setInitialRoute('Dashboard');
+        } else {
+          setInitialRoute('Web');
         }
       } finally {
         setBootstrapped(true);

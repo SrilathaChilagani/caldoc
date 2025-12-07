@@ -18,6 +18,26 @@ npm run build:android # EAS production build for Android
 - `EXPO_PUBLIC_API_BASE` (configured in `app.json`) points to the deployed CalDoc site. Update if you need staging vs production.
 - Deep links use the `caldoc://` scheme plus `https://www.caldoc.in/app`. Example: `caldoc://visit/<appointmentId>?role=patient`.
 
+### Using the OTP-bypass backend
+
+When you need to work against the dev/test API that skips OTP (or accepts a fixed code such as `0000`), launch Expo with `APP_ENV=development`. The native config automatically switches `EXPO_PUBLIC_API_BASE` to `EXPO_PUBLIC_DEV_API_BASE` (defaults to `http://10.0.2.2:3000`, which reaches `localhost` from an Android emulator).
+
+```bash
+# In the Next.js backend repo, start the API that has OTP bypass enabled
+npm run dev
+
+# In this Expo app, point at that backend
+APP_ENV=development npx expo start --android
+```
+
+If your bypass environment lives elsewhere, override `EXPO_PUBLIC_DEV_API_BASE` before starting Expo:
+
+```bash
+APP_ENV=development EXPO_PUBLIC_DEV_API_BASE=https://dev.myserver.com npx expo start
+```
+
+Use the OTP documented for that environment (or leave the field blank if the backend skips verification entirely).
+
 ## Building with EAS
 
 1. Install the CLI once: `npm install -g eas-cli` (or use `npx eas`).
