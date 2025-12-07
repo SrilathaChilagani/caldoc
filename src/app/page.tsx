@@ -28,32 +28,57 @@ function formatLanguage(code: string) {
   return languageLabels[key] || code;
 }
 
+type ProviderCard = {
+  id: string;
+  slug: string | null;
+  name: string;
+  speciality: string | null;
+  qualification: string | null;
+  languages: string[];
+};
+
+const FALLBACK_PROVIDERS: ProviderCard[] = [
+  {
+    id: "fallback-1",
+    slug: "telemedist",
+    name: "Dr. Tele Medist",
+    speciality: "General Medicine",
+    qualification: "MBBS, MD",
+    languages: ["en", "hi"],
+  },
+  {
+    id: "fallback-2",
+    slug: "rural-care",
+    name: "Dr. Rural Care",
+    speciality: "Family Physician",
+    qualification: "MBBS",
+    languages: ["en", "te"],
+  },
+  {
+    id: "fallback-3",
+    slug: "women-health",
+    name: "Dr. Women Health",
+    speciality: "Gynecology",
+    qualification: "MBBS, DGO",
+    languages: ["en", "ta"],
+  },
+];
+
 export default async function Home() {
-  const topAppointments = await prisma.appointment.groupBy({
-    by: ["providerId"],
-    _count: { providerId: true },
-    orderBy: { _count: { providerId: "desc" } },
-    take: 3,
-  });
+  let featuredProviders: ProviderCard[] = FALLBACK_PROVIDERS;
 
-  const topIds = topAppointments.map((t) => t.providerId);
-
-  let featuredProviders = await prisma.provider.findMany({
-    where: topIds.length ? { id: { in: topIds } } : undefined,
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      speciality: true,
-      qualification: true,
-      languages: true,
-    },
-  });
-
-  if (featuredProviders.length < 3) {
-    featuredProviders = await prisma.provider.findMany({
-      orderBy: { name: "asc" },
+  try {
+    const topAppointments = await prisma.appointment.groupBy({
+      by: ["providerId"],
+      _count: { providerId: true },
+      orderBy: { _count: { providerId: "desc" } },
       take: 3,
+    });
+
+    const topIds = topAppointments.map((t) => t.providerId);
+
+    featuredProviders = await prisma.provider.findMany({
+      where: topIds.length ? { id: { in: topIds } } : undefined,
       select: {
         id: true,
         slug: true,
@@ -63,14 +88,32 @@ export default async function Home() {
         languages: true,
       },
     });
-  } else {
-    const order = new Map(topIds.map((id, idx) => [id, idx]));
-    featuredProviders.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+
+    if (featuredProviders.length < 3) {
+      const fillers = await prisma.provider.findMany({
+        orderBy: { name: "asc" },
+        take: 3,
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          speciality: true,
+          qualification: true,
+          languages: true,
+        },
+      });
+      featuredProviders = fillers;
+    } else {
+      const order = new Map(topIds.map((id, idx) => [id, idx]));
+      featuredProviders.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+    }
+  } catch (err) {
+    console.warn("Falling back to static featured providers:", err);
+    featuredProviders = FALLBACK_PROVIDERS;
   }
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
-      <DisclaimerNotice variant="banner" />
       <section
         className="relative overflow-hidden bg-white"
         style={{
@@ -81,10 +124,8 @@ export default async function Home() {
         }}
       >
         <div className="relative container mx-auto px-4 pt-16 pb-24 md:pt-20 md:pb-8">
-          <div className="max-w-3xl space-y-6">
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-              TELEMEDICINE made simple
-            </p>
+          <div className="grid gap-12 md:grid-cols-[1fr,0.9fr] md:items-center">
+            <div className="max-w-3xl space-y-6">
             <h1 className="text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
               Book teleconsultations with verified doctors, fast.
             </h1>
@@ -120,6 +161,22 @@ export default async function Home() {
               <span>✔ WhatsApp confirmations</span>
               <span>✔ UPI / cards</span>
               <span>✔ Instant video links</span>
+            </div>
+            </div>
+
+            <div className="relative rounded-[32px] border border-white/60 bg-white/80 p-3 shadow-xl shadow-blue-100/70 backdrop-blur">
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[28px]">
+                <Image
+                  src="/images/hero-med-team.jpg"
+                  alt="CalDoc medical team smiling"
+                  fill
+                  priority
+                  className="object-cover"
+                />
+              </div>
+              <div className="mt-4 rounded-2xl bg-blue-50/80 px-4 py-3 text-sm text-slate-700">
+                Coordinated care teams (doctors, nurses, diagnostics) ready to support every consult.
+              </div>
             </div>
           </div>
         </div>
