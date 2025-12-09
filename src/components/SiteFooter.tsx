@@ -12,17 +12,14 @@ export default function SiteFooter() {
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/80">
                 <Image src="/images/logo-mark.png" alt="CalDoc icon" width={36} height={36} priority />
               </div>
-              <div className="flex flex-col leading-tight">
-                <Image
-                  src="/images/company-name.jpg"
-                  alt="CalDoc logo"
-                  width={120}
-                  height={28}
-                  className="object-contain"
-                  priority
-                />
-                <span className="text-[10px] uppercase tracking-[0.4em] text-slate-500">Telemedicine made simple</span>
-              </div>
+              <Image
+                src="/images/company-name.png"
+                alt="CalDoc logo"
+                width={120}
+                height={28}
+                className="object-contain"
+                priority
+              />
             </div>
             <p className="text-sm text-gray-600">
               Book online medical appointments with trusted providers across India.

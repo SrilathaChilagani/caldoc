@@ -50,7 +50,7 @@ export default function SiteHeader() {
           </div>
           <div className="flex flex-col leading-tight">
             <Image
-              src="/images/company-name.jpg"
+              src="/images/company-name.png"
               alt="CalDoc logo"
               width={140}
               height={32}
