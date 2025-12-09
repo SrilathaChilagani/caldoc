@@ -123,16 +123,13 @@ export default async function Home() {
           backgroundPosition: "center",
         }}
       >
-        <div className="relative container mx-auto px-4 pt-16 pb-24 md:pt-20 md:pb-8">
-          <div className="grid gap-12 md:grid-cols-[1fr,0.9fr] md:items-center">
-            <div className="max-w-3xl space-y-6">
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
-              Book teleconsultations with verified doctors, fast.
-            </h1>
-            <p className="text-lg text-gray-600">
-              Search by specialty, doctor name, or registration number. Compare experience, see next available slots,
-              and confirm in minutes with secure online payments.
-            </p>
+        <div className="relative container mx-auto px-4 pt-14 pb-20 md:pt-16 md:pb-12">
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-2xl space-y-6 flex-1">
+              <h1 className="text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+                Book your teleconsultations today.
+              </h1>
+            <p className="text-lg text-gray-600">Search by specialty, doctor name, or diagnosis to find the right care.</p>
 
             <form
               action="/providers"
@@ -164,21 +161,46 @@ export default async function Home() {
             </div>
             </div>
 
-            <div className="relative rounded-[32px] border border-white/60 bg-white/80 p-3 shadow-xl shadow-blue-100/70 backdrop-blur">
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[28px]">
-                <Image
-                  src="/images/hero-med-team.jpg"
-                  alt="CalDoc medical team smiling"
-                  fill
-                  priority
-                  className="object-cover"
-                />
-              </div>
-              <div className="mt-4 rounded-2xl bg-blue-50/80 px-4 py-3 text-sm text-slate-700">
-                Coordinated care teams (doctors, nurses, diagnostics) ready to support every consult.
+            <div className="flex flex-1 justify-center lg:justify-end">
+              <div className="relative w-full max-w-sm overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-3 shadow-2xl shadow-blue-100/70 backdrop-blur lg:max-w-md xl:max-w-lg">
+                <div className="relative h-60 w-full overflow-hidden rounded-[24px] sm:h-64 md:h-72 lg:h-[18rem] xl:h-[20rem]">
+                  <Image
+                    src="/images/team.jpg"
+                    alt="CalDoc care team standing together"
+                    fill
+                    priority
+                    className="object-cover"
+                  />
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="specialties" className="bg-white">
+        <div className="container mx-auto px-4 py-12 md:py-16">
+        <div className="mb-6 flex items-end justify-between">
+          <h2 className="text-2xl font-semibold md:text-3xl">Browse by specialty</h2>
+          <Link href="/providers" className="text-sm font-medium text-teal-700 hover:text-teal-800">
+            See all doctors →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+          {specialties.map((s) => (
+            <Link
+              key={s.slug}
+              href={`/providers?specialty=${encodeURIComponent(s.slug)}`}
+              className="group rounded-2xl border border-gray-200 bg-white p-2 shadow-sm transition hover:shadow-md"
+            >
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl">
+                <Image src={s.img} alt={s.name} fill className="object-cover transition group-hover:scale-105" priority />
+              </div>
+              <div className="mt-2 text-sm font-medium text-gray-800">{s.name}</div>
+            </Link>
+          ))}
+        </div>
         </div>
       </section>
 
@@ -206,41 +228,6 @@ export default async function Home() {
               <OfflineRequestForm />
             </div>
           </div>
-        </div>
-      </section>
-
-      <section
-        id="specialties"
-        className="bg-white/95 backdrop-blur"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.9)), url(/images/Homepage.jpg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="mb-6 flex items-end justify-between">
-          <h2 className="text-2xl font-semibold md:text-3xl">Browse by specialty</h2>
-          <Link href="/providers" className="text-sm font-medium text-teal-700 hover:text-teal-800">
-            See all doctors →
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
-          {specialties.map((s) => (
-            <Link
-              key={s.slug}
-              href={`/providers?specialty=${encodeURIComponent(s.slug)}`}
-              className="group rounded-2xl border border-gray-200 bg-white p-2 shadow-sm transition hover:shadow-md"
-            >
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl">
-                <Image src={s.img} alt={s.name} fill className="object-cover transition group-hover:scale-105" priority />
-              </div>
-              <div className="mt-2 text-sm font-medium text-gray-800">{s.name}</div>
-            </Link>
-          ))}
-        </div>
         </div>
       </section>
 

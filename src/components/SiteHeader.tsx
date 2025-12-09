@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -41,17 +42,22 @@ export default function SiteHeader() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-      <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white font-bold">
-            T
+      <Link href="/" className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/80">
+            <Image src="/images/logo-mark.png" alt="CalDoc icon" width={40} height={40} priority />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-semibold text-black tracking-tight">CalDoc</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.4em] text-blue-500">
-              Telemedicine made simple
-            </span>
+            <Image
+              src="/images/company-name.jpg"
+              alt="CalDoc logo"
+              width={140}
+              height={32}
+              className="object-contain"
+              priority
+            />
+            <span className="text-[11px] text-slate-500 tracking-wide uppercase">Telemedicine made simple</span>
           </div>
         </Link>
 
