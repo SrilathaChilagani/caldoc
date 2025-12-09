@@ -68,38 +68,31 @@ const BOOKING_PROGRESS_STEPS = [
 
 function BookingStatusBar({ currentIndex }: { currentIndex: number }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Appointment booking</p>
-      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+    <div className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 shadow-sm">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Appointment booking</p>
+      <div className="mt-2 flex items-center gap-4">
         {BOOKING_PROGRESS_STEPS.map((progress, idx) => {
           const isCompleted = idx < currentIndex;
           const isActive = idx === currentIndex;
           return (
             <Fragment key={progress.key}>
-              <div className="flex flex-1 items-center gap-3">
-                <div
-                  className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold ${
-                    isCompleted
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-600"
-                      : isActive
-                        ? "border-blue-600 bg-blue-50 text-blue-700"
-                        : "border-slate-200 bg-white text-slate-400"
-                  }`}
-                  aria-current={isActive ? "step" : undefined}
-                >
-                  {isCompleted ? "✓" : idx + 1}
-                </div>
-                <div>
-                  <p
-                    className={`text-xs uppercase tracking-wide ${
-                      isActive ? "text-blue-600" : "text-slate-500"
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold transition ${
+                      isCompleted
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-600"
+                        : isActive
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-slate-200 bg-white text-slate-400"
                     }`}
+                    aria-current={isActive ? "step" : undefined}
                   >
-                    Step {idx + 1}
-                  </p>
+                    {isCompleted ? "✓" : idx + 1}
+                  </div>
                   <p
-                    className={`text-sm font-semibold ${
-                      isActive ? "text-slate-900" : isCompleted ? "text-slate-700" : "text-slate-600"
+                    className={`text-xs font-medium ${
+                      isActive ? "text-slate-900" : isCompleted ? "text-slate-600" : "text-slate-400"
                     }`}
                   >
                     {progress.label}
@@ -107,7 +100,7 @@ function BookingStatusBar({ currentIndex }: { currentIndex: number }) {
                 </div>
               </div>
               {idx < BOOKING_PROGRESS_STEPS.length - 1 && (
-                <div className="hidden flex-1 border-t border-dashed border-slate-200 sm:block" aria-hidden="true" />
+                <div className="flex-1 border-t border-dashed border-slate-200" aria-hidden="true" />
               )}
             </Fragment>
           );
@@ -131,6 +124,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deliveryOpt, setDeliveryOpt] = useState<"PHONE" | "DELIVERY">("PHONE");
+  const [policyModal, setPolicyModal] = useState<null | "disclaimer" | "terms">(null);
   const [address, setAddress] = useState<DeliveryForm>({
     contactName: "",
     contactPhone: "",
@@ -246,11 +240,17 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       ? "Prescription will be shared to the patient phone/WhatsApp."
       : `${address.contactName || patientName} · ${address.line1 || "No address"}`;
 
-  const progressIndex = step === "pay" ? 2 : 1;
+  const progressIndex = { slot: 1, delivery: 1, pay: 2 }[step] ?? 1;
 
   return (
     <div className="space-y-6">
       <BookingStatusBar currentIndex={progressIndex} />
+      <Link
+        href="/providers"
+        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
+      >
+        ← Back to providers
+      </Link>
       <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
         <p className="text-xs uppercase text-slate-500">Teleconsultation</p>
         <h1 className="text-3xl font-semibold text-slate-900">Book {provider.name}</h1>
@@ -265,18 +265,11 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
           </p>
         )}
       </div>
-      <Link
-        href="/providers"
-        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
-      >
-        ← Back to providers
-      </Link>
-
       {step === "slot" && (
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
           <div className="flex flex-col gap-4">
             <div className="space-y-2">
-              <p className="text-xs uppercase text-slate-500">Step 1</p>
+              <p className="text-xs uppercase text-slate-500">Step 2</p>
               <h2 className="text-xl font-semibold text-slate-900">Choose a slot</h2>
               <p className="text-sm text-slate-500">
                 Select a time, enter the patient details, and accept the telemedicine consent.
@@ -294,24 +287,29 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="text-sm font-medium text-slate-700">
-                Patient full name
-                <input
-                  value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
-                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
-                />
-              </label>
-              <label className="text-sm font-medium text-slate-700">
-                Mobile number
-                <input
-                  value={patientPhone}
-                  onChange={(e) => setPatientPhone(e.target.value)}
-                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
-                  placeholder="+91 98765 43210"
-                />
-              </label>
+            <div className="rounded-3xl border border-blue-100 bg-blue-50/40 p-4 shadow-inner">
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                Patient details
+              </p>
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Patient full name
+                  <input
+                    value={patientName}
+                    onChange={(e) => setPatientName(e.target.value)}
+                    className="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                  />
+                </label>
+                <label className="text-sm font-medium text-slate-700">
+                  Mobile number
+                  <input
+                    value={patientPhone}
+                    onChange={(e) => setPatientPhone(e.target.value)}
+                    className="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                    placeholder="+91 98765 43210"
+                  />
+                </label>
+              </div>
             </div>
 
               <div className="flex items-center gap-3">
@@ -367,14 +365,20 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
               />
             </label>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-              <p className="font-semibold text-slate-900">Connection preference</p>
-              <p className="mt-1 text-xs text-slate-500">
+            <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-4 text-sm text-slate-700 shadow-inner">
+              <p className="font-semibold text-blue-900">Connection preference</p>
+              <p className="mt-1 text-xs text-blue-700">
                 Inspired by eSanjeevani&apos;s rural workflows, choose audio-only if you expect limited bandwidth or
                 need to dial in via phone.
               </p>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                <label className="inline-flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">
+                <label
+                  className={`inline-flex flex-1 cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
+                    visitMode === "VIDEO"
+                      ? "border-blue-400 bg-white text-blue-900 shadow"
+                      : "border-blue-100 bg-white text-slate-700"
+                  }`}
+                >
                   <input
                     type="radio"
                     name="visitMode"
@@ -384,7 +388,13 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                   />
                   Video call (default)
                 </label>
-                <label className="inline-flex flex-1 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700">
+                <label
+                  className={`inline-flex flex-1 cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
+                    visitMode === "AUDIO"
+                      ? "border-blue-400 bg-white text-blue-900 shadow"
+                      : "border-blue-100 bg-white text-slate-700"
+                  }`}
+                >
                   <input
                     type="radio"
                     name="visitMode"
@@ -402,20 +412,6 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
               )}
             </div>
 
-            {selectedSlotFeeLabel && (
-              <div className="rounded-2xl border border-slate-200 bg-white/60 p-4 text-sm">
-                <p className="text-xs uppercase tracking-wide text-slate-500">
-                  Consultation fee for this slot
-                </p>
-                <p className="text-xl font-semibold text-slate-900">
-                  {selectedSlotFeeLabel}
-                </p>
-                <p className="text-xs text-slate-500">
-                  This amount will be reserved during checkout. Fees may vary by provider and time.
-                </p>
-              </div>
-            )}
-
             <label className="flex items-start gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
               <input
                 type="checkbox"
@@ -424,14 +420,22 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 className="mt-1"
               />
               <span>
-                {CONSENT_TEXT} Read our {" "}
-                <Link href="/disclaimer" className="text-blue-600 hover:text-blue-800" target="_blank">
+                {CONSENT_TEXT} Read our{" "}
+                <button
+                  type="button"
+                  onClick={() => setPolicyModal("disclaimer")}
+                  className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
+                >
                   disclaimer
-                </Link>
-                {" "}and {" "}
-                <Link href="/terms" className="text-blue-600 hover:text-blue-800" target="_blank">
+                </button>{" "}
+                and{" "}
+                <button
+                  type="button"
+                  onClick={() => setPolicyModal("terms")}
+                  className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
+                >
                   terms of service
-                </Link>
+                </button>
                 .
               </span>
             </label>
@@ -624,6 +628,30 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
           <p className="text-sm text-slate-500">Lock a slot first to proceed to payment.</p>
         </section>
+      )}
+
+      {policyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+              <h3 className="text-sm font-semibold text-slate-900">
+                {policyModal === "terms" ? "Terms of Service" : "Disclaimer"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setPolicyModal(null)}
+                className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+            <iframe
+              title={policyModal === "terms" ? "Terms of Service" : "Disclaimer"}
+              src={policyModal === "terms" ? "/terms" : "/disclaimer"}
+              className="h-[60vh] w-full"
+            />
+          </div>
+        </div>
       )}
     </div>
   );
