@@ -202,6 +202,8 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
   const refreshQuery = refreshParams.toString();
   const refreshHref = refreshQuery ? `/provider/appointments?${refreshQuery}` : "/provider/appointments";
 
+  const providerRoomLink = (url: string) => (url.includes("?") ? `${url}&from=provider` : `${url}?from=provider`);
+
   return (
     <div className="space-y-8">
       <section className="rounded-[32px] bg-gradient-to-br from-[#eff4ff] via-white to-white p-6 shadow-sm ring-1 ring-slate-100 lg:p-8">
@@ -350,7 +352,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
                       {appt.status === "CONFIRMED" ? (
                         appt.videoRoom ? (
                           <a
-                            href={appt.videoRoom}
+                            href={providerRoomLink(appt.videoRoom)}
                             className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
                             target="_blank"
                             rel="noreferrer"
@@ -359,7 +361,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
                           </a>
                         ) : (
                           <Link
-                            href={`/visit/${appt.id}`}
+                            href={`/visit/${appt.id}?from=provider`}
                             className="inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white hover:bg-slate-800"
                           >
                             Visit room

@@ -6,10 +6,12 @@ import { getErrorMessage } from "@/lib/errors";
 const WINDOW_MINUTES = Number(process.env.APPOINTMENT_REMINDER_WINDOW_MIN || 30);
 const REMINDER_LANG = process.env.WHATSAPP_LANG || "en_US";
 const REMINDER_24_TEMPLATE =
+  process.env.WHATSAPP_TMPL_PATIENT_VIDEO_24 ||
   process.env.WHATSAPP_TMPL_APPT_REMINDER_24H ||
   process.env.WHATSAPP_APPOINTMENT_REMINDER_24H ||
   "appointment_reminder_24hr";
 const REMINDER_10_TEMPLATE =
+  process.env.WHATSAPP_TMPL_PATIENT_VIDEO_10 ||
   process.env.WHATSAPP_TMPL_APPT_REMINDER_10M ||
   process.env.WHATSAPP_APPOINTMENT_REMINDER_10M ||
   "appointment_reminder_10m";
@@ -21,9 +23,10 @@ const JOBS = [
     offsetMinutes: 24 * 60,
     buildVars: (opts: ReminderTemplateOptions) => [
       opts.patientFirstName,
-      opts.providerName,
       opts.joinLink,
+      opts.visitTimeLabel,
       opts.rescheduleLink,
+      opts.providerName,
     ],
   },
   {
@@ -32,8 +35,9 @@ const JOBS = [
     offsetMinutes: 10,
     buildVars: (opts: ReminderTemplateOptions) => [
       opts.patientFirstName,
-      opts.providerName,
       opts.joinLink,
+      opts.visitTimeLabel,
+      opts.providerName,
     ],
   },
 ] as const;

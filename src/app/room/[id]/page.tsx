@@ -14,14 +14,16 @@ export default async function RoomPage({ params, searchParams }: Props) {
 
   // Allow passing role & display name via query params for labeling
   const allowedRoles = new Set(["provider", "patient", "guest"]);
-  const roleParam = Array.isArray(sp.role) ? sp.role[0] : sp.role;
+  const pickSingle = (value?: string | string[]) => (Array.isArray(value) ? value[0] : value);
+  const roleParam = pickSingle(sp.role);
   const role =
     roleParam && allowedRoles.has(roleParam) ? (roleParam as "provider" | "patient" | "guest") : "guest";
   const displayName =
-    (Array.isArray(sp.name) ? sp.name[0] : sp.name) ||
+    pickSingle(sp.name) ||
     (role === "provider" ? "Doctor" : "Patient");
+  const fromParam = pickSingle(sp.from);
 
-  return <RoomClient appointmentId={id} role={role} displayName={displayName} />;
+  return <RoomClient appointmentId={id} role={role} displayName={displayName} fromParam={fromParam} />;
 }
 
 

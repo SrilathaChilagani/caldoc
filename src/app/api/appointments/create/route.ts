@@ -41,61 +41,67 @@ export async function POST(req: Request) {
       consentAt: new Date(),
     };
 
-    const result = await prisma.$transaction(async (tx) => {
-      const patient = await tx.patient.upsert({
-        where: { phone: meta.canonical },
-        update: { name, consentAt: new Date() },
-        create: { name, phone: meta.canonical, consentAt: new Date() },
-      });
+    const result = await prisma.$transaction(
+      async (tx) => {
+        const patient = await tx.patient.upsert({
+          where: { phone: meta.canonical },
+          update: { name, consentAt: new Date() },
+          create: { name, phone: meta.canonical, consentAt: new Date() },
+        });
 
-      const slotRecord = await tx.slot.findUnique({
-        where: { id: slotId },
-        select: {
-          startsAt: true,
-          feePaise: true,
-          provider: {
-            select: { defaultFeePaise: true },
+        const slotRecord = await tx.slot.findUnique({
+          where: { id: slotId },
+          select: {
+            startsAt: true,
+            feePaise: true,
+            provider: {
+              select: { defaultFeePaise: true },
+            },
           },
-        },
-      });
+        });
 
-      if (!slotRecord) {
-        throw new Error("Slot not found");
-      }
+        if (!slotRecord) {
+          throw new Error("Slot not found");
+        }
 
-      const slotFeePaise = slotRecord.feePaise ?? slotRecord.provider?.defaultFeePaise ?? DEFAULT_AMOUNT;
+        const slotFeePaise = slotRecord.feePaise ?? slotRecord.provider?.defaultFeePaise ?? DEFAULT_AMOUNT;
 
-      const locked = await tx.slot.updateMany({
-        where: { id: slotId, providerId, isBooked: false },
-        data: { isBooked: true },
-      });
+        const locked = await tx.slot.updateMany({
+          where: { id: slotId, providerId, isBooked: false },
+          data: { isBooked: true },
+        });
 
-      if (locked.count === 0) {
-        throw new Error("This slot is no longer available. Please pick another time.");
-      }
+        if (locked.count === 0) {
+          throw new Error("This slot is no longer available. Please pick another time.");
+        }
 
-      const appointment = await tx.appointment.create({
-        data: {
-          patientId: patient.id,
+        const appointment = await tx.appointment.create({
+          data: {
+            patientId: patient.id,
+            providerId,
+            slotId,
+            status: "PENDING",
+            visitMode: body.visitMode === "AUDIO" ? "AUDIO" : "VIDEO",
+            feePaise: slotFeePaise,
+            feeCurrency: "INR",
+            ...consentPayload,
+          },
+          select: { id: true },
+        });
+
+        return {
+          appointmentId: appointment.id,
+          patientName: patient.name,
+          slotStartsAt: slotRecord.startsAt,
           providerId,
-          slotId,
-          status: "PENDING",
-          visitMode: body.visitMode === "AUDIO" ? "AUDIO" : "VIDEO",
           feePaise: slotFeePaise,
-          feeCurrency: "INR",
-          ...consentPayload,
-        },
-        select: { id: true },
-      });
-
-      return {
-        appointmentId: appointment.id,
-        patientName: patient.name,
-        slotStartsAt: slotRecord.startsAt,
-        providerId,
-        feePaise: slotFeePaise,
-      };
-    });
+        };
+      },
+      {
+        maxWait: 10_000,
+        timeout: 15_000,
+      },
+    );
 
     const providerContact = await prisma.provider.findUnique({
       where: { id: providerId },
@@ -105,6 +111,7 @@ export async function POST(req: Request) {
     if (providerContact?.phone && result.slotStartsAt) {
       notifyProviderOfBooking({
         appointmentId: result.appointmentId,
+        providerId,
         providerPhone: providerContact.phone,
         providerName: providerContact.name || "Doctor",
         patientName: result.patientName || "Patient",
@@ -117,7 +124,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ appointmentId: result.appointmentId, amount: result.feePaise ?? DEFAULT_AMOUNT });
   } catch (err) {
     const message = getErrorMessage(err);
-    const status = message.includes("slot") ? 409 : 500;
-    return NextResponse.json({ error: message }, { status });
+    const isSlotError = message.includes("slot");
+    const isTransactionError = message.toLowerCase().includes("transaction");
+    const status = isSlotError ? 409 : isTransactionError ? 503 : 500;
+    const publicMessage = isTransactionError
+      ? "Our booking system is busy at the moment. Please try again in a few seconds."
+      : message;
+    return NextResponse.json({ error: publicMessage }, { status });
   }
 }

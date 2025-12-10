@@ -34,11 +34,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await prisma.appointment.update({
-      where: { id: appointmentId },
-      data: { status: "CONFIRMED" },
-    });
-
     return NextResponse.json({ ok: true });
   } catch (e) {
     const error = e instanceof Error ? e.message : "Server error";

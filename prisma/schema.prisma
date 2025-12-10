@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
@@ -25,38 +25,38 @@ model Patient {
 }
 
 model Provider {
-  id                 String         @id @default(cuid())
+  id                 String           @id @default(cuid())
   name               String
   speciality         String
   languages          String[]
   licenseNo          String
-  is24x7             Boolean        @default(false)
-  slug               String         @unique @db.VarChar(120)
+  is24x7             Boolean          @default(false)
+  slug               String           @unique @db.VarChar(120)
   councilName        String?
   qualification      String?
   registrationNumber String?
-  isActive           Boolean        @default(true)
+  isActive           Boolean          @default(true)
   licenseDocKey      String?
   profilePhotoKey    String?
   registrationDocKey String?
   phone              String?
-  defaultFeePaise    Int            @default(49900)
+  defaultFeePaise    Int              @default(49900)
   appointments       Appointment[]
+  ngoReservations    NgoReservation[]
   users              ProviderUser[]
   slots              Slot[]
-  ngoReservations    NgoReservation[]
 }
 
 model Slot {
-  id           String        @id @default(cuid())
-  providerId   String
-  startsAt     DateTime
-  endsAt       DateTime
-  isBooked     Boolean       @default(false)
-  feePaise     Int?
-  appointments Appointment[]
-  provider     Provider      @relation(fields: [providerId], references: [id])
+  id              String           @id @default(cuid())
+  providerId      String
+  startsAt        DateTime
+  endsAt          DateTime
+  isBooked        Boolean          @default(false)
+  feePaise        Int?
+  appointments    Appointment[]
   ngoReservations NgoReservation[]
+  provider        Provider         @relation(fields: [providerId], references: [id])
 
   @@unique([providerId, startsAt])
 }
@@ -67,8 +67,6 @@ model Appointment {
   providerId              String
   slotId                  String?
   status                  String                     @default("PENDING")
-  feePaise                Int?
-  feeCurrency             String?                    @default("INR")
   videoRoom               String?
   recordingKey            String?
   paymentId               String?
@@ -85,11 +83,14 @@ model Appointment {
   deliveryAddressSnapshot Json?
   uploadLinkSentAt        DateTime?
   visitMode               String?                    @default("VIDEO")
+  feePaise                Int?
+  feeCurrency             String?                    @default("INR")
   deliveryAddress         PatientAddress?            @relation("AppointmentDeliveryAddress", fields: [deliveryAddressId], references: [id])
   patient                 Patient                    @relation(fields: [patientId], references: [id])
   provider                Provider                   @relation(fields: [providerId], references: [id])
   slot                    Slot?                      @relation(fields: [slotId], references: [id])
   statusHistory           AppointmentStatusHistory[]
+  ngoReservation          NgoReservation?
   messages                OutboundMessage[]
   patientDocuments        PatientDocument[]
   payment                 Payment?
@@ -97,7 +98,6 @@ model Appointment {
   pharmacyFulfillment     PharmacyFulfillment?
   prescription            Prescription?
   visitNote               VisitNote?
-  ngoReservation          NgoReservation?
 }
 
 model Payment {
@@ -215,18 +215,18 @@ model AdminUser {
 }
 
 model Ngo {
-  id            String           @id @default(cuid())
-  name          String
-  slug          String           @unique
-  contactEmail  String?
-  contactPhone  String?
-  description   String?
-  isActive      Boolean          @default(true)
-  billingNotes  String?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  users         NgoUser[]
-  reservations  NgoReservation[]
+  id           String           @id @default(cuid())
+  name         String
+  slug         String           @unique
+  contactEmail String?
+  contactPhone String?
+  description  String?
+  isActive     Boolean          @default(true)
+  billingNotes String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @default(now()) @updatedAt
+  reservations NgoReservation[]
+  users        NgoUser[]
 
   @@index([slug])
 }
@@ -242,23 +242,23 @@ model NgoUser {
 }
 
 model NgoReservation {
-  id             String      @id @default(cuid())
-  ngoId          String
-  providerId     String
-  slotId         String?
-  appointmentId  String?     @unique
-  friendlyId     String      @unique
-  speciality     String?
-  notes          String?
-  status         String      @default("HELD")
-  amountPaise    Int?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  confirmedAt    DateTime?
-  ngo            Ngo         @relation(fields: [ngoId], references: [id], onDelete: Cascade)
-  provider       Provider    @relation(fields: [providerId], references: [id])
-  slot           Slot?       @relation(fields: [slotId], references: [id])
-  appointment    Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  id            String       @id @default(cuid())
+  ngoId         String
+  providerId    String
+  slotId        String?
+  appointmentId String?      @unique
+  friendlyId    String       @unique
+  speciality    String?
+  notes         String?
+  status        String       @default("HELD")
+  amountPaise   Int?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @default(now()) @updatedAt
+  confirmedAt   DateTime?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  ngo           Ngo          @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  provider      Provider     @relation(fields: [providerId], references: [id])
+  slot          Slot?        @relation(fields: [slotId], references: [id])
 
   @@index([ngoId, status])
   @@index([providerId, status])
@@ -348,13 +348,13 @@ model PaymentReceipt {
 }
 
 model Medication {
-  id        String   @id @default(cuid())
-  name      String   @unique
+  id        String    @id @default(cuid())
+  name      String    @unique
   generic   String?
   form      String?
   strength  String?
-  category  String?  @default("OTC")
-  createdAt DateTime @default(now())
+  category  String?   @default("OTC")
+  createdAt DateTime? @default(now()) @db.Timestamp(6)
 
   @@index([name])
 }

@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>; // Next 16 app router uses async params
+  searchParams?: Promise<{ from?: string }>;
 };
 
 function fmtIST(d: Date) {
@@ -20,8 +21,11 @@ function fmtIST(d: Date) {
   });
 }
 
-export default async function VisitPage({ params }: Props) {
+export default async function VisitPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const sp = (await searchParams) ?? {};
+  const fromParam = sp.from === "provider" ? "provider" : null;
+  const backHref = fromParam ? "/provider/appointments" : "/";
 
   // Get appointment with relationships that are guaranteed to exist
   const appt = await prisma.appointment.findUnique({
@@ -37,7 +41,7 @@ export default async function VisitPage({ params }: Props) {
     return (
       <main className="p-8">
         <h1 className="text-xl font-semibold">Appointment not found</h1>
-        <Link className="text-blue-600 underline" href="/">Go home</Link>
+        <Link className="text-blue-600 underline" href={backHref}>Go home</Link>
       </main>
     );
   }
@@ -56,7 +60,7 @@ export default async function VisitPage({ params }: Props) {
         <div className="rounded-[32px] bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-8">
           <div className="mb-4">
             <Link
-              href="/"
+              href={backHref}
               className="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800"
             >
               ← Back home
@@ -129,7 +133,11 @@ export default async function VisitPage({ params }: Props) {
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {appt.status === "CONFIRMED" && appt.videoRoom ? (
               <a
-                href={appt.videoRoom}
+                href={
+                  fromParam
+                    ? `${appt.videoRoom}${appt.videoRoom.includes("?") ? "&" : "?"}from=provider`
+                    : appt.videoRoom
+                }
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"

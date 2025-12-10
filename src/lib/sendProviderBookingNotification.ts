@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { sendWhatsAppTemplate, sendWhatsAppText } from "@/lib/whatsapp";
 import { getErrorMessage } from "@/lib/errors";
+import { createProviderConfirmToken } from "@/lib/providerConfirmToken";
 
 const PROVIDER_TEMPLATE =
   process.env.WHATSAPP_PROVIDER_TEMPLATE ||
@@ -8,7 +9,15 @@ const PROVIDER_TEMPLATE =
   "WHATSAPP_PROVIDER_TEMPLATE";
 const PROVIDER_FALLBACK_TEXT =
   process.env.WHATSAPP_PROVIDER_FALLBACK_TEXT ||
-  "New CalDoc appointment: {patient} on {time}. Open the provider portal to confirm.";
+  "New CalDoc appointment: {patient} on {time}. Confirm: {confirm} — Portal: {portal}";
+
+function appBaseUrl() {
+  return (
+    process.env.APP_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://caldoc.in"
+  );
+}
 
 function formatIST(date: Date) {
   return date.toLocaleString("en-IN", {
@@ -24,6 +33,7 @@ function formatIST(date: Date) {
 type NotifyOptions = {
   appointmentId: string;
   providerPhone: string;
+  providerId: string;
   providerName?: string | null;
   patientName?: string | null;
   slotStartsAt: Date;
@@ -34,6 +44,18 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
   const lang = process.env.WHATSAPP_LANG || "en_US";
   const visitTime = formatIST(opts.slotStartsAt);
   const bodyPreview = `New appointment: ${opts.patientName || "Patient"} on ${visitTime}`;
+  const baseUrl = appBaseUrl();
+  const token = createProviderConfirmToken({ appointmentId: opts.appointmentId, providerId: opts.providerId });
+  const confirmUrl = `${baseUrl}/provider/confirm?token=${encodeURIComponent(token)}`;
+  const portalUrl = `${baseUrl}/provider/login?redirect=${encodeURIComponent(`/provider/appointments/${opts.appointmentId}`)}`;
+
+  const vars = [
+    opts.providerName || "Doctor",
+    opts.patientName || "Patient",
+    visitTime,
+    confirmUrl,
+    portalUrl,
+  ];
 
   const logMessage = async (status: "SENT" | "FAILED", data: { template?: string | null; body: string; error?: string; kind: string }) =>
     prisma.outboundMessage.create({
@@ -54,7 +76,7 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
       to: opts.providerPhone,
       template,
       lang,
-      vars: [opts.providerName || "Doctor", opts.patientName || "Patient", visitTime],
+      vars,
     });
     await logMessage("SENT", { template, body: bodyPreview, kind: "PROVIDER_NEW_APPT" });
     return;
@@ -67,10 +89,10 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
     });
   }
 
-  const fallbackBody = PROVIDER_FALLBACK_TEXT.replace("{patient}", opts.patientName || "Patient").replace(
-    "{time}",
-    visitTime,
-  );
+  const fallbackBody = PROVIDER_FALLBACK_TEXT.replace("{patient}", opts.patientName || "Patient")
+    .replace("{time}", visitTime)
+    .replace("{confirm}", confirmUrl)
+    .replace("{portal}", portalUrl);
 
   try {
     await sendWhatsAppText(opts.providerPhone, fallbackBody);

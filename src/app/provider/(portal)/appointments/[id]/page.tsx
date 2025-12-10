@@ -6,6 +6,7 @@ import AppointmentActions from "./AppointmentActions";
 import VisitNoteForm from "./VisitNoteForm";
 import PrescriptionForm from "./PrescriptionForm";
 import AppointmentFeeForm from "./AppointmentFeeForm";
+import CopyRoomLinkButton from "./CopyRoomLinkButton";
 
 export const dynamic = "force-dynamic";
 
@@ -119,6 +120,9 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
     appointment.slot?.feePaise ??
     appointment.provider?.defaultFeePaise ??
     null;
+  const isAudioVisit = appointment.visitMode === "AUDIO";
+  const withProviderFlag = (url: string) => (url.includes("?") ? `${url}&from=provider` : `${url}?from=provider`);
+  const providerVideoRoomHref = appointment.videoRoom ? withProviderFlag(appointment.videoRoom) : null;
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-10 text-gray-900">
@@ -181,6 +185,39 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
           <div>
             <dt className="text-xs uppercase tracking-wide text-slate-500">Consult mode</dt>
             <dd className="text-sm text-slate-900">{appointment.visitMode === "AUDIO" ? "Audio call" : "Video call"}</dd>
+          </div>
+          <div className="sm:col-span-2">
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Video room</dt>
+            {isAudioVisit ? (
+              <dd className="text-sm text-slate-600">Not required for audio-only visits.</dd>
+            ) : appointment.videoRoom ? (
+              <div className="space-y-2">
+                <dd className="text-sm text-slate-900">
+                  <a
+                    href={providerVideoRoomHref || appointment.videoRoom}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="break-all text-blue-600 hover:text-blue-800"
+                  >
+                    {appointment.videoRoom}
+                  </a>
+                </dd>
+                <CopyRoomLinkButton link={appointment.videoRoom} />
+                <p className="text-xs text-slate-500">Copy or share this link if you need to invite additional staff.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <dd className="text-sm text-slate-600">
+                  We&apos;ll auto-generate a Daily room about 24 hours before the visit once the appointment is confirmed.
+                </dd>
+                <Link
+                  href={`/visit/${appointment.id}?from=provider`}
+                  className="inline-flex w-full max-w-xs items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-blue-300 hover:text-blue-700"
+                >
+                  Prepare room
+                </Link>
+              </div>
+            )}
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide text-slate-500">

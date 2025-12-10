@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireProviderSession } from "@/lib/auth.server";
 import { sendPatientUploadLink } from "@/lib/sendPatientUploadLink";
+import { ensureVideoRoomIfNeeded, notifyVideoLinks } from "@/lib/videoLinkHelpers";
 
 type RouteContext = {
   params: Promise<{ appointmentId: string }>;
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
     include: {
       patient: true,
       provider: true,
+      slot: { select: { startsAt: true } },
     },
   });
 
@@ -47,7 +49,18 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
   switch (action) {
     case "CONFIRM": {
       if (appointment.status === "CONFIRMED") {
-        await sendPatientUploadLink(appointment, appBaseUrl());
+        const baseUrl = appBaseUrl();
+        await sendPatientUploadLink(appointment, baseUrl);
+        const link = await ensureVideoRoomIfNeeded(
+          appointment.id,
+          {
+            visitMode: appointment.visitMode,
+            videoRoom: appointment.videoRoom,
+            slotStartsAt: appointment.slot?.startsAt ?? null,
+          },
+          baseUrl,
+        );
+        await notifyVideoLinks(appointment, link || appointment.videoRoom);
         return NextResponse.json({ ok: true, status: "CONFIRMED" });
       }
 
@@ -67,10 +80,22 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
         include: {
           patient: true,
           provider: true,
+          slot: { select: { startsAt: true } },
         },
       });
 
-      await sendPatientUploadLink(updated, appBaseUrl());
+      const baseUrl = appBaseUrl();
+      await sendPatientUploadLink(updated, baseUrl);
+      const link = await ensureVideoRoomIfNeeded(
+        updated.id,
+        {
+          visitMode: updated.visitMode,
+          videoRoom: updated.videoRoom,
+          slotStartsAt: updated.slot?.startsAt ?? null,
+        },
+        baseUrl,
+      );
+      await notifyVideoLinks(updated, link || updated.videoRoom);
       return NextResponse.json({ ok: true, status: "CONFIRMED" });
     }
     case "CANCEL": {

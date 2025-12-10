@@ -9,12 +9,14 @@ type Props = {
   appointmentId: string;
   role?: "patient" | "provider" | "guest";
   displayName?: string;
+  fromParam?: string | null;
 };
 
 export default function RoomClient({
   appointmentId,
   role = "guest",
   displayName = "Guest",
+  fromParam = null,
 }: Props) {
   /**
    * Video provider mode:
@@ -155,7 +157,8 @@ export default function RoomClient({
       } catch {}
       callRef.current = null;
     }
-    router.replace(`/visit/${appointmentId}`);
+    const nextPath = fromParam ? `/visit/${appointmentId}?from=${fromParam}` : `/visit/${appointmentId}`;
+    router.replace(nextPath);
   }
 
   /* -----------------------------------

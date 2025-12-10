@@ -243,7 +243,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
   const progressIndex = { slot: 1, delivery: 1, pay: 2 }[step] ?? 1;
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-5xl space-y-6">
       <BookingStatusBar currentIndex={progressIndex} />
       <Link
         href="/providers"
@@ -251,207 +251,198 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       >
         ← Back to providers
       </Link>
-      <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-        <p className="text-xs uppercase text-slate-500">Teleconsultation</p>
-        <h1 className="text-3xl font-semibold text-slate-900">Book {provider.name}</h1>
-        <p className="text-sm text-slate-600">
-          {provider.speciality}
-          {provider.qualification && <> · {provider.qualification}</>}
-        </p>
+      <div className="rounded-2xl border border-slate-100 bg-white/90 p-5 shadow-sm">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-600">Teleconsultation</p>
+        <div className="mt-1 flex flex-wrap items-baseline gap-3">
+          <h1 className="text-3xl font-semibold text-slate-900">Book {provider.name}</h1>
+          <span className="text-sm text-slate-500">{provider.speciality}</span>
+          {provider.qualification && <span className="text-sm text-slate-400">· {provider.qualification}</span>}
+        </div>
         {provider.registrationNumber && (
-          <p className="text-xs text-slate-500">
-            Reg. No: <span className="font-mono">{provider.registrationNumber}</span>
+          <p className="mt-1 text-xs text-slate-500">
+            Reg. No: <span className="font-mono text-slate-900">{provider.registrationNumber}</span>
             {provider.councilName && <> ({provider.councilName})</>}
           </p>
         )}
       </div>
       {step === "slot" && (
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-          <div className="flex flex-col gap-4">
-            <div className="space-y-2">
-              <p className="text-xs uppercase text-slate-500">Step 2</p>
-              <h2 className="text-xl font-semibold text-slate-900">Choose a slot</h2>
-              <p className="text-sm text-slate-500">
-                Select a time, enter the patient details, and accept the telemedicine consent.
-              </p>
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                <p className="font-medium text-slate-900">Consultation fee</p>
-                <p className="text-lg font-semibold text-blue-700">
-                  {selectedSlotFeeLabel ?? "Will be confirmed before payment"}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {selectedSlotFeeLabel
-                    ? "Includes telemedicine consult and follow-up prescription."
-                    : "Final amount is shown once the doctor confirms the booking."}
-                </p>
-              </div>
-            </div>
+          <div className="space-y-2">
+            <p className="text-xs uppercase text-slate-500">Step 2</p>
+            <h2 className="text-xl font-semibold text-slate-900">Choose a slot</h2>
+            <p className="text-sm text-slate-500">
+              Select a time, enter the patient details, and accept the telemedicine consent.
+            </p>
+          </div>
 
-            <div className="rounded-3xl border border-blue-100 bg-blue-50/40 p-4 shadow-inner">
-              <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
-                Patient details
-              </p>
-              <div className="mt-3 grid gap-4 md:grid-cols-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Patient full name
-                  <input
-                    value={patientName}
-                    onChange={(e) => setPatientName(e.target.value)}
-                    className="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
-                  />
-                </label>
-                <label className="text-sm font-medium text-slate-700">
-                  Mobile number
-                  <input
-                    value={patientPhone}
-                    onChange={(e) => setPatientPhone(e.target.value)}
-                    className="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
-                    placeholder="+91 98765 43210"
-                  />
-                </label>
-              </div>
-            </div>
-
+          <div className="mt-6 flex flex-col gap-6 lg:flex-row">
+            <div className="flex-1 space-y-4">
               <div className="flex items-center gap-3">
                 <button
-                type="button"
-                onClick={() => handlePage("prev")}
-                disabled={!canPrev}
-                className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-40"
-              >
-                &lt;
-              </button>
-              <div className="grid flex-1 gap-3 sm:grid-cols-3">
-                {upcomingSlots.length === 0 && (
-                  <p className="text-sm text-slate-500">No slots available right now. Please check back later.</p>
-                )}
-                {upcomingSlots.length > 0 &&
-                  (pagedSlots.length ? pagedSlots : upcomingSlots).map((slot) => (
-                    <button
-                      key={slot.id}
-                      type="button"
-                      onClick={() => setSelectedSlot(slot.id)}
-                      className={`rounded-2xl px-4 py-3 text-left text-sm transition ${
-                        selectedSlot === slot.id
-                          ? "bg-slate-800 text-white shadow"
-                          : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-                      }`}
-                    >
-                      {formatSlotLabel(slot.startsAt)}
-                      <span className="mt-2 block text-xs font-semibold">
-                        {formatFeeFromPaise(slot.feePaise ?? provider.defaultFeePaise) ?? "Fee TBD"}
-                      </span>
-                    </button>
-                  ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => handlePage("next")}
-                disabled={!canNext}
-                className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-40"
-              >
-                &gt;
-              </button>
-            </div>
-
-            <label className="text-sm font-medium text-slate-700">
-              Notes for doctor (optional)
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={2}
-                className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
-                placeholder="Symptoms, duration, or remarks"
-              />
-            </label>
-
-            <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-4 text-sm text-slate-700 shadow-inner">
-              <p className="font-semibold text-blue-900">Connection preference</p>
-              <p className="mt-1 text-xs text-blue-700">
-                Inspired by eSanjeevani&apos;s rural workflows, choose audio-only if you expect limited bandwidth or
-                need to dial in via phone.
-              </p>
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                <label
-                  className={`inline-flex flex-1 cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
-                    visitMode === "VIDEO"
-                      ? "border-blue-400 bg-white text-blue-900 shadow"
-                      : "border-blue-100 bg-white text-slate-700"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="visitMode"
-                    value="VIDEO"
-                    checked={visitMode === "VIDEO"}
-                    onChange={() => setVisitMode("VIDEO")}
-                  />
-                  Video call (default)
-                </label>
-                <label
-                  className={`inline-flex flex-1 cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
-                    visitMode === "AUDIO"
-                      ? "border-blue-400 bg-white text-blue-900 shadow"
-                      : "border-blue-100 bg-white text-slate-700"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="visitMode"
-                    value="AUDIO"
-                    checked={visitMode === "AUDIO"}
-                    onChange={() => setVisitMode("AUDIO")}
-                  />
-                  Audio-only call
-                </label>
-              </div>
-              {visitMode === "AUDIO" && (
-                <p className="mt-2 text-xs text-amber-600">
-                  We will share dial-in details and the provider may call you at the registered phone number.
-                </p>
-              )}
-            </div>
-
-            <label className="flex items-start gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
-              <input
-                type="checkbox"
-                checked={consentAccepted}
-                onChange={(e) => setConsentAccepted(e.target.checked)}
-                className="mt-1"
-              />
-              <span>
-                {CONSENT_TEXT} Read our{" "}
-                <button
                   type="button"
-                  onClick={() => setPolicyModal("disclaimer")}
-                  className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
+                  onClick={() => handlePage("prev")}
+                  disabled={!canPrev}
+                  className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-40"
                 >
-                  disclaimer
-                </button>{" "}
-                and{" "}
-                <button
-                  type="button"
-                  onClick={() => setPolicyModal("terms")}
-                  className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
-                >
-                  terms of service
+                  &lt;
                 </button>
-                .
-              </span>
-            </label>
+                <div className="grid flex-1 gap-3 sm:grid-cols-3">
+                  {upcomingSlots.length === 0 && (
+                    <p className="text-sm text-slate-500">No slots available right now. Please check back later.</p>
+                  )}
+                  {upcomingSlots.length > 0 &&
+                    (pagedSlots.length ? pagedSlots : upcomingSlots).map((slot) => (
+                      <button
+                        key={slot.id}
+                        type="button"
+                        onClick={() => setSelectedSlot(slot.id)}
+                        className={`rounded-2xl px-4 py-3 text-left text-sm transition ${
+                          selectedSlot === slot.id
+                            ? "bg-slate-800 text-white shadow"
+                            : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                        }`}
+                      >
+                        {formatSlotLabel(slot.startsAt)}
+                        <span className="mt-2 block text-xs font-semibold">
+                          {formatFeeFromPaise(slot.feePaise ?? provider.defaultFeePaise) ?? "Fee TBD"}
+                        </span>
+                      </button>
+                    ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handlePage("next")}
+                  disabled={!canNext}
+                  className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-40"
+                >
+                  &gt;
+                </button>
+              </div>
 
-            {error && <p className="text-sm text-rose-600">{error}</p>}
+              <label className="text-sm font-medium text-slate-700">
+                Notes for doctor (optional)
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={2}
+                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  placeholder="Symptoms, duration, or remarks"
+                />
+              </label>
 
-            <div className="flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={handleSlotContinue}
-                disabled={loading}
-                className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-              >
-                {loading ? "Locking slot..." : "Continue"}
-              </button>
+              <label className="flex items-start gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={consentAccepted}
+                  onChange={(e) => setConsentAccepted(e.target.checked)}
+                  className="mt-1"
+                />
+                <span>
+                  {CONSENT_TEXT} Read our{" "}
+                  <button
+                    type="button"
+                    onClick={() => setPolicyModal("disclaimer")}
+                    className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
+                  >
+                    disclaimer
+                  </button>{" "}
+                  and{" "}
+                  <button
+                    type="button"
+                    onClick={() => setPolicyModal("terms")}
+                    className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
+                  >
+                    terms of service
+                  </button>
+                  .
+                </span>
+              </label>
+
+              {error && <p className="text-sm text-rose-600">{error}</p>}
+
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleSlotContinue}
+                  disabled={loading}
+                  className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {loading ? "Locking slot..." : "Continue"}
+                </button>
+              </div>
             </div>
+
+            <aside className="w-full space-y-4 lg:max-w-sm">
+              <div className="rounded-3xl border border-blue-100 bg-blue-50/40 p-4 shadow-inner">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Patient details</p>
+                <div className="mt-3 space-y-4">
+                  <label className="text-sm font-medium text-slate-700">
+                    Patient full name
+                    <input
+                      value={patientName}
+                      onChange={(e) => setPatientName(e.target.value)}
+                      className="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </label>
+                  <label className="text-sm font-medium text-slate-700">
+                    Mobile number
+                    <input
+                      value={patientPhone}
+                      onChange={(e) => setPatientPhone(e.target.value)}
+                      className="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                      placeholder="+91 98765 43210"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-4 text-sm text-slate-700 shadow-inner">
+                <p className="font-semibold text-blue-900">Connection preference</p>
+                <p className="mt-1 text-xs text-blue-700">
+                  Inspired by eSanjeevani&apos;s rural workflows, choose audio-only if you expect limited bandwidth or
+                  need to dial in via phone.
+                </p>
+                <div className="mt-3 flex flex-col gap-2">
+                  <label
+                    className={`inline-flex w-full cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
+                      visitMode === "VIDEO"
+                        ? "border-blue-400 bg-white text-blue-900 shadow"
+                        : "border-blue-100 bg-white text-slate-700"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="visitMode"
+                      value="VIDEO"
+                      checked={visitMode === "VIDEO"}
+                      onChange={() => setVisitMode("VIDEO")}
+                    />
+                    Video call (default)
+                  </label>
+                  <label
+                    className={`inline-flex w-full cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
+                      visitMode === "AUDIO"
+                        ? "border-blue-400 bg-white text-blue-900 shadow"
+                        : "border-blue-100 bg-white text-slate-700"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="visitMode"
+                      value="AUDIO"
+                      checked={visitMode === "AUDIO"}
+                      onChange={() => setVisitMode("AUDIO")}
+                    />
+                    Audio-only call
+                  </label>
+                </div>
+                {visitMode === "AUDIO" && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    We will share dial-in details and the provider may call you at the registered phone number.
+                  </p>
+                )}
+              </div>
+            </aside>
           </div>
         </section>
       )}
