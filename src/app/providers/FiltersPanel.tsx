@@ -13,7 +13,7 @@ const availabilityOptions = [
 const genderOptions = [
   { value: "female", label: "Female doctors" },
   { value: "male", label: "Male doctors" },
-  { value: "other", label: "Other / prefer not to say" },
+  { value: "any", label: "Any" },
 ];
 
 const experienceOptions = [
@@ -28,6 +28,7 @@ type FiltersPanelProps = {
   selectedAvailability: string;
   selectedExperience: string;
   selectedGenders: string[];
+  genderAnySelected: boolean;
   selectedLanguages: string[];
   q: string;
   languageLabels: Record<string, string>;
@@ -39,6 +40,7 @@ export function FiltersPanel({
   selectedAvailability,
   selectedExperience,
   selectedGenders,
+  genderAnySelected,
   selectedLanguages,
   q,
   languageLabels,
@@ -132,7 +134,11 @@ export function FiltersPanel({
                   type="checkbox"
                   name="gender"
                   value={option.value}
-                  defaultChecked={genderSet.has(option.value)}
+                  defaultChecked={
+                    option.value === "any"
+                      ? genderAnySelected
+                      : genderSet.has(option.value)
+                  }
                   className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
                 {option.label}

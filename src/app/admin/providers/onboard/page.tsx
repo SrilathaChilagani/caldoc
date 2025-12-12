@@ -66,7 +66,13 @@ export default async function AdminProviderOnboard() {
           <div className="grid gap-3 md:grid-cols-3">
             <label className="block">
               <span>Portrait / profile photo</span>
-              <input type="file" name="profilePhoto" accept="image/*" className="mt-1 w-full rounded border border-dashed border-slate-300 px-3 py-2 text-xs" />
+              <input
+                type="file"
+                name="profilePhoto"
+                accept="image/*"
+                className="mt-1 w-full rounded border border-dashed border-slate-300 px-3 py-2 text-xs"
+              />
+              <p className="mt-1 text-[11px] text-slate-500">Shown on the patient-facing provider list.</p>
             </label>
             <label className="block">
               <span>License document</span>

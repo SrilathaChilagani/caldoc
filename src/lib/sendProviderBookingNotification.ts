@@ -49,13 +49,25 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
   const confirmUrl = `${baseUrl}/provider/confirm?token=${encodeURIComponent(token)}`;
   const portalUrl = `${baseUrl}/provider/login?redirect=${encodeURIComponent(`/provider/appointments/${opts.appointmentId}`)}`;
 
-  const vars = [
-    opts.providerName || "Doctor",
-    opts.patientName || "Patient",
-    visitTime,
-    confirmUrl,
-    portalUrl,
+  const bodyComponent = {
+    type: "body" as const,
+    parameters: [
+      { type: "text" as const, text: opts.providerName || "Doctor" },
+      { type: "text" as const, text: opts.patientName || "Patient" },
+      { type: "text" as const, text: visitTime },
+    ],
+  };
+
+  const buttonComponents = [
+    {
+      type: "button" as const,
+      sub_type: "url" as const,
+      index: "0",
+      parameters: [{ type: "text" as const, text: confirmUrl }],
+    },
   ];
+
+  const components = [bodyComponent, ...buttonComponents];
 
   const logMessage = async (status: "SENT" | "FAILED", data: { template?: string | null; body: string; error?: string; kind: string }) =>
     prisma.outboundMessage.create({
@@ -76,7 +88,7 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
       to: opts.providerPhone,
       template,
       lang,
-      vars,
+      components,
     });
     await logMessage("SENT", { template, body: bodyPreview, kind: "PROVIDER_NEW_APPT" });
     return;

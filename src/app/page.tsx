@@ -150,7 +150,7 @@ export default async function Home() {
                 type="submit"
                 className="inline-flex min-w-[140px] items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700"
               >
-                Find a provider
+                Find a doctor
               </button>
             </form>
 
@@ -165,7 +165,7 @@ export default async function Home() {
               <div className="relative w-full max-w-sm overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-3 shadow-2xl shadow-blue-100/70 backdrop-blur lg:max-w-md xl:max-w-lg">
                 <div className="relative h-60 w-full overflow-hidden rounded-[24px] sm:h-64 md:h-72 lg:h-[18rem] xl:h-[20rem]">
                   <Image
-                    src="/images/team.jpg"
+                    src="/images/team.png"
                     alt="CalDoc care team standing together"
                     fill
                     priority
@@ -215,7 +215,7 @@ export default async function Home() {
             </p>
             <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
               <li>Pick “Audio-only call” during booking when data coverage is weak.</li>
-              <li>Stay on the queue using the same slot; the provider will phone the registered number.</li>
+              <li>Stay on the queue using the same slot; the doctor will phone the registered number.</li>
               <li>Submit the offline form so our coordinator can call back when the network stabilises.</li>
             </ul>
           </div>

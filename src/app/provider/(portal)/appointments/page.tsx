@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
 import { readProviderSession } from "@/lib/auth.server";
+import ProviderPhotoForm from "../ProviderPhotoForm";
 
 export const dynamic = "force-dynamic";
 
@@ -46,8 +47,8 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
   if (!sess) {
     return (
       <main className="rounded-3xl bg-white p-10 text-center shadow-xl">
-        <h1 className="text-xl font-semibold text-rose-600">Please sign in as a provider</h1>
-        <p className="mt-2 text-sm text-slate-500">Use your provider credentials to access the portal.</p>
+        <h1 className="text-xl font-semibold text-rose-600">Please sign in as a doctor</h1>
+        <p className="mt-2 text-sm text-slate-500">Use your doctor credentials to access the portal.</p>
         <Link
           href="/provider/login?next=/provider/appointments"
           className="mt-6 inline-flex items-center rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
@@ -60,7 +61,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
 
   const provider = await prisma.provider.findUnique({
     where: { id: sess.pid },
-    select: { id: true, name: true },
+    select: { id: true, name: true, slug: true, profilePhotoKey: true },
   });
 
   const sp = (await searchParams) ?? {};
@@ -209,7 +210,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
       <section className="rounded-[32px] bg-gradient-to-br from-[#eff4ff] via-white to-white p-6 shadow-sm ring-1 ring-slate-100 lg:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">Provider workspace</p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">Doctor workspace</p>
             <h1 className="mt-1 text-3xl font-semibold text-slate-900">Hello, {provider?.name || "Doctor"}</h1>
             <p className="text-sm text-slate-500">
               Manage today&apos;s teleconsultations, confirm bookings, and share prescriptions from one place.
@@ -274,6 +275,21 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
           })}
         </div>
       </section>
+
+      {provider && provider.slug && (
+        <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm ring-1 ring-slate-100">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Profile photo</p>
+              <h2 className="text-xl font-semibold text-slate-900">{provider.name}</h2>
+              <p className="text-sm text-slate-500">
+                Upload a portrait so patients recognise you on the booking page.
+              </p>
+            </div>
+            <ProviderPhotoForm slug={provider.slug} initialKey={provider.profilePhotoKey} />
+          </div>
+        </section>
+      )}
 
       <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">

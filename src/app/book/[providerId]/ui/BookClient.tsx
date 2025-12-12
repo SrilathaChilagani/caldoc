@@ -249,10 +249,9 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
         href="/providers"
         className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
       >
-        ← Back to providers
+        ← Back to doctors
       </Link>
       <div className="rounded-2xl border border-slate-100 bg-white/90 p-5 shadow-sm">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-600">Teleconsultation</p>
         <div className="mt-1 flex flex-wrap items-baseline gap-3">
           <h1 className="text-3xl font-semibold text-slate-900">Book {provider.name}</h1>
           <span className="text-sm text-slate-500">{provider.speciality}</span>
@@ -275,8 +274,8 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
             </p>
           </div>
 
-          <div className="mt-6 flex flex-col gap-6 lg:flex-row">
-            <div className="flex-1 space-y-4">
+          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+            <div className="space-y-4 min-w-0">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -330,49 +329,10 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 />
               </label>
 
-              <label className="flex items-start gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-600">
-                <input
-                  type="checkbox"
-                  checked={consentAccepted}
-                  onChange={(e) => setConsentAccepted(e.target.checked)}
-                  className="mt-1"
-                />
-                <span>
-                  {CONSENT_TEXT} Read our{" "}
-                  <button
-                    type="button"
-                    onClick={() => setPolicyModal("disclaimer")}
-                    className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
-                  >
-                    disclaimer
-                  </button>{" "}
-                  and{" "}
-                  <button
-                    type="button"
-                    onClick={() => setPolicyModal("terms")}
-                    className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
-                  >
-                    terms of service
-                  </button>
-                  .
-                </span>
-              </label>
-
               {error && <p className="text-sm text-rose-600">{error}</p>}
-
-              <div className="flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={handleSlotContinue}
-                  disabled={loading}
-                  className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-                >
-                  {loading ? "Locking slot..." : "Continue"}
-                </button>
-              </div>
             </div>
 
-            <aside className="w-full space-y-4 lg:max-w-sm">
+            <aside className="space-y-4 w-full lg:w-auto">
               <div className="rounded-3xl border border-blue-100 bg-blue-50/40 p-4 shadow-inner">
                 <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Patient details</p>
                 <div className="mt-3 space-y-4">
@@ -442,7 +402,46 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                   </p>
                 )}
               </div>
+              <div className="rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow">
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={consentAccepted}
+                    onChange={(e) => setConsentAccepted(e.target.checked)}
+                    className="mt-1"
+                  />
+                  <span>
+                    {CONSENT_TEXT} Read our{" "}
+                    <button
+                      type="button"
+                      onClick={() => setPolicyModal("disclaimer")}
+                      className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
+                    >
+                      disclaimer
+                    </button>{" "}
+                    and{" "}
+                    <button
+                      type="button"
+                      onClick={() => setPolicyModal("terms")}
+                      className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
+                    >
+                      terms of service
+                    </button>
+                    .
+                  </span>
+                </label>
+              </div>
             </aside>
+          </div>
+          <div className="mt-6 flex items-center justify-end">
+            <button
+              type="button"
+              onClick={handleSlotContinue}
+              disabled={loading}
+              className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            >
+              {loading ? "Locking slot..." : "Continue"}
+            </button>
           </div>
         </section>
       )}

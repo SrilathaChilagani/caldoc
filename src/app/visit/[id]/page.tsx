@@ -66,10 +66,10 @@ export default async function VisitPage({ params, searchParams }: Props) {
               ← Back home
             </Link>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">CalDoc visit</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Visit summary</p>
           <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold text-slate-900">Your CalDoc visit</h1>
+              <h1 className="text-3xl font-semibold text-slate-900">Your visit details</h1>
               <p className="text-sm text-slate-500">Appointment ID: <span className="font-mono text-slate-700">{appt.id}</span></p>
             </div>
             <span

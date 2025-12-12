@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { FiltersPanel } from "./FiltersPanel";
@@ -47,7 +48,7 @@ const availabilityOptions = [
 const genderOptions = [
   { value: "female", label: "Female doctors" },
   { value: "male", label: "Male doctors" },
-  { value: "other", label: "Other / prefer not to say" },
+  { value: "any", label: "Any" },
 ];
 
 const experienceOptions = [
@@ -127,7 +128,12 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
       ? resolvedParams.availability[0] ?? ""
       : "";
   const selectedLanguages = new Set(toArray(resolvedParams.languages));
-  const selectedGenders = new Set(toArray(resolvedParams.gender));
+  const selectedGenderValues = toArray(resolvedParams.gender);
+  const genderAnySelected =
+    selectedGenderValues.length === 0 || selectedGenderValues.includes("any");
+  const selectedGenders = genderAnySelected
+    ? new Set<string>()
+    : new Set(selectedGenderValues);
   const selectedExperience =
     typeof resolvedParams.experience === "string"
       ? resolvedParams.experience
@@ -213,6 +219,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
         languages: true,
         is24x7: true,
         defaultFeePaise: true,
+        profilePhotoKey: true,
         slots: {
           where: {
             isBooked: false,
@@ -260,9 +267,6 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
         </Link>
         <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
           <h1 className="text-3xl font-semibold text-slate-900">Find a doctor</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Search by specialty, name, registration number, or language. Click a slot to jump straight to booking.
-          </p>
           <form method="GET" className="mt-4 flex flex-col gap-3 md:flex-row">
             <input
               name="q"
@@ -300,7 +304,8 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
             selectedSpecialties={Array.from(selectedSpecialties)}
             selectedAvailability={selectedAvailability}
             selectedExperience={selectedExperience}
-            selectedGenders={Array.from(selectedGenders)}
+            selectedGenders={genderAnySelected ? [] : Array.from(selectedGenders)}
+            genderAnySelected={genderAnySelected}
             selectedLanguages={Array.from(selectedLanguages)}
             q={q}
             languageLabels={languageLabels}
@@ -313,16 +318,29 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
               </div>
             ) : (
               filteredProviders.map((provider) => {
-                const displayedSlots = provider.slots.slice(0, 3);
+                const sortedSlots = [...provider.slots].sort(
+                  (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+                );
+                const displayedSlots = sortedSlots.slice(0, 3);
                 const feeLabel = formatFee(provider.defaultFeePaise);
                 const meta = deriveMeta(provider.slug);
+                const photoToken = provider.profilePhotoKey
+                  ? encodeURIComponent(provider.profilePhotoKey)
+                  : null;
+                const photoUrl = photoToken
+                  ? `/api/providers/${provider.slug}/photo?v=${photoToken}`
+                  : "/images/doc.jpg";
                 return (
                   <article
                     key={provider.id}
                     className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm ring-1 ring-slate-100"
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                      <div>
+                      <div className="flex items-start gap-4">
+                        <div className="relative h-24 w-24 overflow-hidden rounded-[32px] border border-slate-200 bg-slate-50">
+                          <Image src={photoUrl} alt={provider.name} fill className="object-cover" sizes="96px" />
+                        </div>
+                        <div>
                         <p className="text-lg font-semibold text-slate-900">{provider.name}</p>
                         <p className="text-sm text-slate-600">{provider.speciality}</p>
                         {provider.qualification && (
@@ -346,13 +364,14 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
                         {provider.is24x7 && (
                           <p className="text-xs font-medium text-emerald-600">Available 24x7</p>
                         )}
+                        </div>
                       </div>
                       <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center md:justify-end">
-                        <div className="flex flex-col items-start gap-1 md:items-end">
+                        <div className="flex flex-col items-start gap-1 text-left md:items-end md:text-right">
                           <p className="text-xs font-semibold uppercase text-slate-500">Next availability</p>
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex w-full flex-col gap-2 md:w-auto">
                             {displayedSlots.length === 0 ? (
-                              <span className="rounded-2xl border border-dashed border-slate-200 px-3 py-1 text-xs text-slate-400">
+                              <span className="rounded-2xl border border-dashed border-slate-200 px-3 py-1 text-xs text-slate-400 md:self-end">
                                 No slots open
                               </span>
                             ) : (
@@ -360,7 +379,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
                                 <Link
                                   key={slot.id}
                                   href={`/book/${encodeURIComponent(provider.slug || provider.id)}?slot=${slot.id}`}
-                                  className="rounded-2xl border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:border-blue-200 hover:bg-blue-100"
+                                  className="inline-flex min-w-[160px] justify-center rounded-2xl border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:border-blue-200 hover:bg-blue-100 md:self-end"
                                 >
                                   {formatSlot(new Date(slot.startsAt))}
                                 </Link>
@@ -372,7 +391,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
                           href={`/book/${encodeURIComponent(provider.slug || provider.id)}`}
                           className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                         >
-                          Book provider
+                          Book doctor
                         </Link>
                       </div>
                     </div>

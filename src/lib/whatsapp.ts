@@ -20,12 +20,22 @@ type SendTemplateOpts = {
   template: string;               // WhatsApp template name
   vars?: (string | number)[];     // template body variables
   lang?: string;                  // e.g., "en_US" (defaults to env)
+  components?: TemplateComponent[]; // custom components (buttons, header, etc.)
 };
 
-type TemplateComponent = {
+type BodyComponent = {
   type: "body";
   parameters: { type: "text"; text: string }[];
 };
+
+type ButtonComponent = {
+  type: "button";
+  sub_type: "url";
+  index: string;
+  parameters: { type: "text"; text: string }[];
+};
+
+type TemplateComponent = BodyComponent | ButtonComponent;
 
 type TemplatePayload = {
   name: string;
@@ -66,17 +76,18 @@ export async function sendWhatsAppTemplate(opts: SendTemplateOpts) {
     throw new Error("Recipient phone missing/invalid (must be E.164, e.g. +9198XXXXXXXX)");
   }
 
-  const parameters = (opts.vars ?? []).map(
-    (v): TemplateComponent["parameters"][number] => ({ type: "text", text: String(v) })
+  const bodyParameters = (opts.vars ?? []).map(
+    (v): BodyComponent["parameters"][number] => ({ type: "text", text: String(v) })
   );
 
-  // Build template WITHOUT spreading an array into the object
   const template: TemplatePayload = {
     name: opts.template,
     language: { code: opts.lang || WA_DEFAULT_LANG },
   };
-  if (parameters.length) {
-    template.components = [{ type: "body", parameters }];
+  if (opts.components && opts.components.length) {
+    template.components = opts.components;
+  } else if (bodyParameters.length) {
+    template.components = [{ type: "body", parameters: bodyParameters }];
   }
 
   const payload = {

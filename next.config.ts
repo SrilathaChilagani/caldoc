@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   typescript: {
     tsconfigPath: "./tsconfig.next.json",
   },
+  images: {
+    localPatterns: [
+      { pathname: "/images/**" },
+      { pathname: "/api/providers/**" },
+    ],
+  },
   async headers() {
     return [
       {
