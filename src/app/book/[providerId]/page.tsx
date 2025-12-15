@@ -73,7 +73,7 @@ export default async function BookPage({ params, searchParams }: PageProps) {
 
   return (
     <main className="min-h-[calc(100vh-120px)] bg-[#f7f9fc] py-10">
-      <div className="mx-auto max-w-4xl space-y-6 px-4">
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-10">
         <BookClient
           provider={{
             id: provider.id,

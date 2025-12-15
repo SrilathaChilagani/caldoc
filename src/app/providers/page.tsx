@@ -258,7 +258,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
 
   return (
     <main className="min-h-[calc(100vh-120px)] bg-[#f7f9fc] py-10">
-      <div className="mx-auto max-w-5xl space-y-6 px-4">
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-10">
         <Link
           href="/"
           className="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800"

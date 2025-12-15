@@ -24,7 +24,7 @@ const steps = [
 export default function HowItWorksPage() {
   return (
     <main className="bg-gradient-to-b from-[#eef4ff] via-white to-white py-16">
-      <div className="mx-auto max-w-4xl space-y-8 px-4">
+      <div className="mx-auto w-full max-w-6xl space-y-8 px-4 sm:px-6 lg:px-10">
         <header className="rounded-3xl border border-blue-50 bg-white p-8 text-center shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">How it works</p>
           <h1 className="mt-3 text-3xl font-semibold text-slate-900">Five simple steps to CalDoc care</h1>

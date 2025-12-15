@@ -1,7 +1,7 @@
 export default function AboutPage() {
   return (
     <main className="bg-white py-16">
-      <div className="mx-auto max-w-4xl space-y-6 px-4">
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-10">
         <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-500">About CalDoc</p>
           <h1 className="mt-2 text-3xl font-semibold text-slate-900">Telemedicine, simplified for India</h1>

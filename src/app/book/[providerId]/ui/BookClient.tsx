@@ -196,7 +196,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       : `${address.contactName || patientName} · ${address.line1 || "No address"}`;
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6 px-2 sm:px-0">
       <Link
         href="/providers"
         className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
@@ -206,11 +206,13 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       {step === "slot" && (
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-slate-900">Book {provider.name}</h2>
-            <p className="text-sm text-slate-500">
-              {provider.speciality}
-              {provider.qualification ? ` · ${provider.qualification}` : ""}
-            </p>
+            <h2 className="text-xl font-semibold text-slate-900">
+              Book {provider.name}
+              <span className="text-sm font-normal text-slate-500"> · {provider.speciality}</span>
+            </h2>
+            {provider.qualification && (
+              <p className="text-sm text-slate-500">{provider.qualification}</p>
+            )}
             {provider.registrationNumber && (
               <p className="text-xs text-slate-500">
                 Reg. No: <span className="font-mono text-slate-900">{provider.registrationNumber}</span>
@@ -222,7 +224,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
             </p>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
             <div className="space-y-4 min-w-0">
               <div className="flex items-center gap-3">
                 <button
@@ -266,24 +268,9 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 </button>
               </div>
 
-              <label className="text-sm font-medium text-slate-700">
-                Notes for doctor (optional)
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
-                  placeholder="Symptoms, duration, or remarks"
-                />
-              </label>
-
-              {error && <p className="text-sm text-rose-600">{error}</p>}
-            </div>
-
-            <aside className="space-y-4 w-full lg:w-auto">
-              <div className="rounded-3xl border border-blue-100 bg-blue-50/40 p-4 shadow-inner">
+              <div className="rounded-3xl border border-blue-200 bg-[#e6f1ff] p-4 shadow-inner">
                 <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Patient details</p>
-                <div className="mt-3 space-y-4">
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <label className="text-sm font-medium text-slate-700">
                     Patient full name
                     <input
@@ -304,13 +291,9 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-4 text-sm text-slate-700 shadow-inner">
+              <div className="rounded-3xl border border-emerald-200 bg-[#e3f8ed] p-4 text-sm text-slate-700 shadow-inner">
                 <p className="font-semibold text-blue-900">Connection preference</p>
-                <p className="mt-1 text-xs text-blue-700">
-                  Inspired by eSanjeevani&apos;s rural workflows, choose audio-only if you expect limited bandwidth or
-                  need to dial in via phone.
-                </p>
-                <div className="mt-3 flex flex-col gap-2">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   <label
                     className={`inline-flex w-full cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
                       visitMode === "VIDEO"
@@ -344,19 +327,14 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                     Audio-only call
                   </label>
                 </div>
-                {visitMode === "AUDIO" && (
-                  <p className="mt-2 text-xs text-amber-600">
-                    We will share dial-in details and the provider may call you at the registered phone number.
-                  </p>
-                )}
               </div>
               <div className="rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow">
-                <label className="flex items-start gap-2">
+                <label className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     checked={consentAccepted}
                     onChange={(e) => setConsentAccepted(e.target.checked)}
-                    className="mt-1"
+                    className="h-5 w-5 rounded border-slate-300"
                   />
                   <span>
                     {CONSENT_TEXT} Read our{" "}
@@ -379,6 +357,20 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                   </span>
                 </label>
               </div>
+              {error && <p className="text-sm text-rose-600">{error}</p>}
+            </div>
+
+            <aside className="space-y-4 w-full lg:w-auto">
+              <label className="text-sm font-medium text-slate-700 block rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                Notes for doctor (optional)
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={10}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  placeholder="Symptoms, duration, or remarks"
+                />
+              </label>
             </aside>
           </div>
           <div className="mt-6 flex items-center justify-end">

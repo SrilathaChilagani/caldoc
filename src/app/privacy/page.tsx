@@ -3,7 +3,7 @@ export const metadata = { title: "Privacy Policy | CalDoc India" };
 export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-white">
-      <div className="mx-auto max-w-4xl space-y-4 px-4 py-12 text-slate-800">
+      <div className="mx-auto w-full max-w-5xl space-y-4 px-4 sm:px-6 lg:px-10 py-12 text-slate-800">
       <h1 className="text-3xl font-semibold text-slate-900">Privacy Policy</h1>
       <p className="text-sm text-slate-600">
         We collect only the data needed to deliver telemedicine services and fulfil regulatory duties under the

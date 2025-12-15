@@ -28,7 +28,7 @@ const specialties = [
 export default function SpecialtiesPage() {
   return (
     <main className="bg-[#f7f9fc] py-16">
-      <div className="mx-auto max-w-5xl space-y-8 px-4">
+      <div className="mx-auto w-full max-w-6xl space-y-8 px-4 sm:px-6 lg:px-10">
         <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">Specialties</p>
           <h1 className="mt-2 text-3xl font-semibold text-slate-900">Explore CalDoc’s specialty network</h1>

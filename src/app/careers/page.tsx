@@ -1,7 +1,7 @@
 export default function CareersPage() {
   return (
     <main className="bg-white py-16">
-      <div className="mx-auto max-w-4xl space-y-8 px-4">
+      <div className="mx-auto w-full max-w-5xl space-y-8 px-4 sm:px-6 lg:px-10">
           <header className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Careers</p>
             <h1 className="mt-2 text-3xl font-semibold text-slate-900">Join the CalDoc mission</h1>

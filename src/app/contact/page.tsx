@@ -1,7 +1,7 @@
 export default function ContactPage() {
   return (
     <main className="bg-[#f8fafc] py-16">
-      <div className="mx-auto max-w-3xl space-y-6 px-4">
+      <div className="mx-auto w-full max-w-5xl space-y-6 px-4 sm:px-6 lg:px-10">
         <header className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Contact us</p>
           <h1 className="mt-2 text-3xl font-semibold text-slate-900">We’d love to hear from you</h1>

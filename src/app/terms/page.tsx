@@ -3,7 +3,7 @@ export const metadata = { title: "Terms of Service | CalDoc India" };
 export default function TermsPage() {
   return (
     <main className="min-h-screen bg-white">
-      <div className="mx-auto max-w-4xl space-y-4 px-4 py-12 text-slate-800">
+      <div className="mx-auto w-full max-w-5xl space-y-4 px-4 sm:px-6 lg:px-10 py-12 text-slate-800">
         <h1 className="text-3xl font-semibold text-slate-900">Terms of Service</h1>
         <p className="text-sm text-slate-600">
           These highlights describe the legal expectations between CalDoc India, registered providers, and

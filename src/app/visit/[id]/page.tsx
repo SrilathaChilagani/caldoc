@@ -56,7 +56,7 @@ export default async function VisitPage({ params, searchParams }: Props) {
 
   return (
     <main className="min-h-[calc(100vh-140px)] bg-gradient-to-b from-[#eef4ff] via-white to-white py-12">
-      <div className="mx-auto max-w-4xl space-y-8 px-4">
+      <div className="mx-auto w-full max-w-6xl space-y-8 px-4 sm:px-6 lg:px-10">
         <div className="rounded-[32px] bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-8">
           <div className="mb-4">
             <Link
