@@ -48,7 +48,7 @@ const STATUS_LABELS: Record<FulfillmentStatus, string> = {
 
 export default async function PharmacyDashboardPage() {
   const sess = await requireAdminSession();
-  if (!sess) redirect("/provider/login?next=/pharmacy");
+  if (!sess) redirect("/pharmacy/login?next=/pharmacy");
 
   const appointments = await prisma.appointment.findMany({
     orderBy: { createdAt: "desc" },

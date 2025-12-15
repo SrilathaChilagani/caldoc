@@ -17,7 +17,7 @@ const loginLinks = [
   { label: "Patient portal", href: "/patient/login", helper: "View appointments & prescriptions" },
   { label: "Provider portal", href: "/provider/appointments", helper: "Manage teleconsultations" },
   { label: "Admin dashboard", href: "/provider/login?next=/admin", helper: "Ops, slots & onboarding" },
-  { label: "Pharmacy queue", href: "/provider/login?next=/pharmacy", helper: "Fulfil prescriptions" },
+  { label: "Pharmacy queue", href: "/pharmacy", helper: "Fulfil prescriptions" },
 ];
 
 export default function SiteHeader() {

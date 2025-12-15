@@ -66,7 +66,6 @@ export default async function VisitPage({ params, searchParams }: Props) {
               ← Back home
             </Link>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Visit summary</p>
           <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-semibold text-slate-900">Your visit details</h1>
@@ -112,22 +111,6 @@ export default async function VisitPage({ params, searchParams }: Props) {
                 Delivery option: {appt.deliveryOpt ? appt.deliveryOpt : "Prescription will be sent to your phone"}
               </p>
             </div>
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-4">
-            <p className="text-sm font-semibold text-slate-900">Recording</p>
-            {appt.recordingKey ? (
-              <a
-                href={appt.recordingKey}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800"
-              >
-                Open recording
-              </a>
-            ) : (
-              <p className="mt-2 text-sm text-slate-500">Recording not available yet.</p>
-            )}
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">

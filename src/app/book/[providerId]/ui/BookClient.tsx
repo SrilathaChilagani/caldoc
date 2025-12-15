@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 const CONSENT_TEXT =
@@ -57,57 +57,6 @@ function formatFeeFromPaise(paise?: number | null) {
     currency: "INR",
     minimumFractionDigits: 2,
   }).format(paise / 100);
-}
-
-const BOOKING_PROGRESS_STEPS = [
-  { key: "provider", label: "Select provider" },
-  { key: "slot", label: "Select booking slot" },
-  { key: "payment", label: "Payment" },
-  { key: "confirmation", label: "Confirmation" },
-] as const;
-
-function BookingStatusBar({ currentIndex }: { currentIndex: number }) {
-  return (
-    <div className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 shadow-sm">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Appointment booking</p>
-      <div className="mt-2 flex items-center gap-4">
-        {BOOKING_PROGRESS_STEPS.map((progress, idx) => {
-          const isCompleted = idx < currentIndex;
-          const isActive = idx === currentIndex;
-          return (
-            <Fragment key={progress.key}>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold transition ${
-                      isCompleted
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-600"
-                        : isActive
-                          ? "border-blue-600 bg-blue-50 text-blue-700"
-                          : "border-slate-200 bg-white text-slate-400"
-                    }`}
-                    aria-current={isActive ? "step" : undefined}
-                  >
-                    {isCompleted ? "✓" : idx + 1}
-                  </div>
-                  <p
-                    className={`text-xs font-medium ${
-                      isActive ? "text-slate-900" : isCompleted ? "text-slate-600" : "text-slate-400"
-                    }`}
-                  >
-                    {progress.label}
-                  </p>
-                </div>
-              </div>
-              {idx < BOOKING_PROGRESS_STEPS.length - 1 && (
-                <div className="flex-1 border-t border-dashed border-slate-200" aria-hidden="true" />
-              )}
-            </Fragment>
-          );
-        })}
-      </div>
-    </div>
-  );
 }
 
 export default function BookClient({ provider, slots, initialSlotId }: Props) {
@@ -176,6 +125,12 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
   const canPrev = slotIndex > 0;
   const canNext = slotIndex + pageSize < upcomingSlots.length;
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }, [step]);
+
   function handlePage(direction: "prev" | "next") {
     setSlotIndex((prev) => {
       if (direction === "prev") {
@@ -240,37 +195,30 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       ? "Prescription will be shared to the patient phone/WhatsApp."
       : `${address.contactName || patientName} · ${address.line1 || "No address"}`;
 
-  const progressIndex = { slot: 1, delivery: 1, pay: 2 }[step] ?? 1;
-
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
-      <BookingStatusBar currentIndex={progressIndex} />
       <Link
         href="/providers"
         className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
       >
         ← Back to doctors
       </Link>
-      <div className="rounded-2xl border border-slate-100 bg-white/90 p-5 shadow-sm">
-        <div className="mt-1 flex flex-wrap items-baseline gap-3">
-          <h1 className="text-3xl font-semibold text-slate-900">Book {provider.name}</h1>
-          <span className="text-sm text-slate-500">{provider.speciality}</span>
-          {provider.qualification && <span className="text-sm text-slate-400">· {provider.qualification}</span>}
-        </div>
-        {provider.registrationNumber && (
-          <p className="mt-1 text-xs text-slate-500">
-            Reg. No: <span className="font-mono text-slate-900">{provider.registrationNumber}</span>
-            {provider.councilName && <> ({provider.councilName})</>}
-          </p>
-        )}
-      </div>
       {step === "slot" && (
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
           <div className="space-y-2">
-            <p className="text-xs uppercase text-slate-500">Step 2</p>
-            <h2 className="text-xl font-semibold text-slate-900">Choose a slot</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Book {provider.name}</h2>
             <p className="text-sm text-slate-500">
-              Select a time, enter the patient details, and accept the telemedicine consent.
+              {provider.speciality}
+              {provider.qualification ? ` · ${provider.qualification}` : ""}
+            </p>
+            {provider.registrationNumber && (
+              <p className="text-xs text-slate-500">
+                Reg. No: <span className="font-mono text-slate-900">{provider.registrationNumber}</span>
+                {provider.councilName && <> ({provider.councilName})</>}
+              </p>
+            )}
+            <p className="text-sm text-slate-500">
+              Select a slot, enter patient details, and accept the telemedicine consent to continue.
             </p>
           </div>
 
@@ -450,7 +398,6 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
           <div className="flex flex-col gap-4">
             <div>
-              <p className="text-xs uppercase text-slate-500">Step 2</p>
               <h2 className="text-xl font-semibold text-slate-900">Prescription delivery preference</h2>
               <p className="text-sm text-slate-500">
                 Choose how you would like to receive the prescription for this appointment.
@@ -561,7 +508,6 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
           <div className="flex flex-col gap-4">
             <div>
-              <p className="text-xs uppercase text-slate-500">Step 3</p>
               <h2 className="text-xl font-semibold text-slate-900">Payment & confirmation</h2>
               <p className="text-sm text-slate-500">
                 Review the appointment details before proceeding to Razorpay checkout.

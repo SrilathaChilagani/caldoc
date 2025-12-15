@@ -30,26 +30,58 @@ export default function SiteFooter() {
             <h3 className="text-sm font-semibold text-gray-900">Explore</h3>
             <ul className="mt-3 space-y-2 text-sm text-gray-600">
               <li><Link href="/providers" className="hover:text-gray-900">Find a doctor</Link></li>
-              <li><Link href="/#specialties" className="hover:text-gray-900">Specialties</Link></li>
-              <li><Link href="/#how-it-works" className="hover:text-gray-900">How it works</Link></li>
+              <li>
+                <Link href="/specialties" target="_blank" rel="noreferrer" className="hover:text-gray-900">
+                  Specialties
+                </Link>
+              </li>
+              <li>
+                <Link href="/how-it-works" target="_blank" rel="noreferrer" className="hover:text-gray-900">
+                  How it works
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-sm font-semibold text-gray-900">Company</h3>
             <ul className="mt-3 space-y-2 text-sm text-gray-600">
-              <li><Link href="/#about" className="hover:text-gray-900">About</Link></li>
-              <li><Link href="/#contact" className="hover:text-gray-900">Contact</Link></li>
-              <li><Link href="/#careers" className="hover:text-gray-900">Careers</Link></li>
+              <li>
+                <Link href="/about" target="_blank" rel="noreferrer" className="hover:text-gray-900">
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" target="_blank" rel="noreferrer" className="hover:text-gray-900">
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link href="/careers" target="_blank" rel="noreferrer" className="hover:text-gray-900">
+                  Careers
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-sm font-semibold text-gray-900">Legal</h3>
             <ul className="mt-3 space-y-2 text-sm text-gray-600">
-              <li><Link href="/terms" className="hover:text-gray-900">Terms</Link></li>
-              <li><Link href="/privacy" className="hover:text-gray-900">Privacy</Link></li>
-              <li><Link href="/compliance" className="hover:text-gray-900">Compliance</Link></li>
+              <li>
+                <Link href="/terms" target="_blank" rel="noreferrer" className="hover:text-gray-900">
+                  Terms
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" target="_blank" rel="noreferrer" className="hover:text-gray-900">
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link href="/compliance" target="_blank" rel="noreferrer" className="hover:text-gray-900">
+                  Compliance
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
