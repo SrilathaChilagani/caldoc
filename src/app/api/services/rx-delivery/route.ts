@@ -3,7 +3,9 @@ import { prisma } from "@/lib/db";
 
 const UNIT_PRICE = Number(process.env.RX_DELIVERY_ITEM_PAISE || 19900);
 
-function computeAmount(items: { name: string; qty: number }[]) {
+type ItemPayload = { name: string; qty: number };
+
+function computeAmount(items: ItemPayload[]) {
   if (!items.length) return 0;
   return items.reduce((sum, item) => sum + Math.max(1, Number(item.qty) || 0) * UNIT_PRICE, 0);
 }
@@ -11,10 +13,13 @@ function computeAmount(items: { name: string; qty: number }[]) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const items = Array.isArray(body?.items)
+    const items: ItemPayload[] = Array.isArray(body?.items)
       ? body.items
-          .map((item: any) => ({ name: String(item?.name || "").trim(), qty: Number(item?.qty) || 0 }))
-          .filter((item: any) => item.name && item.qty > 0)
+          .map((item: unknown) => {
+            const value = item as Record<string, unknown>;
+            return { name: String(value?.name || "").trim(), qty: Number(value?.qty) || 0 };
+          })
+          .filter((item: ItemPayload) => item.name && item.qty > 0)
       : [];
 
     if (!items.length) {

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 type Search = { order?: string };
 
-function summarizeItems(items: any): string {
+function summarizeItems(items: unknown): string {
   if (!Array.isArray(items)) return "";
   return items.map((item) => `${item?.name || "medicine"} × ${item?.qty || 1}`).join(", ");
 }

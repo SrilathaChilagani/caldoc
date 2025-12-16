@@ -112,11 +112,13 @@ model Payment {
   status        String
   appointmentId String?      @unique
   rxOrderId     String?      @unique
+  labOrderId    String?      @unique
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @default(now())
   receiptUrl    String?
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])
   rxOrder       RxOrder?     @relation("RxOrderPayment", fields: [rxOrderId], references: [id])
+  labOrder      LabOrder?    @relation("LabOrderPayment", fields: [labOrderId], references: [id])
 }
 
 model PatientAddress {
@@ -326,14 +328,19 @@ model LabOrder {
   patientId     String?
   patientName   String?
   patientPhone  String?
+  patientEmail  String?
   deliveryMode  String?
   tests         Json?
   notes         String?
   status        String      @default("PENDING")
+  address       Json?
+  amountPaise   Int?
+  source        String      @default("APPOINTMENT")
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   patient       Patient?    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  payment       Payment?    @relation("LabOrderPayment")
 }
 
 model LabUser {

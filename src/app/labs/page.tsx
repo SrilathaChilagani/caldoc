@@ -5,6 +5,7 @@ import { requireLabsSession } from "@/lib/auth.server";
 import LabOrderActions from "./LabOrderActions";
 
 const STATUS_LABELS = {
+  AWAITING_PAYMENT: "Awaiting payment",
   PENDING: "Pending",
   SCHEDULED: "Scheduled",
   SAMPLE_COLLECTED: "Sample collected",
@@ -35,6 +36,7 @@ export default async function LabsDashboardPage() {
   });
 
   const counts: Record<StatusKey, number> = {
+    AWAITING_PAYMENT: 0,
     PENDING: 0,
     SCHEDULED: 0,
     SAMPLE_COLLECTED: 0,

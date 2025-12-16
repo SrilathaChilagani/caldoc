@@ -3,20 +3,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 
-const PHARMACY_PHONE = process.env.PHARMACY_ADMIN_PHONE || "+15135608528";
+const LAB_ADMIN_PHONE = process.env.LABS_ADMIN_PHONE || "+15135608528";
 
-function formatItems(items: unknown) {
-  if (!Array.isArray(items)) return "";
-  return items.map((item) => `${item?.name || "medicine"} × ${item?.qty || 1}`).join(", ");
+function formatTests(tests: unknown): string {
+  if (!Array.isArray(tests)) return "";
+  return tests.map((test) => String(test || "test")).join(", ");
 }
 
-function formatAddress(address: unknown) {
+function formatAddress(address: unknown): string {
   if (!address) return "";
   const value = address as Record<string, unknown>;
-  const parts = [value.line1, value.line2, value.city, value.state, value.postalCode]
-    .map((p) => String(p ?? "").trim())
-    .filter(Boolean);
-  return parts.join(", ");
+  return [value.line1, value.line2, value.city, value.state, value.postalCode]
+    .map((part) => String(part ?? "").trim())
+    .filter(Boolean)
+    .join(", ");
 }
 
 export async function POST(req: NextRequest) {
@@ -40,14 +40,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
-    const payment = await prisma.payment.findUnique({ where: { orderId: rzpOrder }, select: { rxOrderId: true } });
-    if (!payment?.rxOrderId) {
+    const payment = await prisma.payment.findUnique({ where: { orderId: rzpOrder }, select: { labOrderId: true } });
+    if (!payment?.labOrderId) {
       return NextResponse.json({ error: "Payment mapping missing" }, { status: 400 });
     }
 
-    const rxOrder = await prisma.rxOrder.update({
-      where: { id: payment.rxOrderId },
-      data: { status: "PAID" },
+    const labOrder = await prisma.labOrder.update({
+      where: { id: payment.labOrderId },
+      data: { status: "PENDING" },
     });
 
     await prisma.payment.update({
@@ -59,24 +59,24 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const itemsLabel = formatItems(rxOrder.items);
-    const addressLabel = formatAddress(rxOrder.address);
-    const adminMsg = `Ad-hoc Rx order ${rxOrder.id} paid. Patient ${rxOrder.patientName} (${rxOrder.patientPhone}). Items: ${itemsLabel}. Address: ${addressLabel}.`;
-    const patientMsg = `Hi ${rxOrder.patientName}, we received your CalDoc Rx delivery order ${rxOrder.id}. Our pharmacy will reach out shortly.`;
+    const testsLabel = formatTests(labOrder.tests);
+    const addressLabel = formatAddress(labOrder.address);
+    const adminMsg = `Lab order ${labOrder.id} paid. Patient ${labOrder.patientName} (${labOrder.patientPhone}). Tests: ${testsLabel}. Address: ${addressLabel}.`;
+    const patientMsg = `Hi ${labOrder.patientName}, your CalDoc lab order ${labOrder.id} is confirmed. We'll reach out to schedule sample collection soon.`;
 
     const sends: Promise<unknown>[] = [];
-    if (PHARMACY_PHONE) {
-      sends.push(sendWhatsAppText(PHARMACY_PHONE, adminMsg).catch((err) => console.error("pharmacy WA", err)));
+    if (LAB_ADMIN_PHONE) {
+      sends.push(sendWhatsAppText(LAB_ADMIN_PHONE, adminMsg).catch((err) => console.error("labs admin WA", err)));
     }
-    if (rxOrder.patientPhone) {
-      sends.push(sendWhatsAppText(rxOrder.patientPhone, patientMsg).catch((err) => console.error("patient WA", err)));
+    if (labOrder.patientPhone) {
+      sends.push(sendWhatsAppText(labOrder.patientPhone, patientMsg).catch((err) => console.error("patient WA", err)));
     }
     await Promise.all(sends);
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Server error";
-    console.error("rx-order confirm error", err);
+    console.error("lab-order confirm error", err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
