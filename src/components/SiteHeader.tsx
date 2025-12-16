@@ -13,6 +13,12 @@ const specialties = [
   { name: "Psychiatry", slug: "psychiatry" },
 ];
 
+const serviceLinks = [
+  { label: "Online consultation", href: "/providers", description: "Browse doctors & specialties" },
+  { label: "Rx delivery", href: "/services/rx-delivery", description: "Order OTC medicines from CalDoc" },
+  { label: "Labs at home", href: "/services/labs-at-home", description: "Book doorstep sample collection" },
+];
+
 const loginLinks = [
   { label: "Patient portal", href: "/patient/login", helper: "View appointments & prescriptions" },
   { label: "Provider portal", href: "/provider/login", helper: "Manage teleconsultations" },
@@ -24,10 +30,11 @@ const loginLinks = [
 export default function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [specialtyOpen, setSpecialtyOpen] = useState(false);
-  const [howOpen, setHowOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const loginRef = useRef<HTMLDivElement | null>(null);
   const specialtyRef = useRef<HTMLDivElement | null>(null);
+  const servicesRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -37,6 +44,10 @@ export default function SiteHeader() {
       if (specialtyRef.current && !specialtyRef.current.contains(event.target as Node)) {
         setSpecialtyOpen(false);
       }
+      if (servicesRef.current && servicesRef.current.contains(event.target as Node)) {
+        return;
+      }
+      setServicesOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -103,16 +114,13 @@ export default function SiteHeader() {
             )}
           </div>
 
-          <div
-            className="relative"
-            onMouseEnter={() => setHowOpen(true)}
-            onMouseLeave={() => setHowOpen(false)}
-          >
+          <div className="relative" ref={servicesRef}>
             <button
               type="button"
+              onClick={() => setServicesOpen((v) => !v)}
               className="inline-flex items-center gap-1 text-sm text-gray-700 hover:text-gray-900"
             >
-              How it works
+              Services
               <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
                 <path
                   d="M5 8l5 5 5-5"
@@ -123,24 +131,20 @@ export default function SiteHeader() {
                 />
               </svg>
             </button>
-            {howOpen && (
+            {servicesOpen && (
               <div className="absolute left-0 mt-3 w-72 rounded-2xl border border-slate-100 bg-white p-4 shadow-xl">
-                <div className="flex flex-col gap-3 text-sm text-slate-700">
-                  <div>
-                    <p className="text-xs font-semibold uppercase text-slate-500">Step 1</p>
-                    <p className="font-medium">Find a provider</p>
-                    <p className="text-xs text-slate-500">Search by specialty, name, or symptoms</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase text-slate-500">Step 2</p>
-                    <p className="font-medium">Book & confirm</p>
-                    <p className="text-xs text-slate-500">Select a slot, agree to the consent, pay securely</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase text-slate-500">Step 3</p>
-                    <p className="font-medium">Join your visit</p>
-                    <p className="text-xs text-slate-500">Get WhatsApp reminders and video link</p>
-                  </div>
+                <div className="flex flex-col gap-2 text-sm">
+                  {serviceLinks.map((service) => (
+                    <Link
+                      key={service.href}
+                      href={service.href}
+                      className="rounded-xl px-3 py-2 hover:bg-slate-50"
+                      onClick={() => setServicesOpen(false)}
+                    >
+                      <p className="font-semibold text-slate-900">{service.label}</p>
+                      <p className="text-xs text-slate-500">{service.description}</p>
+                    </Link>
+                  ))}
                 </div>
               </div>
             )}
@@ -206,9 +210,21 @@ export default function SiteHeader() {
             <Link href="/#specialties" className="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setMobileOpen(false)}>
               Specialties
             </Link>
-            <Link href="/#how-it-works" className="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setMobileOpen(false)}>
-              How it works
-            </Link>
+            <div className="rounded-2xl border border-slate-200 p-3">
+              <p className="text-xs font-semibold uppercase text-slate-500">Services</p>
+              <div className="mt-3 flex flex-col gap-2 text-sm">
+                {serviceLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="rounded-md px-2 py-2 text-gray-700 hover:bg-gray-100"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
             <div className="mt-2 rounded-2xl border border-slate-200 p-3">
               <p className="text-xs font-semibold uppercase text-slate-500">Logins</p>
               <div className="mt-3 flex flex-col gap-2 text-sm">
