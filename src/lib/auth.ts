@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 export const PROVIDER_JWT_NAME = "prov_session";
 export const ADMIN_JWT_NAME = "admin_sess";
 export const NGO_JWT_NAME = "ngo_sess";
+export const LABS_JWT_NAME = "labs_sess";
 export const MAX_AGE_DAYS = 7;
 
 function isIpOrLocalhost(host?: string) {
@@ -52,6 +53,7 @@ export function resolveSessionCookieDomain(hostname?: string): string | undefine
   if (explicitDomain) return explicitDomain;
   const runtime = normalizeCookieDomain(hostname || null);
   if (runtime) return runtime;
+  if (hostname && isIpOrLocalhost(hostname)) return undefined;
   return inferredDomain;
 }
 

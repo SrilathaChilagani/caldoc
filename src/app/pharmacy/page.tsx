@@ -33,6 +33,19 @@ function formatAddress(snapshot: DeliverySnapshot | null) {
   return pieces.join(", ");
 }
 
+function summarizeItems(items: unknown): string[] {
+  if (!Array.isArray(items)) return [];
+  return items.map((item) => `${item?.name || "medicine"} × ${item?.qty || 1}`);
+}
+
+function formatJsonAddress(address: any) {
+  if (!address) return "";
+  const parts = [address.line1, address.line2, address.city, address.state, address.postalCode]
+    .map((p) => (p || "").trim())
+    .filter(Boolean);
+  return parts.join(", ");
+}
+
 type FulfillmentStatus = "READY" | "PACKED" | "SHIPPED" | "DELIVERED" | "SENT";
 
 const DELIVERY_FLOW: FulfillmentStatus[] = ["READY", "PACKED", "SHIPPED", "DELIVERED"];
@@ -104,6 +117,11 @@ export default async function PharmacyDashboardPage() {
   });
 
   const awaitingPrescription = appointments.filter((appt) => !appt.prescription?.pdfKey).length;
+
+  const rxOrders = await prisma.rxOrder.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
 
   return (
     <>
@@ -244,6 +262,64 @@ export default async function PharmacyDashboardPage() {
                   </tr>
                 );
               })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900">Ad-hoc Rx requests</h2>
+          <p className="text-xs text-slate-500">Showing the last {rxOrders.length} orders.</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-slate-700">
+            <thead>
+              <tr className="bg-[#eef3ff] text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <th className="px-4 py-3">Created</th>
+                <th className="px-4 py-3">Patient</th>
+                <th className="px-4 py-3">Items</th>
+                <th className="px-4 py-3">Address</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rxOrders.map((order) => (
+                <tr key={order.id} className="border-b border-slate-100 last:border-0">
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-slate-900">
+                      {order.createdAt.toLocaleString("en-IN", {
+                        timeZone: "Asia/Kolkata",
+                        weekday: "short",
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }).replace(/\u202f/g, " ")}
+                    </div>
+                    <div className="text-xs text-slate-400">ID: {order.id}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-slate-900">{order.patientName}</div>
+                    <div className="font-mono text-xs text-slate-500">{order.patientPhone}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <ul className="list-disc space-y-1 pl-4 text-xs text-slate-600">
+                      {summarizeItems(order.items).map((label) => (
+                        <li key={`${order.id}-${label}`}>{label}</li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-slate-500">
+                    {formatJsonAddress(order.address)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                      {order.status.replace(/_/g, " ")}
+                    </span>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

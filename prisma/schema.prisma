@@ -22,6 +22,7 @@ model Patient {
   documents       PatientDocument[]
   PatientLoginOtp PatientLoginOtp[]
   otps            PatientOtp[]
+  labOrders       LabOrder[]
 }
 
 model Provider {
@@ -98,6 +99,7 @@ model Appointment {
   pharmacyFulfillment     PharmacyFulfillment?
   prescription            Prescription?
   visitNote               VisitNote?
+  labOrders               LabOrder[]
 }
 
 model Payment {
@@ -109,10 +111,12 @@ model Payment {
   currency      String       @default("INR")
   status        String
   appointmentId String?      @unique
+  rxOrderId     String?      @unique
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @default(now())
   receiptUrl    String?
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  rxOrder       RxOrder?     @relation("RxOrderPayment", fields: [rxOrderId], references: [id])
 }
 
 model PatientAddress {
@@ -314,6 +318,45 @@ model PharmacyFulfillment {
   updatedAt     DateTime     @default(now()) @updatedAt @db.Timestamptz(6)
   appointmentId String?      @unique
   appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+}
+
+model LabOrder {
+  id            String      @id @default(cuid())
+  appointmentId String?
+  patientId     String?
+  patientName   String?
+  patientPhone  String?
+  deliveryMode  String?
+  tests         Json?
+  notes         String?
+  status        String      @default("PENDING")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient       Patient?    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model LabUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("LAB_ADMIN")
+  createdAt    DateTime @default(now())
+}
+
+model RxOrder {
+  id           String   @id @default(cuid())
+  patientName  String
+  patientPhone String
+  patientEmail String?
+  address      Json
+  items        Json
+  notes        String?
+  amountPaise  Int
+  status       String   @default("AWAITING_PAYMENT")
+  payment      Payment? @relation("RxOrderPayment")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model OfflineRequest {

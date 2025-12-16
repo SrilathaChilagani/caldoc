@@ -1,0 +1,238 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getErrorMessage } from "@/lib/errors";
+
+type Item = { id: string; name: string; qty: number };
+
+type Props = {
+  options: string[];
+};
+
+const EMPTY_ITEM = (): Item => ({ id: crypto.randomUUID(), name: "", qty: 1 });
+
+export default function RxDeliveryForm({ options }: Props) {
+  const router = useRouter();
+  const [items, setItems] = useState<Item[]>([EMPTY_ITEM()]);
+  const [patientName, setPatientName] = useState("");
+  const [patientPhone, setPatientPhone] = useState("");
+  const [patientEmail, setPatientEmail] = useState("");
+  const [address, setAddress] = useState({ line1: "", line2: "", city: "", state: "", postalCode: "" });
+  const [instructions, setInstructions] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const lookupOptions = useMemo(() => options.sort(), [options]);
+
+  function updateItem(id: string, patch: Partial<Item>) {
+    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  }
+
+  function removeItem(id: string) {
+    setItems((prev) => (prev.length === 1 ? prev : prev.filter((item) => item.id !== id)));
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSaving(true);
+    setMessage(null);
+    try {
+      const payload = {
+        patientName,
+        patientPhone,
+        patientEmail,
+        address,
+        instructions,
+        items: items
+          .map((item) => ({ name: item.name.trim(), qty: item.qty }))
+          .filter((item) => item.name && item.qty > 0),
+      };
+      const res = await fetch("/api/services/rx-delivery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || "Unable to create order");
+      }
+      router.push(`/services/rx-delivery/pay?order=${data.orderId}`);
+    } catch (err) {
+      setMessage(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-slate-900">Medicines</h2>
+        <p className="text-sm text-slate-500">Select OTC medicines or type the brand name. Add quantity for each.</p>
+        <div className="mt-4 space-y-4">
+          {items.map((item) => (
+            <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center">
+              <div className="flex-1">
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Medicine</label>
+                <input
+                  list="rx-options"
+                  value={item.name}
+                  onChange={(e) => updateItem(item.id, { name: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+                  placeholder="Start typing to search"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Qty</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={item.qty}
+                  onChange={(e) => updateItem(item.id, { qty: Number(e.target.value) })}
+                  className="mt-1 w-24 rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeItem(item.id)}
+                className="text-xs font-semibold text-rose-500 hover:text-rose-600"
+                disabled={items.length === 1}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setItems((prev) => [...prev, EMPTY_ITEM()])}
+            className="rounded-full border border-dashed border-slate-300 px-4 py-2 text-xs font-semibold text-slate-600"
+          >
+            + Add another medicine
+          </button>
+          <datalist id="rx-options">
+            {lookupOptions.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-slate-900">Patient contact</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="text-sm text-slate-700">
+            Full name
+            <input
+              type="text"
+              value={patientName}
+              onChange={(e) => setPatientName(e.target.value)}
+              required
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+            />
+          </label>
+          <label className="text-sm text-slate-700">
+            Mobile number
+            <input
+              type="tel"
+              value={patientPhone}
+              onChange={(e) => setPatientPhone(e.target.value)}
+              required
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+            />
+          </label>
+          <label className="text-sm text-slate-700">
+            Email (optional)
+            <input
+              type="email"
+              value={patientEmail}
+              onChange={(e) => setPatientEmail(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-slate-900">Delivery address</h2>
+        <div className="mt-4 grid gap-4">
+          <label className="text-sm text-slate-700">
+            Address line 1
+            <input
+              type="text"
+              value={address.line1}
+              onChange={(e) => setAddress((prev) => ({ ...prev, line1: e.target.value }))}
+              required
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+            />
+          </label>
+          <label className="text-sm text-slate-700">
+            Address line 2
+            <input
+              type="text"
+              value={address.line2}
+              onChange={(e) => setAddress((prev) => ({ ...prev, line2: e.target.value }))}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+            />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label className="text-sm text-slate-700">
+              City
+              <input
+                type="text"
+                value={address.city}
+                onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))}
+                required
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+              />
+            </label>
+            <label className="text-sm text-slate-700">
+              State
+              <input
+                type="text"
+                value={address.state}
+                onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))}
+                required
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+              />
+            </label>
+            <label className="text-sm text-slate-700">
+              Postal code
+              <input
+                type="text"
+                value={address.postalCode}
+                onChange={(e) => setAddress((prev) => ({ ...prev, postalCode: e.target.value }))}
+                required
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <label className="text-sm text-slate-700">
+        Delivery instructions (optional)
+        <textarea
+          rows={3}
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+          placeholder="Landmark, preferred time, etc."
+        />
+      </label>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={saving}
+          className="rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saving ? "Preparing checkout…" : "Proceed to payment"}
+        </button>
+        {message && <p className="text-sm text-rose-600">{message}</p>}
+      </div>
+    </form>
+  );
+}

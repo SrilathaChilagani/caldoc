@@ -5,6 +5,11 @@ import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, resolveSessionCookieDomain, signSess
 
 export const dynamic = "force-dynamic";
 
+const LABS_ADMIN_EMAILS = (process.env.LABS_ADMIN_EMAILS || "srilatha.chilagani@telemed.local")
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
+
 async function readCredentials(req: NextRequest) {
   const contentType = req.headers.get("content-type") || "";
   if (contentType.includes("application/json")) {
@@ -42,6 +47,24 @@ async function bootstrapProviderAccount(email: string, providedPassword: string)
   });
 }
 
+async function bootstrapLabsAdminAccount(email: string, providedPassword: string) {
+  const fallback = process.env.ADMIN_PORTAL_DEFAULT_PASSWORD || "Passw0rd!";
+  if (!LABS_ADMIN_EMAILS.includes(email) || providedPassword !== fallback) return null;
+  const existing = await prisma.adminUser.findUnique({
+    where: { email },
+    select: { id: true, passwordHash: true, email: true },
+  });
+  if (existing) return existing;
+  const hash = await bcrypt.hash(fallback, 10);
+  return prisma.adminUser.create({
+    data: {
+      email,
+      passwordHash: hash,
+    },
+    select: { id: true, passwordHash: true, email: true },
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { email, password, nextUrl } = await readCredentials(req);
@@ -55,10 +78,13 @@ export async function POST(req: NextRequest) {
     }
     const defaultPassword = process.env.PROVIDER_PORTAL_DEFAULT_PASSWORD || "Passw0rd!";
 
-    const adminUser = await prisma.adminUser.findUnique({
+    let adminUser = await prisma.adminUser.findUnique({
       where: { email },
       select: { id: true, passwordHash: true },
     });
+    if (!adminUser) {
+      adminUser = await bootstrapLabsAdminAccount(email, password);
+    }
 
     let providerUser: {
       id: string;

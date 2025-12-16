@@ -3,13 +3,22 @@ import { redirect } from "next/navigation";
 import { readProviderSession, readAdminSession } from "@/lib/auth.server";
 import LoginForm from "./ui/LoginForm";
 
+type LoginSearch = {
+  next?: string;
+  logged_out?: string;
+  err?: string;
+  uid?: string;
+  portal?: string;
+};
+
 export default async function ProviderLoginPage({
   searchParams,
-}: { searchParams: Promise<{ next?: string; logged_out?: string; err?: string; uid?: string }> }) {
+}: { searchParams: Promise<LoginSearch> }) {
   const providerSess = await readProviderSession();
   const adminSess = await readAdminSession();
   const sp = await searchParams;
   const next = sp?.next || "/provider/appointments";
+  const portalHint = (sp?.portal || "").toLowerCase();
   const loggedOut = !!sp?.logged_out;
   const errorCode = sp?.err;
   const lastEmail = sp?.uid;
@@ -20,16 +29,21 @@ export default async function ProviderLoginPage({
       ? "Unable to sign in right now. Please try again."
       : undefined;
 
-  const portalTarget = next.includes("/admin")
+  const isLabsPortal = portalHint === "labs" || next.includes("/labs");
+  const portalTarget = isLabsPortal
+    ? "labs"
+    : next.includes("/admin")
     ? "admin"
     : next.includes("/pharmacy")
     ? "pharmacy"
     : "provider";
 
-  if (portalTarget === "admin" && adminSess) {
+  const requiresAdmin = portalTarget === "admin" || portalTarget === "labs";
+
+  if (requiresAdmin && adminSess) {
     redirect(next);
   }
-  if (portalTarget !== "admin" && providerSess) {
+  if (!requiresAdmin && providerSess) {
     redirect(next);
   }
 
@@ -55,6 +69,13 @@ export default async function ProviderLoginPage({
         "Review delivery addresses, download prescriptions, and keep patients updated on dispatches.",
       accent: "from-[#f0f7ff] via-white to-white",
     },
+    labs: {
+      badge: "Labs command center",
+      headline: "Manage CalDoc lab workflows",
+      body:
+        "Track doctor-initiated orders, confirm sample pickups, and keep patients updated on results without leaving the dashboard.",
+      accent: "from-[#f0fff9] via-white to-white",
+    },
   } as const;
 
   const copy = portalCopy[portalTarget];
@@ -74,6 +95,12 @@ export default async function ProviderLoginPage({
                   <li>Generate appointment slots and onboard providers</li>
                   <li>Monitor captured payments and receipts</li>
                   <li>Review appointments by status in real time</li>
+                </>
+              ) : portalTarget === "labs" ? (
+                <>
+                  <li>See doctor-prescribed test requests instantly</li>
+                  <li>Update status as samples move through the funnel</li>
+                  <li>Share results with providers and patients</li>
                 </>
               ) : portalTarget === "pharmacy" ? (
                 <>
@@ -100,6 +127,8 @@ export default async function ProviderLoginPage({
                 ? "Use your CalDoc admin credentials."
                 : portalTarget === "pharmacy"
                 ? "Access for licensed pharmacy partners."
+                : portalTarget === "labs"
+                ? "Labs team members only. Use the whitelisted account."
                 : "Use your provider credentials."}
             </p>
           </div>

@@ -7,6 +7,8 @@ import VisitNoteForm from "./VisitNoteForm";
 import PrescriptionForm from "./PrescriptionForm";
 import AppointmentFeeForm from "./AppointmentFeeForm";
 import CopyRoomLinkButton from "./CopyRoomLinkButton";
+import LabOrderForm from "./LabOrderForm";
+import { formatINR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -39,15 +41,6 @@ function formatIST(date: Date | null | undefined) {
   });
 }
 
-function formatINR(paise?: number | null) {
-  if (typeof paise !== "number" || Number.isNaN(paise) || paise <= 0) return "—";
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    minimumFractionDigits: 2,
-  }).format(paise / 100);
-}
-
 export default async function ProviderAppointmentDetail({ params, searchParams }: PageProps) {
   const { id } = await params;
   const sp = (await searchParams) ?? {};
@@ -72,6 +65,9 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
       patientDocuments: true,
       visitNote: true,
       prescription: true,
+      labOrders: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
@@ -123,6 +119,17 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
   const isAudioVisit = appointment.visitMode === "AUDIO";
   const withProviderFlag = (url: string) => (url.includes("?") ? `${url}&from=provider` : `${url}?from=provider`);
   const providerVideoRoomHref = appointment.videoRoom ? withProviderFlag(appointment.videoRoom) : null;
+  const labOrderData = (appointment.labOrders || []).map((order) => ({
+    id: order.id,
+    status: order.status,
+    tests: Array.isArray(order.tests)
+      ? (order.tests as unknown as string[]).map((t) => String(t))
+      : order.tests
+      ? [String(order.tests)]
+      : [],
+    createdAtLabel: formatIST(order.createdAt),
+    deliveryMode: order.deliveryMode,
+  }));
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-10 text-gray-900">
@@ -361,6 +368,16 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
             <PrescriptionForm appointmentId={appointment.id} initialMeds={initialPrescriptionMeds} />
           </div>
         )}
+      </section>
+
+      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900">Labs</h2>
+        <p className="text-sm text-slate-500">
+          Choose whether CalDoc labs or the patient will handle tests, then list the required panels.
+        </p>
+        <div className="mt-4">
+          <LabOrderForm appointmentId={appointment.id} existingOrders={labOrderData} />
+        </div>
       </section>
     </main>
   );
