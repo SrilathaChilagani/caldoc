@@ -15,14 +15,18 @@ function normalizeTests(bodyTests: unknown, custom: unknown) {
   return Array.from(new Set(cleaned));
 }
 
-export async function POST(req: NextRequest, { params }: { params: { appointmentId: string } }) {
+type RouteContext = {
+  params: Promise<{ appointmentId: string }>;
+};
+
+export async function POST(req: NextRequest, ctx: RouteContext) {
   const providerSess = await requireProviderSession();
   const adminSess = await requireAdminSession();
   if (!providerSess && !adminSess) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const appointmentId = params.appointmentId;
+  const { appointmentId } = await ctx.params;
   const body = await req.json().catch(() => null);
   if (!body) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });

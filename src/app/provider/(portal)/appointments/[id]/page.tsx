@@ -269,6 +269,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
                 id: slot.id,
                 startsAt: slot.startsAt.toISOString(),
               }))}
+              patientPhone={appointment.patient?.phone ?? null}
             />
           </div>
         )}

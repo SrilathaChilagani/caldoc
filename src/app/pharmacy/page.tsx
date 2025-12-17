@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requirePharmacySession } from "@/lib/auth.server";
 import PharmacyFulfillmentActions from "./PharmacyFulfillmentActions";
 
 export const dynamic = "force-dynamic";
@@ -60,7 +60,7 @@ const STATUS_LABELS: Record<FulfillmentStatus, string> = {
 };
 
 export default async function PharmacyDashboardPage() {
-  const sess = await requireAdminSession();
+  const sess = await requirePharmacySession();
   if (!sess) redirect("/pharmacy/login?next=/pharmacy");
 
   const appointments = await prisma.appointment.findMany({

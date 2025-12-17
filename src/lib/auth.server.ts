@@ -2,7 +2,7 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
-import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, NGO_JWT_NAME, LABS_JWT_NAME, SESSION_COOKIE_DOMAIN, SessionPayload } from "./auth";
+import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, NGO_JWT_NAME, LABS_JWT_NAME, PHARMACY_JWT_NAME, SESSION_COOKIE_DOMAIN, SessionPayload } from "./auth";
 
 function requireSecret(): string {
   const s = process.env.JWT_SECRET;
@@ -58,6 +58,10 @@ export async function readLabsSession(): Promise<SessionPayload | null> {
   return readSessionFromCookie(LABS_JWT_NAME);
 }
 
+export async function readPharmacySession(): Promise<SessionPayload | null> {
+  return readSessionFromCookie(PHARMACY_JWT_NAME);
+}
+
 export async function requireProviderSession(): Promise<{
   userId: string; providerId: string; role: string;
 } | null> {
@@ -98,6 +102,14 @@ export async function requireLabsSession(): Promise<{ userId: string; email?: st
   return { userId: user.id, email: user.email };
 }
 
+export async function requirePharmacySession(): Promise<{ userId: string; email?: string } | null> {
+  const sess = await readPharmacySession();
+  if (!sess) return null;
+  const user = await prisma.pharmacyUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true } });
+  if (!user) return null;
+  return { userId: user.id, email: user.email };
+}
+
 export async function clearSessionCookies() {
   const jar = await cookies();
   const domainOption = SESSION_COOKIE_DOMAIN ? { domain: SESSION_COOKIE_DOMAIN } : {};
@@ -105,4 +117,5 @@ export async function clearSessionCookies() {
   jar.set(ADMIN_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
   jar.set(NGO_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
   jar.set(LABS_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
+  jar.set(PHARMACY_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
 }

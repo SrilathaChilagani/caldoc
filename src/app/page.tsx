@@ -204,6 +204,7 @@ export default async function Home() {
         </div>
       </section>
 
+      {false && (
       <section className="bg-[#f6f8ff]">
         <div className="container mx-auto flex flex-col gap-8 px-4 py-12 md:flex-row md:items-start">
           <div className="flex-1 space-y-3">
@@ -230,6 +231,7 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      )}
 
       <section className="container mx-auto px-4 py-12 md:py-16">
         <h2 className="mb-6 text-2xl font-semibold md:text-3xl">Featured doctors</h2>

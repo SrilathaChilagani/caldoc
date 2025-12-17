@@ -13,6 +13,7 @@ type Props = {
   currentStatus: string;
   uploadLinkSent: boolean;
   availableSlots: AvailableSlot[];
+  patientPhone?: string | null;
 };
 
 function formatSlotLabel(startsAt: string) {
@@ -31,6 +32,7 @@ export default function AppointmentActions({
   currentStatus,
   uploadLinkSent,
   availableSlots,
+  patientPhone,
 }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<null | "CONFIRM" | "CANCEL" | "NO_SHOW">(null);
@@ -39,6 +41,8 @@ export default function AppointmentActions({
   const [reslotId, setReslotId] = useState(availableSlots[0]?.id ?? "");
   const [reason, setReason] = useState("");
   const [rescheduleBusy, setRescheduleBusy] = useState(false);
+  const [followupBusy, setFollowupBusy] = useState(false);
+  const [followupMessage, setFollowupMessage] = useState<string | null>(null);
 
   async function handleAction(action: "CONFIRM" | "CANCEL" | "NO_SHOW") {
     try {
@@ -58,6 +62,31 @@ export default function AppointmentActions({
       setError((err as Error).message || "Something went wrong");
     } finally {
       setBusy(null);
+    }
+  }
+
+
+  async function handleFollowupReminder() {
+    if (!patientPhone) {
+      setError('Patient phone unavailable');
+      return;
+    }
+    try {
+      setFollowupBusy(true);
+      setError(null);
+      setFollowupMessage(null);
+      const res = await fetch(`/api/provider/appointments/${appointmentId}/followup`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Unable to send reminder");
+      }
+      setFollowupMessage("Follow-up reminder sent on WhatsApp");
+    } catch (err) {
+      setError((err as Error).message || "Unable to send reminder");
+    } finally {
+      setFollowupBusy(false);
     }
   }
 
@@ -137,6 +166,15 @@ export default function AppointmentActions({
         >
           Reschedule
         </button>
+        <button
+          type="button"
+          onClick={handleFollowupReminder}
+          disabled={followupBusy || !patientPhone}
+          className="inline-flex items-center rounded-full border border-emerald-300 px-5 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+        >
+          {followupBusy ? "Sending…" : "Send follow-up reminder"}
+        </button>
+
       </div>
       <p className="text-sm text-slate-600">
         Confirming will notify the patient and send a secure upload link.{" "}

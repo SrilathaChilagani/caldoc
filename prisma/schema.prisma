@@ -351,6 +351,14 @@ model LabUser {
   createdAt    DateTime @default(now())
 }
 
+model PharmacyUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("PHARMACY")
+  createdAt    DateTime @default(now())
+}
+
 model RxOrder {
   id           String   @id @default(cuid())
   patientName  String
