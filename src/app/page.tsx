@@ -159,6 +159,21 @@ export default async function Home() {
               <span>✔ UPI / cards</span>
               <span>✔ Instant video links</span>
             </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/services/rx-delivery"
+                className="inline-flex min-w-[260px] items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Pharmacy
+              </Link>
+              <Link
+                href="/services/labs-at-home"
+                className="inline-flex min-w-[260px] items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Labs
+              </Link>
+            </div>
             </div>
 
             <div className="flex flex-1 justify-center lg:justify-end">

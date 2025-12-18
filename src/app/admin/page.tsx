@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
 import OfflineRequestActions from "./OfflineRequestActions";
+import AdminNgoReservationActions from "./AdminNgoReservationActions";
 
 type PageProps = {
   searchParams?: Promise<{ status?: string }>;
@@ -12,7 +13,7 @@ const allowedStatuses = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "NO_S
 
 export default async function AdminDashboard({ searchParams }: PageProps) {
   const sess = await requireAdminSession();
-  if (!sess) redirect("/provider/login?next=/admin");
+  if (!sess) redirect("/admin/login?next=/admin");
 
   const sp = (await searchParams) || {};
   const statusFilter = allowedStatuses.includes((sp.status || "").toUpperCase())
@@ -43,17 +44,28 @@ export default async function AdminDashboard({ searchParams }: PageProps) {
     orderBy: { createdAt: "desc" },
     take: 20,
   });
+  const ngoReservationsPromise = prisma.ngoReservation.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    include: {
+      ngo: { select: { name: true } },
+      provider: { select: { name: true, speciality: true } },
+      slot: { select: { startsAt: true } },
+    },
+  });
 
   const [
     paymentSummary,
     appointmentCounts,
     appointments,
     offlineRequests,
+    ngoReservations,
   ] = await Promise.all([
     paymentSummaryPromise,
     appointmentCountsPromise,
     appointmentsPromise,
     offlineRequestsPromise,
+    ngoReservationsPromise,
   ]);
 
   const paymentsTotal = paymentSummary._sum.amount ?? 0;
@@ -62,6 +74,18 @@ export default async function AdminDashboard({ searchParams }: PageProps) {
   const scheduledCount = confirmedCount + (countsMap.get("PENDING") || 0);
   const cancelledCount = countsMap.get("CANCELLED") || 0;
   const rescheduled = countsMap.get("RESCHEDULED") || 0;
+
+  const formatSlot = (date?: Date | null) => {
+    if (!date) return "—";
+    return date.toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   return (
     <>
@@ -91,6 +115,81 @@ export default async function AdminDashboard({ searchParams }: PageProps) {
             <p className="text-xs uppercase text-slate-500">Rescheduled</p>
             <p className="text-2xl font-semibold text-slate-900">{rescheduled}</p>
           </div>
+        </div>
+      </section>
+
+      <section className="space-y-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">NGO bookings</h2>
+            <p className="text-xs text-slate-500">
+              Bulk reservations raised by partner programmes.
+            </p>
+          </div>
+          <Link
+            href="/ngo/appointments/new?admin=1"
+            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            target="_blank"
+          >
+            Go to NGO booking UI
+          </Link>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-slate-600">
+            <thead>
+              <tr className="bg-[#f0f7ff] text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <th className="px-4 py-3">Friendly ID</th>
+                <th className="px-4 py-3">NGO</th>
+                <th className="px-4 py-3">Doctor</th>
+                <th className="px-4 py-3">Slot</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Amount</th>
+                <th className="px-4 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ngoReservations.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-6 text-center text-slate-400">
+                    No NGO reservations yet.
+                  </td>
+                </tr>
+              ) : (
+                ngoReservations.map((reservation) => (
+                  <tr key={reservation.id} className="border-b border-slate-100 last:border-0">
+                    <td className="px-4 py-3 font-semibold text-slate-900">{reservation.friendlyId}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-slate-900">{reservation.ngo?.name ?? "—"}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-slate-900">{reservation.provider.name}</div>
+                      <div className="text-xs text-slate-500">{reservation.provider.speciality || "General"}</div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-500">{formatSlot(reservation.slot?.startsAt)}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        {reservation.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {reservation.amountPaise
+                        ? `₹${(reservation.amountPaise / 100).toFixed(2)}`
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <AdminNgoReservationActions
+                        reservationId={reservation.id}
+                        status={reservation.status}
+                        friendlyId={reservation.friendlyId}
+                        amountPaise={reservation.amountPaise}
+                        notes={reservation.notes}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </section>
       <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 space-y-4">

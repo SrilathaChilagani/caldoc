@@ -13,7 +13,7 @@ type PageProps = {
 
 export default async function AdminProviderOffboard({ searchParams }: PageProps) {
   const sess = await requireAdminSession();
-  if (!sess) redirect("/provider/login?next=/admin/providers/offboard");
+  if (!sess) redirect("/admin/login?next=/admin/providers/offboard");
 
   const sp = (await searchParams) ?? {};
   const providerQuery = sp.q?.trim() || "";

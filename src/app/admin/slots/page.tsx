@@ -13,7 +13,7 @@ type PageProps = {
 
 export default async function AdminSlotsPage({ searchParams }: PageProps) {
   const sess = await requireAdminSession();
-  if (!sess) redirect("/provider/login?next=/admin/slots");
+  if (!sess) redirect("/admin/login?next=/admin/slots");
 
   const sp = (await searchParams) ?? {};
   const providerQuery = sp.q?.trim() || "";

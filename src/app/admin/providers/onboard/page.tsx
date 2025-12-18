@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminProviderOnboard() {
   const sess = await requireAdminSession();
-  if (!sess) redirect("/provider/login?next=/admin/providers/onboard");
+  if (!sess) redirect("/admin/login?next=/admin/providers/onboard");
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 px-4 py-10">

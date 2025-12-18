@@ -3,6 +3,11 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { NGO_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 
+const allowedEmails = (process.env.NGO_ALLOWED_EMAILS || "")
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
+
 export const dynamic = "force-dynamic";
 
 async function readCredentials(req: NextRequest) {
@@ -46,6 +51,12 @@ export async function POST(req: NextRequest) {
   try {
     const { email, password, nextUrl } = await readCredentials(req);
     if (!email || !password) {
+      return NextResponse.redirect(
+        new URL(`/ngo/login?err=creds&next=${encodeURIComponent(nextUrl)}&uid=${encodeURIComponent(email)}`, req.nextUrl.origin),
+      );
+    }
+
+    if (allowedEmails.length && !allowedEmails.includes(email)) {
       return NextResponse.redirect(
         new URL(`/ngo/login?err=creds&next=${encodeURIComponent(nextUrl)}&uid=${encodeURIComponent(email)}`, req.nextUrl.origin),
       );

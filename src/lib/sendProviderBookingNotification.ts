@@ -63,7 +63,7 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
       type: "button" as const,
       sub_type: "url" as const,
       index: "0",
-      parameters: [{ type: "text" as const, text: confirmUrl }],
+      parameters: [{ type: "text" as const, text: token }],
     },
   ];
 
