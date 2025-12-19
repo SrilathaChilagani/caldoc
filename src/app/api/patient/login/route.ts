@@ -26,14 +26,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid mobile number" }, { status: 400 });
     }
 
-    let patient = await prisma.patient.findFirst({
-      where: {
-        OR: [
-          { phone: meta.canonical },
-          { phone: { endsWith: meta.last10 } },
-        ],
-      },
-      orderBy: { createdAt: "desc" },
+    let patient = await prisma.patient.findUnique({
+      where: { phone: meta.canonical },
     });
 
     if (!patient) {

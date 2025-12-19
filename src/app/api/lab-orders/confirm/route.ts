@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { sendWhatsAppText } from "@/lib/whatsapp";
+import { notifyLabOrderConfirmation } from "@/lib/sendLabOrderConfirmation";
 
 const LAB_ADMIN_PHONE = process.env.LABS_ADMIN_PHONE || "+15135608528";
 
@@ -61,17 +61,14 @@ export async function POST(req: NextRequest) {
 
     const testsLabel = formatTests(labOrder.tests);
     const addressLabel = formatAddress(labOrder.address);
-    const adminMsg = `Lab order ${labOrder.id} paid. Patient ${labOrder.patientName} (${labOrder.patientPhone}). Tests: ${testsLabel}. Address: ${addressLabel}.`;
-    const patientMsg = `Hi ${labOrder.patientName}, your CalDoc lab order ${labOrder.id} is confirmed. We'll reach out to schedule sample collection soon.`;
-
-    const sends: Promise<unknown>[] = [];
-    if (LAB_ADMIN_PHONE) {
-      sends.push(sendWhatsAppText(LAB_ADMIN_PHONE, adminMsg).catch((err) => console.error("labs admin WA", err)));
-    }
-    if (labOrder.patientPhone) {
-      sends.push(sendWhatsAppText(labOrder.patientPhone, patientMsg).catch((err) => console.error("patient WA", err)));
-    }
-    await Promise.all(sends);
+    await notifyLabOrderConfirmation({
+      orderId: labOrder.id,
+      patientName: labOrder.patientName,
+      patientPhone: labOrder.patientPhone,
+      patientTestsLabel: testsLabel,
+      patientAddressLabel: addressLabel,
+      adminPhone: LAB_ADMIN_PHONE,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
