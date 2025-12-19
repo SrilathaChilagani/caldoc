@@ -64,6 +64,7 @@ export async function notifyVideoLinks(
     status: "SENT" | "FAILED",
     body: string,
     template: string,
+    messageId?: string,
     error?: string,
   ) => {
     const targetPhone = recipient === "PATIENT" ? appt.patient?.phone : appt.provider?.phone;
@@ -75,6 +76,7 @@ export async function notifyVideoLinks(
         toPhone: targetPhone,
         template,
         body,
+        messageId: messageId || undefined,
         status,
         error,
         kind: `${recipient}_VIDEO_LINK`,
@@ -85,30 +87,30 @@ export async function notifyVideoLinks(
   if (appt.patient?.phone && PATIENT_VIDEO_TEMPLATE) {
     const body = `Video link: ${link}`;
     try {
-      await sendWhatsAppTemplate({
+      const result = await sendWhatsAppTemplate({
         to: appt.patient.phone,
         template: PATIENT_VIDEO_TEMPLATE,
         lang,
         vars: [appt.patient.name || "Patient", link, visitTimeLabel, appt.provider?.name || "Doctor"],
       });
-      await logMessage("PATIENT", "SENT", body, PATIENT_VIDEO_TEMPLATE);
+      await logMessage("PATIENT", "SENT", body, PATIENT_VIDEO_TEMPLATE, result?.messageId);
     } catch (err) {
-      await logMessage("PATIENT", "FAILED", body, PATIENT_VIDEO_TEMPLATE, getErrorMessage(err));
+      await logMessage("PATIENT", "FAILED", body, PATIENT_VIDEO_TEMPLATE, undefined, getErrorMessage(err));
     }
   }
 
   if (appt.provider?.phone && PROVIDER_VIDEO_TEMPLATE) {
     const body = `Video room ready: ${link}`;
     try {
-      await sendWhatsAppTemplate({
+      const result = await sendWhatsAppTemplate({
         to: appt.provider.phone,
         template: PROVIDER_VIDEO_TEMPLATE,
         lang,
         vars: [appt.provider.name || "Doctor", link, visitTimeLabel, appt.patient?.name || "Patient"],
       });
-      await logMessage("PROVIDER", "SENT", body, PROVIDER_VIDEO_TEMPLATE);
+      await logMessage("PROVIDER", "SENT", body, PROVIDER_VIDEO_TEMPLATE, result?.messageId);
     } catch (err) {
-      await logMessage("PROVIDER", "FAILED", body, PROVIDER_VIDEO_TEMPLATE, getErrorMessage(err));
+      await logMessage("PROVIDER", "FAILED", body, PROVIDER_VIDEO_TEMPLATE, undefined, getErrorMessage(err));
     }
   }
 }

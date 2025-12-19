@@ -44,7 +44,14 @@ export async function sendPatientAudioConfirmation(opts: AudioNotifyOpts) {
   const baseUrl = appBaseUrl();
   const portalUrl = `${baseUrl}/patient/appointments/${opts.appointmentId}`;
 
-  const logMessage = async (status: "SENT" | "FAILED", body: string, template: string | null, kind: string, error?: string) =>
+  const logMessage = async (
+    status: "SENT" | "FAILED",
+    body: string,
+    template: string | null,
+    kind: string,
+    messageId?: string,
+    error?: string,
+  ) =>
     prisma.outboundMessage.create({
       data: {
         appointmentId: opts.appointmentId,
@@ -52,6 +59,7 @@ export async function sendPatientAudioConfirmation(opts: AudioNotifyOpts) {
         toPhone: opts.patientPhone,
         template: template || undefined,
         body,
+        messageId: messageId || undefined,
         status,
         error,
         kind,
@@ -60,7 +68,7 @@ export async function sendPatientAudioConfirmation(opts: AudioNotifyOpts) {
 
   if (PATIENT_AUDIO_TEMPLATE) {
     try {
-      await sendWhatsAppTemplate({
+      const result = await sendWhatsAppTemplate({
         to: opts.patientPhone,
         template: PATIENT_AUDIO_TEMPLATE,
         lang: PATIENT_AUDIO_TEMPLATE_LANG,
@@ -76,6 +84,7 @@ export async function sendPatientAudioConfirmation(opts: AudioNotifyOpts) {
         `Audio consultation confirmed for ${visitTime}`,
         PATIENT_AUDIO_TEMPLATE,
         "PATIENT_AUDIO_CONFIRM",
+        result?.messageId,
       );
       return;
     } catch (err) {
@@ -84,6 +93,7 @@ export async function sendPatientAudioConfirmation(opts: AudioNotifyOpts) {
         `Audio consultation confirmed for ${visitTime}`,
         PATIENT_AUDIO_TEMPLATE,
         "PATIENT_AUDIO_CONFIRM",
+        undefined,
         getErrorMessage(err),
       );
     }
@@ -96,14 +106,15 @@ export async function sendPatientAudioConfirmation(opts: AudioNotifyOpts) {
     .replace("{portal}", portalUrl);
 
   try {
-    await sendWhatsAppText(opts.patientPhone, fallback);
-    await logMessage("SENT", fallback, null, "PATIENT_AUDIO_CONFIRM_FALLBACK");
+    const result = await sendWhatsAppText(opts.patientPhone, fallback);
+    await logMessage("SENT", fallback, null, "PATIENT_AUDIO_CONFIRM_FALLBACK", result?.messageId);
   } catch (err) {
     await logMessage(
       "FAILED",
       fallback,
       null,
       "PATIENT_AUDIO_CONFIRM_FALLBACK",
+      undefined,
       getErrorMessage(err),
     );
   }

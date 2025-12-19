@@ -72,7 +72,7 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
 
   const components = [bodyComponent, ...buttonComponents];
 
-  const logMessage = async (status: "SENT" | "FAILED", data: { template?: string | null; body: string; error?: string; kind: string }) =>
+  const logMessage = async (status: "SENT" | "FAILED", data: { template?: string | null; body: string; error?: string; kind: string; messageId?: string | null }) =>
     prisma.outboundMessage.create({
       data: {
         appointmentId: opts.appointmentId,
@@ -80,6 +80,7 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
         toPhone: opts.providerPhone,
         template: data.template ?? undefined,
         body: data.body,
+        messageId: data.messageId ?? undefined,
         status,
         error: data.error,
         kind: data.kind,
@@ -87,19 +88,20 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
     });
 
   try {
-    await sendWhatsAppTemplate({
+    const result = await sendWhatsAppTemplate({
       to: opts.providerPhone,
       template,
       lang: PROVIDER_TEMPLATE_LANG,
       components,
     });
-    await logMessage("SENT", { template, body: bodyPreview, kind: "PROVIDER_NEW_APPT" });
+    await logMessage("SENT", { template, body: bodyPreview, kind: "PROVIDER_NEW_APPT", messageId: result?.messageId || null });
     return;
   } catch (err) {
     await logMessage("FAILED", {
       template,
       body: bodyPreview,
       error: getErrorMessage(err),
+      messageId: null,
       kind: "PROVIDER_NEW_APPT",
     });
   }
@@ -110,13 +112,14 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
     .replace("{portal}", portalUrl);
 
   try {
-    await sendWhatsAppText(opts.providerPhone, fallbackBody);
-    await logMessage("SENT", { template: null, body: fallbackBody, kind: "PROVIDER_NEW_APPT_FALLBACK" });
+    const result = await sendWhatsAppText(opts.providerPhone, fallbackBody);
+    await logMessage("SENT", { template: null, body: fallbackBody, kind: "PROVIDER_NEW_APPT_FALLBACK", messageId: result?.messageId || null });
   } catch (fallbackErr) {
     await logMessage("FAILED", {
       template: null,
       body: fallbackBody,
       error: getErrorMessage(fallbackErr),
+      messageId: null,
       kind: "PROVIDER_NEW_APPT_FALLBACK",
     });
     throw fallbackErr;

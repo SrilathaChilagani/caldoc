@@ -39,7 +39,7 @@ export async function sendPatientUploadLink(
         ];
 
   try {
-    await sendWhatsAppTemplate({
+    const result = await sendWhatsAppTemplate({
       to: appt.patient.phone,
       template,
       lang,
@@ -52,6 +52,7 @@ export async function sendPatientUploadLink(
         toPhone: appt.patient.phone,
         template,
         body: `Upload link: ${uploadUrl}`,
+        messageId: result?.messageId,
         status: "SENT",
         kind: "PATIENT_DOC_LINK",
       },

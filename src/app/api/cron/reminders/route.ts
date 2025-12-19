@@ -102,6 +102,7 @@ async function logOutboundMessage(opts: {
   body: string;
   status: "SENT" | "FAILED";
   kind: string;
+  messageId?: string | null;
   error?: string;
 }) {
   await prisma.outboundMessage.create({
@@ -111,6 +112,7 @@ async function logOutboundMessage(opts: {
       toPhone: opts.toPhone,
       template: opts.template,
       body: opts.body,
+      messageId: opts.messageId ?? undefined,
       status: opts.status,
       error: opts.error,
       kind: opts.kind,
@@ -153,7 +155,7 @@ export async function GET() {
       });
 
       try {
-        await sendWhatsAppTemplate({
+        const result = await sendWhatsAppTemplate({
           to: patientPhone,
           template: job.template,
           lang: REMINDER_LANG,
@@ -165,6 +167,7 @@ export async function GET() {
           template: job.template,
           body: `${job.kind} → ${formatIST(slotStartsAt)}`,
           status: "SENT",
+          messageId: result?.messageId ?? null,
           kind: job.kind,
         });
         jobStats.sent += 1;
@@ -177,6 +180,7 @@ export async function GET() {
           body: `${job.kind} → ${formatIST(slotStartsAt)}`,
           status: "FAILED",
           kind: job.kind,
+          messageId: null,
           error: getErrorMessage(err),
         });
       }

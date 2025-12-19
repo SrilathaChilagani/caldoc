@@ -143,7 +143,7 @@ export async function sendWhatsAppTemplate(opts: SendTemplateOpts) {
     );
   }
 
-  return json;
+  return { ...json, messageId };
 }
 
 /** Optional helper to send plain text (useful for quick debugging). */
@@ -177,5 +177,5 @@ export async function sendWhatsAppText(toRaw: string, text: string) {
   if (messageId) {
     console.info("[WA] text sent", JSON.stringify({ to, messageId }));
   }
-  return json;
+  return { ...json, messageId };
 }
