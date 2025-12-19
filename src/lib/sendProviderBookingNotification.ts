@@ -7,6 +7,10 @@ const PROVIDER_TEMPLATE =
   process.env.WHATSAPP_PROVIDER_TEMPLATE ||
   process.env.WHATSAPP_TMPL_PROVIDER_ALERT ||
   "WHATSAPP_PROVIDER_TEMPLATE";
+const PROVIDER_TEMPLATE_LANG =
+  process.env.WHATSAPP_PROVIDER_TEMPLATE_LANG ||
+  process.env.WHATSAPP_LANG ||
+  "en_US";
 const PROVIDER_FALLBACK_TEXT =
   process.env.WHATSAPP_PROVIDER_FALLBACK_TEXT ||
   "New CalDoc appointment: {patient} on {time}. Confirm: {confirm} — Portal: {portal}";
@@ -41,7 +45,6 @@ type NotifyOptions = {
 
 export async function notifyProviderOfBooking(opts: NotifyOptions) {
   const template = PROVIDER_TEMPLATE;
-  const lang = process.env.WHATSAPP_LANG || "en_US";
   const visitTime = formatIST(opts.slotStartsAt);
   const bodyPreview = `New appointment: ${opts.patientName || "Patient"} on ${visitTime}`;
   const baseUrl = appBaseUrl();
@@ -87,7 +90,7 @@ export async function notifyProviderOfBooking(opts: NotifyOptions) {
     await sendWhatsAppTemplate({
       to: opts.providerPhone,
       template,
-      lang,
+      lang: PROVIDER_TEMPLATE_LANG,
       components,
     });
     await logMessage("SENT", { template, body: bodyPreview, kind: "PROVIDER_NEW_APPT" });

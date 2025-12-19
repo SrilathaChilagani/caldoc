@@ -4,6 +4,10 @@ import { getErrorMessage } from "@/lib/errors";
 
 const PATIENT_AUDIO_TEMPLATE =
   process.env.WHATSAPP_TMPL_PATIENT_AUDIO_CONFIRM || "appointment_audio_confirm";
+const PATIENT_AUDIO_TEMPLATE_LANG =
+  process.env.WHATSAPP_PATIENT_AUDIO_LANG ||
+  process.env.WHATSAPP_LANG ||
+  "en_US";
 const PATIENT_AUDIO_FALLBACK_TEXT =
   process.env.PATIENT_AUDIO_FALLBACK_TEXT ||
   "Hi {patient}, Dr. {provider} will call you around {time} from CalDoc. Keep your phone handy. Need to check details? {portal}";
@@ -36,7 +40,6 @@ function appBaseUrl() {
 }
 
 export async function sendPatientAudioConfirmation(opts: AudioNotifyOpts) {
-  const lang = process.env.WHATSAPP_LANG || "en_US";
   const visitTime = formatIST(opts.slotStartsAt);
   const baseUrl = appBaseUrl();
   const portalUrl = `${baseUrl}/patient/appointments/${opts.appointmentId}`;
@@ -60,7 +63,7 @@ export async function sendPatientAudioConfirmation(opts: AudioNotifyOpts) {
       await sendWhatsAppTemplate({
         to: opts.patientPhone,
         template: PATIENT_AUDIO_TEMPLATE,
-        lang,
+        lang: PATIENT_AUDIO_TEMPLATE_LANG,
         vars: [
           opts.patientName || "Patient",
           opts.providerName || "your doctor",
