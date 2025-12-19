@@ -3,15 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getErrorMessage } from "@/lib/errors";
-
-type DrugCategory = "OTC" | "LIST_O" | "LIST_A" | "LIST_B" | "SCHEDULE_X";
-
-type Medicine = {
-  name: string;
-  sig?: string;
-  qty?: string;
-  category: DrugCategory;
-};
+import {
+  defaultMedicineRow,
+  normalizeDrugCategory,
+  type DrugCategory,
+  type Medicine,
+} from "@/lib/medication";
 
 const CATEGORY_OPTIONS: { value: DrugCategory; label: string }[] = [
   { value: "OTC", label: "OTC (general)" },
@@ -37,13 +34,13 @@ type MedicationSuggestion = {
 
 function normalizeInitialMeds(initial: Medicine[]): Medicine[] {
   if (!initial.length) {
-    return [{ name: "", sig: "", qty: "", category: "OTC" }];
+    return [defaultMedicineRow()];
   }
   return initial.map((med) => ({
     name: med.name,
     sig: med.sig,
     qty: med.qty,
-    category: med.category ?? "OTC",
+    category: normalizeDrugCategory(med.category),
   }));
 }
 
@@ -63,7 +60,7 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
     };
   }, []);
 
-  function updateMed(index: number, field: keyof Medicine, value: string) {
+  function updateMed(index: number, field: keyof Medicine, value: string | DrugCategory) {
     setMeds((prev) => {
       const clone = [...prev];
       clone[index] = { ...clone[index], [field]: value };
@@ -72,7 +69,7 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
   }
 
   function addRow() {
-    setMeds((prev) => [...prev, { name: "", sig: "", qty: "", category: "OTC" }]);
+    setMeds((prev) => [...prev, defaultMedicineRow()]);
   }
 
   function removeRow(index: number) {
@@ -132,9 +129,7 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
 
   function applySuggestion(index: number, suggestion: MedicationSuggestion) {
     updateMed(index, "name", suggestion.name);
-    if (suggestion.category) {
-      updateMed(index, "category", suggestion.category as DrugCategory);
-    }
+    updateMed(index, "category", normalizeDrugCategory(suggestion.category));
     setOpenSuggestions((prev) => ({ ...prev, [index]: false }));
   }
 

@@ -10,6 +10,7 @@ import CopyRoomLinkButton from "./CopyRoomLinkButton";
 import LabOrderForm from "./LabOrderForm";
 import { formatINR } from "@/lib/format";
 import CallPatientButton from "./CallPatientButton";
+import { normalizeDrugCategory, type Medicine } from "@/lib/medication";
 
 export const dynamic = "force-dynamic";
 
@@ -102,11 +103,11 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
   const rawPrescriptionMeds: RawPrescriptionMed[] = Array.isArray(appointment.prescription?.meds)
     ? (appointment.prescription?.meds as RawPrescriptionMed[])
     : [];
-  const initialPrescriptionMeds = rawPrescriptionMeds.map((med) => ({
+  const initialPrescriptionMeds: Medicine[] = rawPrescriptionMeds.map((med) => ({
     name: med.name ?? "",
     sig: med.sig ?? "",
     qty: med.qty ?? "",
-    category: med.category ?? "OTC",
+    category: normalizeDrugCategory(med.category),
   }));
   const availableSlots = await prisma.slot.findMany({
     where: {
