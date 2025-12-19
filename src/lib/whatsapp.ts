@@ -62,6 +62,24 @@ function normalizePhone(input?: string): string {
   return p;
 }
 
+function buildMetaError(json: unknown, fallback: string, status: number) {
+  const metaError = (json as { error?: Record<string, unknown> })?.error;
+  if (!metaError) {
+    return new Error(`${fallback} (status ${status})`);
+  }
+  const code = metaError.code ? `code=${metaError.code}` : "";
+  const subcode = metaError.error_subcode ? `subcode=${metaError.error_subcode}` : "";
+  const type = metaError.type ? `type=${metaError.type}` : "";
+  const fbtrace = metaError.fbtrace_id ? `fbtrace=${metaError.fbtrace_id}` : "";
+  const tags = [code, subcode, type, fbtrace].filter(Boolean).join(" ");
+  const userMsg =
+    (metaError.error_user_msg as string | undefined) ||
+    (metaError.message as string | undefined) ||
+    fallback;
+  const detail = tags ? `${userMsg} [${tags}]` : userMsg;
+  return new Error(`${detail} :: ${JSON.stringify(metaError)}`);
+}
+
 /**
  * Send a template message via WhatsApp Cloud API.
  * Throws an Error if the API returns non-2xx.
@@ -108,10 +126,21 @@ export async function sendWhatsAppTemplate(opts: SendTemplateOpts) {
 
   const json = await res.json();
   if (!res.ok) {
-    // Keep full structure for troubleshooting (template name/lang/phone issues)
     console.error("WA API error:", JSON.stringify(json, null, 2));
-    const msg = json?.error?.error_user_msg || json?.error?.message || "WhatsApp send failed";
-    throw new Error(msg);
+    throw buildMetaError(json, "WhatsApp send failed", res.status);
+  }
+
+  const messageId = json?.messages?.[0]?.id;
+  if (messageId) {
+    console.info(
+      "[WA] template sent",
+      JSON.stringify({
+        template: opts.template,
+        lang: template.language.code,
+        to,
+        messageId,
+      }),
+    );
   }
 
   return json;
@@ -142,8 +171,11 @@ export async function sendWhatsAppText(toRaw: string, text: string) {
   const json = await res.json();
   if (!res.ok) {
     console.error("WA API error:", JSON.stringify(json, null, 2));
-    const msg = json?.error?.error_user_msg || json?.error?.message || "WhatsApp text send failed";
-    throw new Error(msg);
+    throw buildMetaError(json, "WhatsApp text send failed", res.status);
+  }
+  const messageId = json?.messages?.[0]?.id;
+  if (messageId) {
+    console.info("[WA] text sent", JSON.stringify({ to, messageId }));
   }
   return json;
 }
