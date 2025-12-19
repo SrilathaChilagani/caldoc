@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
 
-export async function POST(req: NextRequest, { params }: { params: { orderId: string } }) {
+type RouteParams = {
+  params: Promise<{ orderId: string }>;
+};
+
+export async function POST(req: NextRequest, { params }: RouteParams) {
   const admin = await requireAdminSession();
   if (!admin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -14,8 +18,9 @@ export async function POST(req: NextRequest, { params }: { params: { orderId: st
   }
 
   try {
+    const { orderId } = await params;
     await prisma.labOrder.update({
-      where: { id: params.orderId },
+      where: { id: orderId },
       data: { status: status.toUpperCase() },
     });
     return NextResponse.json({ ok: true });

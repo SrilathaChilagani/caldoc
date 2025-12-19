@@ -3,9 +3,9 @@ import { prisma } from "@/lib/db";
 import { requireNgoSession } from "@/lib/auth.server";
 
 type RouteParams = {
-  params: {
+  params: Promise<{
     reservationId: string;
-  };
+  }>;
 };
 
 export async function POST(req: NextRequest, { params }: RouteParams) {
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const reservationId = params.reservationId;
+  const { reservationId } = await params;
   if (!reservationId) {
     return NextResponse.json({ error: "Missing reservation ID" }, { status: 400 });
   }

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
 
 type Params = {
-  params: { reservationId: string };
+  params: Promise<{ reservationId: string }>;
 };
 
 export async function POST(_: Request, { params }: Params) {
@@ -12,7 +12,7 @@ export async function POST(_: Request, { params }: Params) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const reservationId = params.reservationId;
+  const { reservationId } = await params;
   if (!reservationId) {
     return NextResponse.json({ error: "Missing reservation id" }, { status: 400 });
   }
