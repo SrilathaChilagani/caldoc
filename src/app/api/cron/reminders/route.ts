@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { getErrorMessage } from "@/lib/errors";
@@ -84,7 +84,9 @@ async function fetchAppointmentsForReminder(offsetMinutes: number, kind: string)
       slot: { startsAt: { gte: start, lt: end } },
       messages: { none: { kind } },
     },
-    include: {
+    select: {
+      id: true,
+      visitMode: true,
       patient: { select: { name: true, phone: true } },
       provider: { select: { name: true } },
       slot: { select: { startsAt: true } },
@@ -116,7 +118,7 @@ async function logOutboundMessage(opts: {
   });
 }
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   const results = [];
 
   for (const job of JOBS) {
@@ -128,6 +130,9 @@ export async function GET(_req: NextRequest) {
     const jobStats = { kind: job.kind, attempted: appointments.length, sent: 0, failed: 0 };
 
     for (const appt of appointments) {
+      if (appt.visitMode === "AUDIO") {
+        continue;
+      }
       const patientPhone = appt.patient?.phone;
       const slotStartsAt = appt.slot?.startsAt;
       if (!patientPhone || !slotStartsAt) {

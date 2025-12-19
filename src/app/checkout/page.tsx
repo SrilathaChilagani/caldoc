@@ -12,7 +12,7 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
 
   if (!appointmentId) {
     return (
-    <main className="mx-auto w-full max-w-5xl min-h-[calc(100vh-120px)] bg-[#f7f9fc] px-4 py-16 text-center">
+    <main className="mx-auto w-full max-w-5xl min-h-[calc(100vh-120px)] bg-white px-4 py-16 text-center">
         <h1 className="text-2xl font-semibold text-rose-600">Missing appointment</h1>
         <p className="mt-2 text-sm text-slate-500">We need an appointmentId to start checkout.</p>
         <Link href="/" className="mt-4 inline-flex items-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
@@ -23,7 +23,7 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl min-h-[calc(100vh-120px)] bg-[#f7f9fc] px-4 sm:px-6 lg:px-10 py-16">
+    <main className="mx-auto w-full max-w-5xl min-h-[calc(100vh-120px)] bg-white px-4 sm:px-6 lg:px-10 py-16">
       <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
         <h1 className="text-2xl font-semibold text-slate-900">Processing payment</h1>
         <p className="mt-1 text-sm text-slate-500">

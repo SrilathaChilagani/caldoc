@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { buildPatientPhoneMeta } from "@/lib/phone";
 import { getErrorMessage } from "@/lib/errors";
 import { notifyProviderOfBooking } from "@/lib/sendProviderBookingNotification";
+import { sendPatientAudioConfirmation } from "@/lib/sendPatientAudioConfirmation";
 
 const DEFAULT_AMOUNT = Number(process.env.CONSULT_FEE_PAISE || 49900);
 
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
           where: { phone: meta.canonical },
           update: { name, consentAt: new Date() },
           create: { name, phone: meta.canonical, consentAt: new Date() },
+          select: { id: true, name: true, phone: true },
         });
 
         const slotRecord = await tx.slot.findUnique({
@@ -92,6 +94,7 @@ export async function POST(req: Request) {
         return {
           appointmentId: appointment.id,
           patientName: patient.name,
+          patientPhone: patient.phone,
           slotStartsAt: slotRecord.startsAt,
           providerId,
           feePaise: slotFeePaise,
@@ -109,7 +112,7 @@ export async function POST(req: Request) {
     });
 
     if (providerContact?.phone && result.slotStartsAt) {
-      notifyProviderOfBooking({
+      await notifyProviderOfBooking({
         appointmentId: result.appointmentId,
         providerId,
         providerPhone: providerContact.phone,
@@ -118,6 +121,18 @@ export async function POST(req: Request) {
         slotStartsAt: result.slotStartsAt,
       }).catch((err) => {
         console.error("provider notify error", err);
+      });
+    }
+
+    if (body.visitMode === "AUDIO" && result.patientPhone && result.slotStartsAt) {
+      await sendPatientAudioConfirmation({
+        appointmentId: result.appointmentId,
+        patientPhone: result.patientPhone,
+        patientName: result.patientName,
+        providerName: providerContact?.name || "Doctor",
+        slotStartsAt: result.slotStartsAt,
+      }).catch((err) => {
+        console.error("patient audio notify error", err);
       });
     }
 

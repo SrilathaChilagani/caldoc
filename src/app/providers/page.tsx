@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { FiltersPanel } from "./FiltersPanel";
 
+export const dynamic = "force-dynamic";
+
 const languageLabels: Record<string, string> = {
   en: "English",
   hi: "Hindi",

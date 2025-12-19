@@ -9,12 +9,20 @@ import AppointmentFeeForm from "./AppointmentFeeForm";
 import CopyRoomLinkButton from "./CopyRoomLinkButton";
 import LabOrderForm from "./LabOrderForm";
 import { formatINR } from "@/lib/format";
+import CallPatientButton from "./CallPatientButton";
 
 export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{ id: string }>;
   searchParams?: Promise<{ from?: string }>;
+};
+
+type RawPrescriptionMed = {
+  name?: string;
+  sig?: string;
+  qty?: string;
+  category?: string;
 };
 
 function categoryLabel(value: unknown) {
@@ -91,14 +99,15 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
   }
 
   const documents = appointment.patientDocuments || [];
-  const initialPrescriptionMeds = Array.isArray(appointment.prescription?.meds)
-    ? (appointment.prescription?.meds as any[]).map((med) => ({
-        name: med.name ?? "",
-        sig: med.sig ?? "",
-        qty: med.qty ?? "",
-        category: med.category ?? "OTC",
-      }))
+  const rawPrescriptionMeds: RawPrescriptionMed[] = Array.isArray(appointment.prescription?.meds)
+    ? (appointment.prescription?.meds as RawPrescriptionMed[])
     : [];
+  const initialPrescriptionMeds = rawPrescriptionMeds.map((med) => ({
+    name: med.name ?? "",
+    sig: med.sig ?? "",
+    qty: med.qty ?? "",
+    category: med.category ?? "OTC",
+  }));
   const availableSlots = await prisma.slot.findMany({
     where: {
       providerId: appointment.providerId,
@@ -196,7 +205,12 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
           <div className="sm:col-span-2">
             <dt className="text-xs uppercase tracking-wide text-slate-500">Video room</dt>
             {isAudioVisit ? (
-              <dd className="text-sm text-slate-600">Not required for audio-only visits.</dd>
+              <div className="space-y-2">
+                <dd className="text-sm text-slate-600">
+                  This appointment is audio-only. Tap below to connect via CalDoc&apos;s bridge when you&apos;re ready.
+                </dd>
+                <CallPatientButton appointmentId={appointment.id} patientName={appointment.patient?.name} />
+              </div>
             ) : appointment.videoRoom ? (
               <div className="space-y-2">
                 <dd className="text-sm text-slate-900">
@@ -348,9 +362,9 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         </div>
         {readOnly ? (
           <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">
-            {Array.isArray(appointment.prescription?.meds) && appointment.prescription?.meds.length ? (
+            {rawPrescriptionMeds.length ? (
               <ul className="space-y-1 text-sm">
-                {(appointment.prescription.meds as any[]).map((med, idx) => (
+                {rawPrescriptionMeds.map((med, idx) => (
                   <li key={idx}>
                     <span className="font-semibold">{med.name}</span>
                     <span className="ml-2 text-xs text-slate-500">
