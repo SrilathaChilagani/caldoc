@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
       where: { id: appointmentId },
       select: {
         id: true,
+        status: true,
         providerId: true,
         slotId: true,
         visitMode: true,
