@@ -6,15 +6,21 @@ import { useRouter } from "next/navigation";
 const DEFAULT_COPY = "We sent a 6-digit code to your WhatsApp.";
 const OTP_COOLDOWN_SECONDS = Number(process.env.NEXT_PUBLIC_PATIENT_OTP_COOLDOWN ?? "60");
 
-export default function LoginClient({ next }: { next: string }) {
+type LoginClientProps = {
+  next: string;
+  initialPhone?: string;
+};
+
+export default function LoginClient({ next, initialPhone }: LoginClientProps) {
   const router = useRouter();
   const [step, setStep] = useState<"phone" | "otp">("phone");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(initialPhone || "");
   const [otp, setOtp] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [prefillRequested, setPrefillRequested] = useState(false);
 
   useEffect(() => {
     if (!cooldown) return;
@@ -31,8 +37,8 @@ export default function LoginClient({ next }: { next: string }) {
     setError(null);
   }
 
-  async function requestOtp(e: React.FormEvent) {
-    e.preventDefault();
+  async function requestOtp(e?: React.FormEvent) {
+    e?.preventDefault();
     if (loading || cooldown > 0) return;
     setLoading(true);
     setError(null);
@@ -88,6 +94,19 @@ export default function LoginClient({ next }: { next: string }) {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (!initialPhone) return;
+    setPhone(initialPhone);
+  }, [initialPhone]);
+
+  useEffect(() => {
+    if (!initialPhone || prefillRequested || step !== "phone" || !phone) return;
+    setPrefillRequested(true);
+    requestOtp().catch(() => {
+      setPrefillRequested(false);
+    });
+  }, [initialPhone, phone, prefillRequested, step]);
 
   return (
     <div className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-slate-100">

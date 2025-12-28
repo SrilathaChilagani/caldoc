@@ -54,6 +54,15 @@ export default async function VisitPage({ params, searchParams }: Props) {
     councilName: appt.provider?.councilName || "Not provided",
   };
 
+  const patientPortalHref =
+    appt.patient?.phone
+      ? `/patient/login?next=${encodeURIComponent("/patient/appointments")}&phone=${encodeURIComponent(
+          appt.patient.phone,
+        )}`
+      : "/patient/login";
+  const isAudioVisit = appt.visitMode === "AUDIO";
+  const patientPhoneDisplay = appt.patient?.phone ? appt.patient.phone.replace(/\s+/g, "") : null;
+
   return (
     <main className="min-h-[calc(100vh-140px)] bg-gradient-to-b from-[#eef4ff] via-white to-white py-12">
       <div className="mx-auto w-full max-w-6xl space-y-8 px-4 sm:px-6 lg:px-10">
@@ -114,7 +123,13 @@ export default async function VisitPage({ params, searchParams }: Props) {
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            {appt.status === "CONFIRMED" && appt.videoRoom ? (
+            {isAudioVisit ? (
+              <span className="text-sm text-slate-500">
+                This is an audio consultation. Your doctor will call{" "}
+                {patientPhoneDisplay ? <strong>{patientPhoneDisplay}</strong> : "the phone number you provided"} around
+                the scheduled time. We&apos;ll remind you shortly before the appointment.
+              </span>
+            ) : appt.status === "CONFIRMED" && appt.videoRoom ? (
               <a
                 href={
                   fromParam
@@ -132,6 +147,12 @@ export default async function VisitPage({ params, searchParams }: Props) {
                 Preparing your video room… you&apos;ll receive the link about 24 hours before the appointment once your doctor confirms.
               </span>
             )}
+            <Link
+              href={patientPortalHref}
+              className="inline-flex min-w-[140px] items-center justify-center rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              Go to patient portal
+            </Link>
           </div>
 
           <div className="mt-8 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-xs text-amber-800">

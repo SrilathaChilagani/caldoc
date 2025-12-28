@@ -6,12 +6,14 @@ import LoginClient from "./ui/LoginClient";
 
 type SearchParams = {
   next?: string;
+  phone?: string;
 };
 
 export default async function PatientLoginPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const phone = await readPatientPhone();
   const sp = await searchParams;
   const next = sp?.next || "/patient/appointments";
+  const initialPhone = sp?.phone || "";
 
   if (phone) redirect(next);
 
@@ -57,7 +59,7 @@ export default async function PatientLoginPage({ searchParams }: { searchParams:
         </section>
 
         <section className="flex-1">
-          <LoginClient next={next} />
+          <LoginClient next={next} initialPhone={initialPhone} />
         </section>
       </div>
     </main>

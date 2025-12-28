@@ -12,6 +12,8 @@ type SlotInfo = {
   feePaise?: number;
 };
 
+const SYMPTOM_OPTIONS = ["Fever", "Headache", "Dizziness", "Chest pain", "Sore throat", "Cough", "Cold"];
+
 type Props = {
   provider: {
     id: string;
@@ -74,6 +76,8 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
   const [loading, setLoading] = useState(false);
   const [deliveryOpt, setDeliveryOpt] = useState<"PHONE" | "DELIVERY">("PHONE");
   const [policyModal, setPolicyModal] = useState<null | "disclaimer" | "terms">(null);
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+  const [otherSymptom, setOtherSymptom] = useState("");
   const [address, setAddress] = useState<DeliveryForm>({
     contactName: "",
     contactPhone: "",
@@ -120,7 +124,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
     [selectedSlotFeePaise],
   );
 
-  const pageSize = 6;
+  const pageSize = 8;
   const pagedSlots = upcomingSlots.slice(slotIndex, slotIndex + pageSize);
   const canPrev = slotIndex > 0;
   const canNext = slotIndex + pageSize < upcomingSlots.length;
@@ -142,6 +146,22 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
     });
   }
 
+  function toggleSymptom(symptom: string) {
+    setSelectedSymptoms((prev) => {
+      if (prev.includes(symptom)) {
+        if (symptom === "Other") setOtherSymptom("");
+        return prev.filter((val) => val !== symptom);
+      }
+      return [...prev, symptom];
+    });
+  }
+
+  const compiledSymptoms = useMemo(() => {
+    const baseSymptoms = selectedSymptoms.filter((symptom) => symptom !== "Other");
+    const extras = selectedSymptoms.includes("Other") && otherSymptom.trim() ? [`Other: ${otherSymptom.trim()}`] : [];
+    return [...baseSymptoms, ...extras];
+  }, [selectedSymptoms, otherSymptom]);
+
   async function handleSlotContinue() {
     if (!selectedSlot || !patientName.trim() || !patientPhone.trim()) {
       setError("Select a slot and enter your name as well as mobile number.");
@@ -155,6 +175,8 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
     try {
       setLoading(true);
       setError(null);
+      const symptomNote = compiledSymptoms.length ? `Symptoms: ${compiledSymptoms.join(", ")}` : "";
+      const finalNotes = [symptomNote, notes.trim()].filter(Boolean).join("\n");
       const res = await fetch("/api/appointments/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -163,7 +185,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
           slotId: selectedSlot,
           name: patientName.trim(),
           phone: patientPhone.trim(),
-          notes: notes.trim() || undefined,
+          notes: finalNotes || undefined,
           consentText: CONSENT_TEXT,
           visitMode,
         }),
@@ -196,7 +218,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       : `${address.contactName || patientName} · ${address.line1 || "No address"}`;
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 px-2 sm:px-0">
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-3 sm:px-4">
       <Link
         href="/providers"
         className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
@@ -224,9 +246,9 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
             </p>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+          <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(360px,1fr)]">
             <div className="space-y-4 min-w-0">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <button
                   type="button"
                   onClick={() => handlePage("prev")}
@@ -235,7 +257,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 >
                   &lt;
                 </button>
-                <div className="grid flex-1 gap-3 sm:grid-cols-3">
+                <div className="grid flex-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
                   {upcomingSlots.length === 0 && (
                     <p className="text-sm text-slate-500">No slots available right now. Please check back later.</p>
                   )}
@@ -361,6 +383,56 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
             </div>
 
             <aside className="space-y-4 w-full lg:w-auto">
+              <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="text-sm font-semibold text-slate-900">Common symptoms</p>
+                <p className="text-xs text-slate-500">Select all that apply so the doctor can prepare.</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {SYMPTOM_OPTIONS.map((symptom) => {
+                    const isActive = selectedSymptoms.includes(symptom);
+                    return (
+                      <label
+                        key={symptom}
+                        className={`inline-flex items-center rounded-2xl border px-3 py-2 text-sm font-medium transition ${
+                          isActive ? "border-blue-500 bg-blue-50 text-blue-900" : "border-slate-200 text-slate-600"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isActive}
+                          onChange={() => toggleSymptom(symptom)}
+                          className="mr-2 rounded border-slate-300"
+                        />
+                        {symptom}
+                      </label>
+                    );
+                  })}
+                  <label
+                    className={`inline-flex flex-col rounded-2xl border px-3 py-2 text-sm font-medium transition ${
+                      selectedSymptoms.includes("Other")
+                        ? "border-blue-500 bg-blue-50 text-blue-900"
+                        : "border-slate-200 text-slate-600"
+                    } sm:col-span-2`}
+                  >
+                    <span className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedSymptoms.includes("Other")}
+                        onChange={() => toggleSymptom("Other")}
+                        className="mr-2 rounded border-slate-300"
+                      />
+                      Other
+                    </span>
+                    {selectedSymptoms.includes("Other") && (
+                      <input
+                        value={otherSymptom}
+                        onChange={(e) => setOtherSymptom(e.target.value)}
+                        placeholder="Describe other symptoms"
+                        className="mt-2 w-full rounded-xl border border-blue-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                      />
+                    )}
+                  </label>
+                </div>
+              </div>
               <label className="text-sm font-medium text-slate-700 block rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                 Notes for doctor (optional)
                 <textarea

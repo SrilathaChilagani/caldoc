@@ -56,6 +56,7 @@ export async function POST(req: Request) {
           select: {
             startsAt: true,
             feePaise: true,
+            isBooked: true,
             provider: {
               select: { defaultFeePaise: true },
             },
@@ -66,16 +67,11 @@ export async function POST(req: Request) {
           throw new Error("Slot not found");
         }
 
-        const slotFeePaise = slotRecord.feePaise ?? slotRecord.provider?.defaultFeePaise ?? DEFAULT_AMOUNT;
-
-        const locked = await tx.slot.updateMany({
-          where: { id: slotId, providerId, isBooked: false },
-          data: { isBooked: true },
-        });
-
-        if (locked.count === 0) {
+        if (slotRecord.isBooked) {
           throw new Error("This slot is no longer available. Please pick another time.");
         }
+
+        const slotFeePaise = slotRecord.feePaise ?? slotRecord.provider?.defaultFeePaise ?? DEFAULT_AMOUNT;
 
         const appointment = await tx.appointment.create({
           data: {
@@ -105,36 +101,6 @@ export async function POST(req: Request) {
         timeout: 15_000,
       },
     );
-
-    const providerContact = await prisma.provider.findUnique({
-      where: { id: providerId },
-      select: { phone: true, name: true },
-    });
-
-    if (providerContact?.phone && result.slotStartsAt) {
-      await notifyProviderOfBooking({
-        appointmentId: result.appointmentId,
-        providerId,
-        providerPhone: providerContact.phone,
-        providerName: providerContact.name || "Doctor",
-        patientName: result.patientName || "Patient",
-        slotStartsAt: result.slotStartsAt,
-      }).catch((err) => {
-        console.error("provider notify error", err);
-      });
-    }
-
-    if (body.visitMode === "AUDIO" && result.patientPhone && result.slotStartsAt) {
-      await sendPatientAudioConfirmation({
-        appointmentId: result.appointmentId,
-        patientPhone: result.patientPhone,
-        patientName: result.patientName,
-        providerName: providerContact?.name || "Doctor",
-        slotStartsAt: result.slotStartsAt,
-      }).catch((err) => {
-        console.error("patient audio notify error", err);
-      });
-    }
 
     return NextResponse.json({ appointmentId: result.appointmentId, amount: result.feePaise ?? DEFAULT_AMOUNT });
   } catch (err) {
