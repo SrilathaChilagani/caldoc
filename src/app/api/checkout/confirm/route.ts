@@ -70,9 +70,27 @@ export async function POST(req: NextRequest) {
         throw new Error("This slot is no longer available. Please choose another time.");
       }
 
+      const nextStatus = appointment.status === "CONFIRMED" ? "CONFIRMED" : "PENDING";
+      const statusHistoryData =
+        appointment.status !== nextStatus
+          ? {
+              statusHistory: {
+                create: {
+                  fromStatus: appointment.status,
+                  toStatus: nextStatus,
+                  actorType: "SYSTEM",
+                  reason: "Payment captured, awaiting provider confirmation",
+                },
+              },
+            }
+          : {};
+
       await tx.appointment.update({
         where: { id: appointmentId },
-        data: { status: "CONFIRMED" },
+        data: {
+          status: nextStatus,
+          ...statusHistoryData,
+        },
       });
     });
 
