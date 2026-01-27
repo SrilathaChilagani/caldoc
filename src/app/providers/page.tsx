@@ -3,6 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { FiltersPanel } from "./FiltersPanel";
+import { IMAGES } from "@/lib/imagePaths";
 
 export const dynamic = "force-dynamic";
 
@@ -331,7 +332,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
                   : null;
                 const photoUrl = photoToken
                   ? `/api/providers/${provider.slug}/photo?v=${photoToken}`
-                  : "/images/doc.jpg";
+                  : IMAGES.DOC_PLACEHOLDER;
                 return (
                   <article
                     key={provider.id}

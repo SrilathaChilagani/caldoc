@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { IMAGES } from "@/lib/imagePaths";
 
 type Props = {
   slug: string;
@@ -53,7 +54,7 @@ export default function ProviderPhotoForm({ slug, initialKey }: Props) {
           {photoUrl ? (
             <Image src={photoUrl} alt="Provider photo" fill className="object-cover" sizes="96px" />
           ) : (
-            <Image src="/images/doc.jpg" alt="Provider placeholder" fill className="object-cover" sizes="96px" />
+            <Image src={IMAGES.DOC_PLACEHOLDER} alt="Provider placeholder" fill className="object-cover" sizes="96px" />
           )}
         </div>
         <label className="text-sm font-medium text-slate-700">

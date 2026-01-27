@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import DisclaimerNotice from "./DisclaimerNotice";
+import { IMAGES } from "@/lib/imagePaths";
 
 export default function SiteFooter() {
   return (
@@ -10,10 +11,10 @@ export default function SiteFooter() {
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/80">
-                <Image src="/images/logo-mark.png" alt="CalDoc icon" width={36} height={36} priority />
+                <Image src={IMAGES.LOGO_MARK} alt="CalDoc icon" width={36} height={36} priority />
               </div>
               <Image
-                src="/images/company-name.png"
+                src={IMAGES.COMPANY_NAME}
                 alt="CalDoc logo"
                 width={120}
                 height={28}

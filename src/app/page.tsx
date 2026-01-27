@@ -3,14 +3,15 @@ import Link from "next/link";
 import DisclaimerNotice from "@/components/DisclaimerNotice";
 import OfflineRequestForm from "@/components/OfflineRequestForm";
 import { prisma } from "@/lib/db";
+import { IMAGES } from "@/lib/imagePaths";
 
 const specialties = [
-  { name: "Dermatology", slug: "dermatology", img: "/images/spec-derm.jpg" },
-  { name: "Pediatrics", slug: "pediatrics", img: "/images/spec-peds.jpg" },
-  { name: "Cardiology", slug: "cardiology", img: "/images/spec-card.jpg" },
-  { name: "ENT", slug: "ent", img: "/images/spec-ent.jpg" },
-  { name: "Orthopedics", slug: "orthopedics", img: "/images/spec-ortho.jpg" },
-  { name: "Psychiatry", slug: "psychiatry", img: "/images/spec-psych.jpg" },
+  { name: "Dermatology", slug: "dermatology", img: IMAGES.SPEC_DERM },
+  { name: "Pediatrics", slug: "pediatrics", img: IMAGES.SPEC_PEDS },
+  { name: "Cardiology", slug: "cardiology", img: IMAGES.SPEC_CARD },
+  { name: "ENT", slug: "ent", img: IMAGES.SPEC_ENT },
+  { name: "Orthopedics", slug: "orthopedics", img: IMAGES.SPEC_ORTHO },
+  { name: "Psychiatry", slug: "psychiatry", img: IMAGES.SPEC_PSYCH },
 ];
 
 const languageLabels: Record<string, string> = {
@@ -118,7 +119,7 @@ export default async function Home() {
         className="relative overflow-hidden bg-white"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.68), rgba(255,255,255,0.85)), url(/images/Homepage.jpg)",
+            `linear-gradient(rgba(255,255,255,0.68), rgba(255,255,255,0.85)), url(${IMAGES.HOMEPAGE})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -180,7 +181,7 @@ export default async function Home() {
               <div className="relative w-full max-w-sm overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-3 shadow-2xl shadow-blue-100/70 backdrop-blur lg:max-w-md xl:max-w-lg">
                 <div className="relative h-60 w-full overflow-hidden rounded-[24px] sm:h-64 md:h-72 lg:h-[18rem] xl:h-[20rem]">
                   <Image
-                    src="/images/team.png"
+                    src={IMAGES.TEAM}
                     alt="CalDoc care team standing together"
                     fill
                     priority

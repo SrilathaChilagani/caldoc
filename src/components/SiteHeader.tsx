@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { IMAGES } from "@/lib/imagePaths";
 
 const specialties = [
   { name: "Dermatology", slug: "dermatology" },
@@ -58,11 +59,11 @@ export default function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
       <Link href="/" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/80">
-            <Image src="/images/logo-mark.png" alt="CalDoc icon" width={40} height={40} priority />
+            <Image src={IMAGES.LOGO_MARK} alt="CalDoc icon" width={40} height={40} priority />
           </div>
           <div className="flex flex-col leading-tight">
             <Image
-              src="/images/company-name.png"
+              src={IMAGES.COMPANY_NAME}
               alt="CalDoc logo"
               width={140}
               height={32}

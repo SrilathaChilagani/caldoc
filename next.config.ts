@@ -6,10 +6,18 @@ const nextConfig: NextConfig = {
     tsconfigPath: "./tsconfig.next.json",
   },
   images: {
+    // Allow images from the public/images directory
     localPatterns: [
       { pathname: "/images/**" },
       { pathname: "/api/providers/**" },
     ],
+    // Temporarily disable optimization to ensure images load reliably
+    // This bypasses Next.js image optimization which can cause inconsistent loading
+    unoptimized: true,
+    // Support common image formats
+    formats: ['image/avif', 'image/webp'],
+    // Ensure images load reliably with proper caching
+    minimumCacheTTL: 60,
   },
   async headers() {
     return [
@@ -27,8 +35,8 @@ const nextConfig: NextConfig = {
               "connect-src 'self' https://api.daily.co https://*.daily.co https://api.razorpay.com https://*.razorpay.com; " +
               // iframes (Daily meeting + Razorpay checkout)
               "frame-src 'self' https://*.daily.co https://checkout.razorpay.com https://*.razorpay.com; " +
-              // images (logos from gateways)
-              "img-src 'self' data: https://*.daily.co https://checkout.razorpay.com https://*.razorpay.com; " +
+              // images (logos from gateways + Next.js image optimization)
+              "img-src 'self' data: blob: https://*.daily.co https://checkout.razorpay.com https://*.razorpay.com; " +
               // styles
               "style-src 'self' 'unsafe-inline';",
           },
