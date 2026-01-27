@@ -22,6 +22,7 @@ export default function RxDeliveryForm({ options }: Props) {
   const [instructions, setInstructions] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [openSuggestionFor, setOpenSuggestionFor] = useState<string | null>(null);
 
   const lookupOptions = useMemo(() => options.sort(), [options]);
 
@@ -75,14 +76,46 @@ export default function RxDeliveryForm({ options }: Props) {
             <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center">
               <div className="flex-1">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Medicine</label>
-                <input
-                  list="rx-options"
-                  value={item.name}
-                  onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
-                  placeholder="Start typing to search"
-                  required
-                />
+                <div className="relative mt-1">
+                  <input
+                    value={item.name}
+                    onFocus={() => setOpenSuggestionFor(item.id)}
+                    onBlur={() => setTimeout(() => setOpenSuggestionFor((prev) => (prev === item.id ? null : prev)), 120)}
+                    onChange={(e) => updateItem(item.id, { name: e.target.value })}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+                    placeholder="Start typing to search"
+                    required
+                    autoComplete="off"
+                  />
+                  {openSuggestionFor === item.id && (
+                    <div className="absolute left-0 right-0 z-20 mt-2 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+                      {lookupOptions
+                        .filter((opt) =>
+                          item.name.trim()
+                            ? opt.toLowerCase().includes(item.name.trim().toLowerCase())
+                            : true,
+                        )
+                        .slice(0, 12)
+                        .map((opt) => (
+                          <button
+                            type="button"
+                            key={opt}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              updateItem(item.id, { name: opt });
+                              setOpenSuggestionFor(null);
+                            }}
+                            className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-slate-800 hover:bg-slate-50"
+                          >
+                            <span>{opt}</span>
+                          </button>
+                        ))}
+                      {lookupOptions.length === 0 && (
+                        <div className="px-3 py-2 text-sm text-slate-500">No suggestions</div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Qty</label>
@@ -112,11 +145,6 @@ export default function RxDeliveryForm({ options }: Props) {
           >
             + Add another medicine
           </button>
-          <datalist id="rx-options">
-            {lookupOptions.map((name) => (
-              <option key={name} value={name} />
-            ))}
-          </datalist>
         </div>
       </div>
 
