@@ -143,6 +143,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
       : Array.isArray(resolvedParams.experience)
       ? resolvedParams.experience[0] ?? ""
       : "";
+  const selectedConsultationTypes = new Set(toArray(resolvedParams.consultationType));
 
   const INSENSITIVE: Prisma.QueryMode = "insensitive";
 
@@ -292,6 +293,9 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
             {Array.from(selectedGenders).map((gender) => (
               <input key={`search-gender-${gender}`} type="hidden" name="gender" value={gender} />
             ))}
+            {Array.from(selectedConsultationTypes).map((type) => (
+              <input key={`search-consultationType-${type}`} type="hidden" name="consultationType" value={type} />
+            ))}
             <button
               type="submit"
               className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
@@ -310,6 +314,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
             selectedGenders={genderAnySelected ? [] : Array.from(selectedGenders)}
             genderAnySelected={genderAnySelected}
             selectedLanguages={Array.from(selectedLanguages)}
+            selectedConsultationTypes={Array.from(selectedConsultationTypes)}
             q={q}
             languageLabels={languageLabels}
           />

@@ -22,6 +22,11 @@ const experienceOptions = [
   { value: "gt10", label: "10+ years" },
 ];
 
+const consultationTypeOptions = [
+  { value: "audio", label: "Audio call" },
+  { value: "video", label: "Video call" },
+];
+
 type FiltersPanelProps = {
   specialtyList: string[];
   selectedSpecialties: string[];
@@ -30,6 +35,7 @@ type FiltersPanelProps = {
   selectedGenders: string[];
   genderAnySelected: boolean;
   selectedLanguages: string[];
+  selectedConsultationTypes: string[];
   q: string;
   languageLabels: Record<string, string>;
 };
@@ -42,6 +48,7 @@ export function FiltersPanel({
   selectedGenders,
   genderAnySelected,
   selectedLanguages,
+  selectedConsultationTypes,
   q,
   languageLabels,
 }: FiltersPanelProps) {
@@ -51,6 +58,7 @@ export function FiltersPanel({
   const specialtySet = useMemo(() => new Set(selectedSpecialties), [selectedSpecialties]);
   const genderSet = useMemo(() => new Set(selectedGenders), [selectedGenders]);
   const languageSet = useMemo(() => new Set(selectedLanguages), [selectedLanguages]);
+  const consultationTypeSet = useMemo(() => new Set(selectedConsultationTypes), [selectedConsultationTypes]);
   const languagesList = useMemo(
     () => Object.entries(languageLabels).map(([value, label]) => ({ value, label })),
     [languageLabels],
@@ -121,6 +129,23 @@ export function FiltersPanel({
                   className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
                 {spec}
+              </label>
+            ))}
+          </div>
+        </FilterGroup>
+
+        <FilterGroup title="Consultation Type">
+          <div className="space-y-2 text-sm">
+            {consultationTypeOptions.map((option) => (
+              <label key={option.value} className="flex items-center gap-2 text-slate-600">
+                <input
+                  type="checkbox"
+                  name="consultationType"
+                  value={option.value}
+                  defaultChecked={consultationTypeSet.has(option.value)}
+                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                {option.label}
               </label>
             ))}
           </div>
