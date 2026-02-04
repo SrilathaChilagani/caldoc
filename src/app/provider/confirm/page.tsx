@@ -2,7 +2,11 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { verifyProviderConfirmToken } from "@/lib/providerConfirmToken";
 import { sendPatientUploadLink } from "@/lib/sendPatientUploadLink";
-import { ensureVideoRoomIfNeeded, notifyVideoLinks } from "@/lib/videoLinkHelpers";
+import {
+  ensureVideoRoomIfNeeded,
+  notifyVideoLinks,
+  sendPatientVideoConfirmation,
+} from "@/lib/videoLinkHelpers";
 
 type PageProps = {
   searchParams?: { token?: string | string[] };
@@ -81,10 +85,12 @@ export default async function ProviderConfirmPage({ searchParams }: PageProps) {
       visitMode: current.visitMode,
       videoRoom: current.videoRoom,
       slotStartsAt: current.slot?.startsAt ?? null,
+      forceImmediate: true,
     },
     baseUrl,
   );
-  await notifyVideoLinks(current, videoLink || current.videoRoom);
+  await sendPatientVideoConfirmation(current, videoLink || current.videoRoom);
+  await notifyVideoLinks(current, videoLink || current.videoRoom, { notifyPatient: false });
 
   return (
     <main className="mx-auto max-w-lg space-y-4 px-4 py-16 text-center">

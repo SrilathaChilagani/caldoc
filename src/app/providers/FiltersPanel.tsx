@@ -117,23 +117,6 @@ export function FiltersPanel({
           </div>
         </FilterGroup>
 
-        <FilterGroup title="Specialty">
-          <div className="max-h-48 space-y-2 overflow-y-auto pr-2 text-sm">
-            {specialtyList.map((spec) => (
-              <label key={spec} className="flex items-center gap-2 text-slate-600">
-                <input
-                  type="checkbox"
-                  name="specialty"
-                  value={spec}
-                  defaultChecked={specialtySet.has(spec)}
-                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                />
-                {spec}
-              </label>
-            ))}
-          </div>
-        </FilterGroup>
-
         <FilterGroup title="Consultation Type">
           <div className="space-y-2 text-sm">
             {consultationTypeOptions.map((option) => (
@@ -146,6 +129,23 @@ export function FiltersPanel({
                   className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
                 {option.label}
+              </label>
+            ))}
+          </div>
+        </FilterGroup>
+
+        <FilterGroup title="Specialty">
+          <div className="max-h-48 space-y-2 overflow-y-auto pr-2 text-sm">
+            {specialtyList.map((spec) => (
+              <label key={spec} className="flex items-center gap-2 text-slate-600">
+                <input
+                  type="checkbox"
+                  name="specialty"
+                  value={spec}
+                  defaultChecked={specialtySet.has(spec)}
+                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                {spec}
               </label>
             ))}
           </div>

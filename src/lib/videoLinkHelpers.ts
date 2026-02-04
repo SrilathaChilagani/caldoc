@@ -17,7 +17,12 @@ const PROVIDER_VIDEO_TEMPLATE =
 
 export async function ensureVideoRoomIfNeeded(
   appointmentId: string,
-  opts: { visitMode?: string | null; videoRoom?: string | null; slotStartsAt?: Date | null },
+  opts: {
+    visitMode?: string | null;
+    videoRoom?: string | null;
+    slotStartsAt?: Date | null;
+    forceImmediate?: boolean;
+  },
   baseUrl: string,
 ) {
   if (opts.visitMode === "AUDIO") return opts.videoRoom;
@@ -25,7 +30,7 @@ export async function ensureVideoRoomIfNeeded(
   const startsAt = opts.slotStartsAt;
   if (!startsAt) return opts.videoRoom;
   const msUntilStart = startsAt.getTime() - Date.now();
-  if (msUntilStart > AUTO_ROOM_WINDOW_MS) return opts.videoRoom;
+  if (!opts.forceImmediate && msUntilStart > AUTO_ROOM_WINDOW_MS) return opts.videoRoom;
 
   const roomUrl = `${baseUrl}/room/${appointmentId}`;
   await prisma.appointment.update({
@@ -45,8 +50,11 @@ export async function notifyVideoLinks(
     provider?: { phone?: string | null; name?: string | null } | null;
   },
   link: string | null | undefined,
+  opts?: { notifyPatient?: boolean; notifyProvider?: boolean },
 ) {
   if (appt.visitMode === "AUDIO" || !link) return;
+  const notifyPatient = opts?.notifyPatient ?? true;
+  const notifyProvider = opts?.notifyProvider ?? true;
   const lang = process.env.WHATSAPP_LANG || "en_US";
   const visitTimeLabel = appt.slotStartsAt
     ? appt.slotStartsAt.toLocaleString("en-IN", {
@@ -84,7 +92,7 @@ export async function notifyVideoLinks(
     });
   };
 
-  if (appt.patient?.phone && PATIENT_VIDEO_TEMPLATE) {
+  if (notifyPatient && appt.patient?.phone && PATIENT_VIDEO_TEMPLATE) {
     const body = `Video link: ${link}`;
     try {
       const result = await sendWhatsAppTemplate({
@@ -99,7 +107,7 @@ export async function notifyVideoLinks(
     }
   }
 
-  if (appt.provider?.phone && PROVIDER_VIDEO_TEMPLATE) {
+  if (notifyProvider && appt.provider?.phone && PROVIDER_VIDEO_TEMPLATE) {
     const body = `Video room ready: ${link}`;
     try {
       const result = await sendWhatsAppTemplate({
@@ -112,5 +120,85 @@ export async function notifyVideoLinks(
     } catch (err) {
       await logMessage("PROVIDER", "FAILED", body, PROVIDER_VIDEO_TEMPLATE, undefined, getErrorMessage(err));
     }
+  }
+}
+
+const PATIENT_VIDEO_CONFIRM_TEMPLATE =
+  process.env.WHATSAPP_TMPL_PATIENT_VIDEO_24 ||
+  process.env.WHATSAPP_TMPL_APPT_REMINDER_24H ||
+  process.env.WHATSAPP_APPOINTMENT_REMINDER_24H ||
+  "appointment_reminder_24hr";
+
+function formatIST(date: Date) {
+  return date.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function appBaseUrl() {
+  return process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://caldoc.in";
+}
+
+export async function sendPatientVideoConfirmation(
+  appt: {
+    id: string;
+    visitMode: string | null;
+    slotStartsAt?: Date | null;
+    slot?: { startsAt?: Date | null } | null;
+    patient?: { phone: string | null; name?: string | null } | null;
+    provider?: { name?: string | null } | null;
+  },
+  link: string | null | undefined,
+) {
+  if (appt.visitMode === "AUDIO" || !link) return;
+  const patientPhone = appt.patient?.phone;
+  const slotStartsAt = appt.slot?.startsAt ?? appt.slotStartsAt ?? null;
+  if (!patientPhone || !slotStartsAt) return;
+
+  const baseUrl = appBaseUrl();
+  const rescheduleLink = `${baseUrl}/patient/appointments/${appt.id}`;
+  const joinLink = link;
+  const visitTimeLabel = formatIST(slotStartsAt);
+  const patientFirstName = (appt.patient?.name || "there").split(" ")[0];
+  const providerName = appt.provider?.name || "your doctor";
+
+  const body = `Video link: ${joinLink}`;
+  try {
+    const result = await sendWhatsAppTemplate({
+      to: patientPhone,
+      template: PATIENT_VIDEO_CONFIRM_TEMPLATE,
+      lang: process.env.WHATSAPP_LANG || "en_US",
+      vars: [patientFirstName, joinLink, visitTimeLabel, rescheduleLink, providerName],
+    });
+    await prisma.outboundMessage.create({
+      data: {
+        appointmentId: appt.id,
+        channel: "WHATSAPP",
+        toPhone: patientPhone,
+        template: PATIENT_VIDEO_CONFIRM_TEMPLATE,
+        body,
+        messageId: result?.messageId ?? undefined,
+        status: "SENT",
+        kind: "APPT_REMINDER_24H",
+      },
+    });
+  } catch (err) {
+    await prisma.outboundMessage.create({
+      data: {
+        appointmentId: appt.id,
+        channel: "WHATSAPP",
+        toPhone: patientPhone,
+        template: PATIENT_VIDEO_CONFIRM_TEMPLATE,
+        body,
+        status: "FAILED",
+        error: getErrorMessage(err),
+        kind: "APPT_REMINDER_24H",
+      },
+    });
   }
 }

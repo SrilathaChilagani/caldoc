@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireProviderSession } from "@/lib/auth.server";
 import { sendPatientUploadLink } from "@/lib/sendPatientUploadLink";
-import { ensureVideoRoomIfNeeded, notifyVideoLinks } from "@/lib/videoLinkHelpers";
+import {
+  ensureVideoRoomIfNeeded,
+  notifyVideoLinks,
+  sendPatientVideoConfirmation,
+} from "@/lib/videoLinkHelpers";
 
 type RouteContext = {
   params: Promise<{ appointmentId: string }>;
@@ -57,10 +61,12 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
             visitMode: appointment.visitMode,
             videoRoom: appointment.videoRoom,
             slotStartsAt: appointment.slot?.startsAt ?? null,
+            forceImmediate: true,
           },
           baseUrl,
         );
-        await notifyVideoLinks(appointment, link || appointment.videoRoom);
+        await sendPatientVideoConfirmation(appointment, link || appointment.videoRoom);
+        await notifyVideoLinks(appointment, link || appointment.videoRoom, { notifyPatient: false });
         return NextResponse.json({ ok: true, status: "CONFIRMED" });
       }
 
@@ -92,10 +98,12 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
           visitMode: updated.visitMode,
           videoRoom: updated.videoRoom,
           slotStartsAt: updated.slot?.startsAt ?? null,
+          forceImmediate: true,
         },
         baseUrl,
       );
-      await notifyVideoLinks(updated, link || updated.videoRoom);
+      await sendPatientVideoConfirmation(updated, link || updated.videoRoom);
+      await notifyVideoLinks(updated, link || updated.videoRoom, { notifyPatient: false });
       return NextResponse.json({ ok: true, status: "CONFIRMED" });
     }
     case "CANCEL": {
