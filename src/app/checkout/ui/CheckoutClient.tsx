@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type RazorpayHandlerResponse = {
   razorpay_payment_id: string;
@@ -56,6 +57,9 @@ export default function CheckoutClient({ appointmentId, amount }: Props) {
   const [status, setStatus] = useState<string>("initializing");
   const [error, setError] = useState<string | null>(null);
   const [runKey, setRunKey] = useState(0);
+  const searchParams = useSearchParams();
+  const embedParam = (searchParams.get("embed") || "").trim();
+  const isEmbed = embedParam === "1" || embedParam === "true";
 
   useEffect(() => {
     async function startPayment() {
@@ -103,7 +107,7 @@ export default function CheckoutClient({ appointmentId, amount }: Props) {
                 throw new Error(err?.error || "Failed to confirm payment");
               }
               setStatus("success");
-              window.location.href = `/visit/${appointmentId}`;
+              window.location.href = `/visit/${appointmentId}${isEmbed ? "?embed=1" : ""}`;
             } catch (err) {
               const message = err instanceof Error ? err.message : "Payment confirm failed";
               setStatus("error");

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 const CONSENT_TEXT =
   "I confirm that I have read the CalDoc disclaimer and consent to receiving medical advice via telemedicine.";
@@ -62,6 +63,11 @@ function formatFeeFromPaise(paise?: number | null) {
 }
 
 export default function BookClient({ provider, slots, initialSlotId }: Props) {
+  const searchParams = useSearchParams();
+  const prefillName = (searchParams.get("patientName") || "").trim();
+  const prefillPhone = (searchParams.get("patientPhone") || "").trim();
+  const embedParam = (searchParams.get("embed") || "").trim();
+  const isEmbed = embedParam === "1" || embedParam === "true";
   const [step, setStep] = useState<Step>("slot");
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [slotIndex, setSlotIndex] = useState(0);
@@ -107,6 +113,18 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       setSelectedSlot(upcomingSlots[0]?.id || "");
     }
   }, [initialSlotId, upcomingSlots, selectedSlot]);
+
+  useEffect(() => {
+    if (prefillName && !patientName) {
+      setPatientName(prefillName);
+    }
+  }, [prefillName, patientName]);
+
+  useEffect(() => {
+    if (prefillPhone && !patientPhone) {
+      setPatientPhone(prefillPhone);
+    }
+  }, [prefillPhone, patientPhone]);
 
   const selectedSlotLabel = useMemo(() => {
     const slot = upcomingSlots.find((s) => s.id === selectedSlot);
@@ -614,7 +632,8 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                 onClick={() => {
                   const amountQuery = amount ? `&amount=${amount}` : "";
-                  window.location.href = `/checkout?appointmentId=${appointmentId}${amountQuery}`;
+                  const embedQuery = isEmbed ? "&embed=1" : "";
+                  window.location.href = `/checkout?appointmentId=${appointmentId}${amountQuery}${embedQuery}`;
                 }}
               >
                 Proceed to payment
@@ -647,7 +666,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
             </div>
             <iframe
               title={policyModal === "terms" ? "Terms of Service" : "Disclaimer"}
-              src={policyModal === "terms" ? "/terms" : "/disclaimer"}
+              src={`${policyModal === "terms" ? "/terms" : "/disclaimer"}${isEmbed ? "?embed=1" : ""}`}
               className="h-[60vh] w-full"
             />
           </div>

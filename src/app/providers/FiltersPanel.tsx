@@ -38,6 +38,9 @@ type FiltersPanelProps = {
   selectedConsultationTypes: string[];
   q: string;
   languageLabels: Record<string, string>;
+  patientName?: string;
+  patientPhone?: string;
+  embed?: string;
 };
 
 export function FiltersPanel({
@@ -51,6 +54,9 @@ export function FiltersPanel({
   selectedConsultationTypes,
   q,
   languageLabels,
+  patientName,
+  patientPhone,
+  embed,
 }: FiltersPanelProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -89,6 +95,9 @@ export function FiltersPanel({
         onChange={handleChange}
       >
         {q && <input type="hidden" name="q" value={q} />}
+        {patientName && <input type="hidden" name="patientName" value={patientName} />}
+        {patientPhone && <input type="hidden" name="patientPhone" value={patientPhone} />}
+        {embed && <input type="hidden" name="embed" value={embed} />}
 
         <FilterGroup title="Availability">
           <div className="space-y-2">

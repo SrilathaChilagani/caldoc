@@ -123,6 +123,24 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
   const resolvedParams =
     searchParams instanceof Promise ? await searchParams : searchParams ?? {};
   const q = (resolvedParams.q as string | undefined)?.trim() ?? "";
+  const patientName =
+    typeof resolvedParams.patientName === "string"
+      ? resolvedParams.patientName.trim()
+      : Array.isArray(resolvedParams.patientName)
+      ? resolvedParams.patientName[0]?.trim() ?? ""
+      : "";
+  const patientPhone =
+    typeof resolvedParams.patientPhone === "string"
+      ? resolvedParams.patientPhone.trim()
+      : Array.isArray(resolvedParams.patientPhone)
+      ? resolvedParams.patientPhone[0]?.trim() ?? ""
+      : "";
+  const embed =
+    typeof resolvedParams.embed === "string"
+      ? resolvedParams.embed.trim()
+      : Array.isArray(resolvedParams.embed)
+      ? resolvedParams.embed[0]?.trim() ?? ""
+      : "";
   const selectedSpecialties = new Set(toArray(resolvedParams.specialty));
   const selectedAvailability =
     typeof resolvedParams.availability === "string"
@@ -260,6 +278,15 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
     .map((item) => item.speciality)
     .filter((spec): spec is string => Boolean(spec));
 
+  const withPrefill = (href: string) => {
+    if (!patientName && !patientPhone && !embed) return href;
+    const url = new URL(href, "https://caldoc.in");
+    if (patientName) url.searchParams.set("patientName", patientName);
+    if (patientPhone) url.searchParams.set("patientPhone", patientPhone);
+    if (embed) url.searchParams.set("embed", embed);
+    return `${url.pathname}${url.search}${url.hash}`;
+  };
+
   return (
     <main className="min-h-[calc(100vh-120px)] bg-[#f7f9fc] py-10">
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-10">
@@ -278,6 +305,9 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
               placeholder="Search specialties, doctor names, symptoms, or registration number"
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
+            {patientName && <input type="hidden" name="patientName" value={patientName} />}
+            {patientPhone && <input type="hidden" name="patientPhone" value={patientPhone} />}
+            {embed && <input type="hidden" name="embed" value={embed} />}
             {Array.from(selectedSpecialties).map((spec) => (
               <input key={`search-specialty-${spec}`} type="hidden" name="specialty" value={spec} />
             ))}
@@ -317,6 +347,9 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
             selectedConsultationTypes={Array.from(selectedConsultationTypes)}
             q={q}
             languageLabels={languageLabels}
+            patientName={patientName}
+            patientPhone={patientPhone}
+            embed={embed}
           />
 
           <section className="flex-1 space-y-4">
@@ -386,7 +419,9 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
                               displayedSlots.map((slot) => (
                                 <Link
                                   key={slot.id}
-                                  href={`/book/${encodeURIComponent(provider.slug || provider.id)}?slot=${slot.id}`}
+                                  href={withPrefill(
+                                    `/book/${encodeURIComponent(provider.slug || provider.id)}?slot=${slot.id}`,
+                                  )}
                                   className="inline-flex min-w-[160px] justify-center rounded-2xl border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:border-blue-200 hover:bg-blue-100 md:self-end"
                                 >
                                   {formatSlot(new Date(slot.startsAt))}
@@ -396,7 +431,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
                           </div>
                         </div>
                         <Link
-                          href={`/book/${encodeURIComponent(provider.slug || provider.id)}`}
+                          href={withPrefill(`/book/${encodeURIComponent(provider.slug || provider.id)}`)}
                           className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                         >
                           Book doctor

@@ -6,6 +6,7 @@ import { PATIENT_COOKIE } from "@/lib/patientAuth.server";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import PatientMobileTabs from "@/components/PatientMobileTabs";
+import PatientBookingModal from "@/components/PatientBookingModal";
 
 export const dynamic = "force-dynamic";
 
@@ -185,12 +186,13 @@ export default async function PatientAppointments(props: PageProps) {
               </div>
             </div>
             <div className="flex flex-col gap-3 md:flex-row">
-              <Link
-                href="/providers"
+              <PatientBookingModal
+                label="Book appointment"
+                path="/providers"
+                patientName={patient.name}
+                patientPhone={patient.phone}
                 className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-              >
-                Book appointment
-              </Link>
+              />
               <Link
                 href="/patient/profile"
                 className="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-700"
@@ -294,12 +296,13 @@ export default async function PatientAppointments(props: PageProps) {
                     </a>
                   )}
                   {appt.provider && (
-                    <Link
-                      href={`/book/${encodeURIComponent(appt.provider.slug || appt.provider.id)}?ref=patient-portal`}
+                    <PatientBookingModal
+                      label="Book follow-up"
+                      path={`/book/${encodeURIComponent(appt.provider.slug || appt.provider.id)}?ref=patient-portal`}
+                      patientName={appt.patientName || patient.name}
+                      patientPhone={patient.phone}
                       className="rounded-full border border-blue-200 px-4 py-2 text-sm font-medium text-blue-700 hover:border-blue-400 hover:text-blue-900"
-                    >
-                      Book follow-up
-                    </Link>
+                    />
                   )}
                   {appt.prescription && (
                     <a
