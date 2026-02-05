@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type Props = {
   header: ReactNode;
@@ -10,9 +10,13 @@ type Props = {
 };
 
 export default function EmbedAwareLayout({ header, footer, children }: Props) {
-  const searchParams = useSearchParams();
-  const embed = searchParams.get("embed");
-  const isEmbed = embed === "1" || embed === "true";
+  const [isEmbed, setIsEmbed] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const embed = params.get("embed");
+    setIsEmbed(embed === "1" || embed === "true");
+  }, []);
 
   return (
     <>

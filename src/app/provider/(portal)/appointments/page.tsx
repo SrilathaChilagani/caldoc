@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import Image from "next/image";
 import { Prisma } from "@prisma/client";
 import { readProviderSession } from "@/lib/auth.server";
-import ProviderPhotoForm from "../ProviderPhotoForm";
 
 export const dynamic = "force-dynamic";
 
@@ -204,18 +204,27 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
   const refreshHref = refreshQuery ? `/provider/appointments?${refreshQuery}` : "/provider/appointments";
 
   const providerRoomLink = (url: string) => (url.includes("?") ? `${url}&from=provider` : `${url}?from=provider`);
+  const providerName = provider?.name?.replace(/^dr\.?\s+/i, "") || "Doctor";
+  const photoToken = provider?.profilePhotoKey ? encodeURIComponent(provider.profilePhotoKey) : null;
+  const photoUrl = photoToken
+    ? `/api/providers/${provider?.slug}/photo?v=${photoToken}`
+    : "/images/doc.jpg";
 
   return (
     <div className="space-y-8">
       <section className="rounded-[32px] bg-gradient-to-br from-[#eff4ff] via-white to-white p-6 shadow-sm ring-1 ring-slate-100 lg:p-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">Doctor workspace</p>
-            <h1 className="mt-1 text-3xl font-semibold text-slate-900">Hello, {provider?.name || "Doctor"}</h1>
-            <p className="text-sm text-slate-500">
-              Manage today&apos;s teleconsultations, confirm bookings, and share prescriptions from one place.
-            </p>
-          </div>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="relative h-12 w-12 overflow-hidden rounded-full border border-white/70 bg-white shadow-sm">
+                <Image src={photoUrl} alt={providerName} fill className="object-cover" sizes="48px" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-semibold text-slate-900">Hello, Dr. {providerName}</h1>
+                <p className="text-sm text-slate-500">
+                  Manage today&apos;s teleconsultations, confirm bookings, and share prescriptions from one place.
+                </p>
+              </div>
+            </div>
           <div className="flex gap-3">
             <Link
               href="/provider/schedule"
@@ -276,20 +285,6 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
         </div>
       </section>
 
-      {provider && provider.slug && (
-        <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm ring-1 ring-slate-100">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Profile photo</p>
-              <h2 className="text-xl font-semibold text-slate-900">{provider.name}</h2>
-              <p className="text-sm text-slate-500">
-                Upload a portrait so patients recognise you on the booking page.
-              </p>
-            </div>
-            <ProviderPhotoForm slug={provider.slug} initialKey={provider.profilePhotoKey} />
-          </div>
-        </section>
-      )}
 
       <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
