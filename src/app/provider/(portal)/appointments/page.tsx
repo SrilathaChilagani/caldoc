@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Prisma } from "@prisma/client";
 import { readProviderSession } from "@/lib/auth.server";
+import ProviderScheduleModal from "@/components/ProviderScheduleModal";
 
 export const dynamic = "force-dynamic";
 
@@ -31,15 +32,28 @@ function isStatusValue(value: string): value is StatusValue {
   return statusTabs.some((tab) => tab.value === value);
 }
 
+const slotFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Kolkata",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
+
+const createdFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Kolkata",
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
+
 function formatSlot(date: Date) {
-  return date.toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return slotFormatter.format(date);
 }
 
 export default async function ProviderAppointments({ searchParams }: PageProps) {
@@ -75,21 +89,19 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
   const explicitTimeframe =
     timeframeTabs.find((tab) => tab.value === normalizedTimeframe)?.value ?? null;
   const timeframeFilterValue =
-    explicitTimeframe === "ALLTIME"
-      ? null
-      : explicitTimeframe !== null
-      ? explicitTimeframe
-      : statusFilterValue === "ALL"
-      ? null
-      : "LAST24";
+    explicitTimeframe === "ALLTIME" ? null : explicitTimeframe;
   const activeTimeframeChip =
-    explicitTimeframe ?? (statusFilterValue === "ALL" ? "ALLTIME" : "LAST24");
+    explicitTimeframe ?? "ALLTIME";
 
   const providerId = sess.pid;
   const now = new Date();
 
   const statusFilter: Prisma.AppointmentWhereInput =
-    statusFilterValue === "ALL" ? {} : { status: statusFilterValue };
+    statusFilterValue === "ALL"
+      ? {}
+      : statusFilterValue === "CANCELLED"
+      ? { status: { in: ["CANCELLED", "CANCELED"] } }
+      : { status: statusFilterValue };
 
   let timeframeFilter: Prisma.AppointmentWhereInput = {};
   if (timeframeFilterValue === "LAST24") {
@@ -137,9 +149,15 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
     _count: { _all: true },
   });
 
+  const normalizeStatus = (status: string) => (status === "CANCELED" ? "CANCELLED" : status);
+  const normalizedDistribution = statusDistribution.map((row) => ({
+    ...row,
+    status: normalizeStatus(row.status),
+  }));
+
   const statusCountMap = new Map<string, number>();
-  for (const row of statusDistribution) {
-    statusCountMap.set(row.status, row._count._all);
+  for (const row of normalizedDistribution) {
+    statusCountMap.set(row.status, (statusCountMap.get(row.status) || 0) + row._count._all);
   }
 
   const summaryConfig = [
@@ -151,7 +169,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
   ] as const;
 
   const knownKeys = new Set<string>(summaryConfig.map((entry) => entry.key));
-  const extras = statusDistribution
+  const extras = normalizedDistribution
     .filter((row) => !knownKeys.has(row.status))
     .map((row) => ({
       key: row.status,
@@ -163,7 +181,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
       value: row._count._all,
     }));
 
-  const totalFiltered = statusDistribution.reduce((sum, row) => sum + row._count._all, 0);
+  const totalFiltered = normalizedDistribution.reduce((sum, row) => sum + row._count._all, 0);
   const summary = [
     { key: "ALL", label: "All appointments", value: totalFiltered },
     ...summaryConfig.map((entry) => ({
@@ -226,12 +244,10 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
               </div>
             </div>
           <div className="flex gap-3">
-            <Link
-              href="/provider/schedule"
+            <ProviderScheduleModal
+              label="Manage slots"
               className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-            >
-              Manage slots
-            </Link>
+            />
             <form action="/provider/logout" method="post">
               <button
                 type="submit"
@@ -334,7 +350,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
               {appointments.map((appt) => (
                 <tr key={appt.id} className="border-t border-slate-100">
                   <td className="px-4 py-3 text-xs text-slate-500">
-                    {appt.createdAt.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+                    {createdFormatter.format(appt.createdAt)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-medium text-slate-900">{appt.provider?.speciality || "Teleconsult"}</div>

@@ -8,16 +8,33 @@ export type ClickToCallResult = {
   [key: string]: unknown;
 };
 
+function normalizeIndianNumber(raw: string, label: string) {
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) {
+    throw new Error(`Missing ${label} phone number.`);
+  }
+  if (digits.length === 10) return digits;
+  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  if (digits.length > 10) {
+    throw new Error("International (ISD) calling is disabled for Exotel. Use an Indian number or enable ISD.");
+  }
+  return digits;
+}
+
 export async function initiateAudioBridge(opts: { from: string; to: string; context?: string }) {
   if (!EXOTEL_API_KEY || !EXOTEL_API_TOKEN || !EXOTEL_ACCOUNT_SID || !EXOTEL_CALLER_ID) {
     throw new Error("Missing Exotel credentials. Please set EXOTEL_API_KEY, EXOTEL_API_TOKEN, EXOTEL_ACCOUNT_SID, and EXOTEL_CALLER_ID.");
   }
 
+  const from = normalizeIndianNumber(opts.from, "provider");
+  const to = normalizeIndianNumber(opts.to, "patient");
+
   const endpoint = `https://api.exotel.com/v1/Accounts/${EXOTEL_ACCOUNT_SID}/Calls/connect`;
   const authHeader = `Basic ${Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64")}`;
   const payload = new URLSearchParams({
-    From: opts.from,
-    To: opts.to,
+    From: from,
+    To: to,
     CallerId: EXOTEL_CALLER_ID,
     CallType: "trans",
   });
