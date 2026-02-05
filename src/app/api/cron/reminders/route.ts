@@ -87,6 +87,7 @@ async function fetchAppointmentsForReminder(offsetMinutes: number, kind: string)
     select: {
       id: true,
       visitMode: true,
+      patientName: true,
       patient: { select: { name: true, phone: true } },
       provider: { select: { name: true } },
       slot: { select: { startsAt: true } },
@@ -141,7 +142,7 @@ export async function GET() {
         continue;
       }
 
-      const patientFirstName = (appt.patient?.name || "there").split(" ")[0];
+      const patientFirstName = (appt.patientName || appt.patient?.name || "there").split(" ")[0];
       const providerName = appt.provider?.name || "your doctor";
       const baseUrl = appBaseUrl();
       const joinLink = `${baseUrl}/visit/${appt.id}`;

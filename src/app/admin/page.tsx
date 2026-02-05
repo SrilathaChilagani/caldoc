@@ -237,7 +237,7 @@ export default async function AdminDashboard({ searchParams }: PageProps) {
                     {ap.createdAt.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
                   </td>
                   <td className="px-4 py-3">{ap.provider?.name ?? "—"}</td>
-                  <td className="px-4 py-3">{ap.patient?.name ?? "—"}</td>
+                  <td className="px-4 py-3">{ap.patientName || ap.patient?.name || "—"}</td>
                   <td className="px-4 py-3">
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
                       {ap.status}

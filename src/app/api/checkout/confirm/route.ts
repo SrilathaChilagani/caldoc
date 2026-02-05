@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
         providerId: true,
         slotId: true,
         visitMode: true,
+        patientName: true,
         patient: { select: { name: true, phone: true } },
         provider: { select: { name: true, phone: true } },
         slot: { select: { startsAt: true } },
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
         providerId: appointment.providerId,
         providerPhone: appointment.provider.phone,
         providerName: appointment.provider.name || "Doctor",
-        patientName: appointment.patient?.name || "Patient",
+        patientName: appointment.patientName || appointment.patient?.name || "Patient",
         slotStartsAt: appointment.slot.startsAt,
       }).catch((err) => console.error("provider notify error", err));
     }
@@ -114,7 +115,7 @@ export async function POST(req: NextRequest) {
       sendPatientAudioConfirmation({
         appointmentId: appointment.id,
         patientPhone: appointment.patient.phone,
-        patientName: appointment.patient.name,
+        patientName: appointment.patientName || appointment.patient.name,
         providerName: appointment.provider?.name || "Doctor",
         slotStartsAt: appointment.slot.startsAt,
       }).catch((err) => console.error("patient audio notify error", err));

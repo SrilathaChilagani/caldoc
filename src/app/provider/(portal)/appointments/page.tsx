@@ -239,7 +239,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
             <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Next consult</p>
             <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-700">
               <span className="text-base font-semibold text-slate-900">
-                {upcomingAppointment.patient?.name || "Patient"} ·{" "}
+                {upcomingAppointment.patientName || upcomingAppointment.patient?.name || "Patient"} ·{" "}
                 {upcomingAppointment.provider?.speciality || "Teleconsultation"}
               </span>
               <span>{formatSlot(upcomingAppointment.slot?.startsAt || upcomingAppointment.createdAt)}</span>
@@ -346,7 +346,9 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
                     <div className="font-mono text-xs text-slate-500">{appt.id}</div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900">{appt.patient?.name || "—"}</div>
+                    <div className="font-medium text-slate-900">
+                      {appt.patientName || appt.patient?.name || "—"}
+                    </div>
                     <div className="text-xs text-slate-500">{appt.patient?.phone || "No phone"}</div>
                   </td>
                   <td className="px-4 py-3">

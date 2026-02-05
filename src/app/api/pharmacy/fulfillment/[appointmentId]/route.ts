@@ -34,6 +34,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
       select: {
         id: true,
         deliveryOpt: true,
+        patientName: true,
         patient: { select: { name: true, phone: true } },
         provider: { select: { name: true } },
         prescription: { select: { pdfKey: true } },
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
         appointmentId: appointment.id,
         status: parsed.data.status,
         phone: appointment.patient?.phone,
-        patientName: appointment.patient?.name,
+        patientName: appointment.patientName || appointment.patient?.name,
         providerName: appointment.provider?.name,
       });
     }

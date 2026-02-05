@@ -136,7 +136,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
       registrationNumber: appointment.provider?.registrationNumber,
       councilName: appointment.provider?.councilName,
       qualification: appointment.provider?.qualification,
-      patientName: appointment.patient?.name,
+      patientName: appointment.patientName || appointment.patient?.name,
       meds: parsed.data.meds,
     });
 

@@ -269,6 +269,9 @@ export default async function PatientAppointments(props: PageProps) {
                     <p className="text-xs text-slate-500">
                       {appt.provider?.speciality || "Teleconsultation"} · {formatIST(when)}
                     </p>
+                    <p className="text-xs text-slate-500">
+                      Patient: {appt.patientName || patient.name || "Patient"}
+                    </p>
                   </div>
                   <span
                     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${

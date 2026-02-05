@@ -97,7 +97,9 @@ export default async function VisitPage({ params, searchParams }: Props) {
             <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
               <p className="text-xs uppercase tracking-wide text-slate-500">Provider</p>
               <p className="text-lg font-semibold text-slate-900">{appt.provider?.name ?? "—"}</p>
-              <p className="text-xs text-slate-500">Patient: {appt.patient?.name ?? "—"}</p>
+              <p className="text-xs text-slate-500">
+                Patient: {appt.patientName || appt.patient?.name || "—"}
+              </p>
               <dl className="mt-3 text-xs text-slate-500 space-y-1">
                 <div>
                   <dt className="font-semibold text-slate-600">Qualification</dt>

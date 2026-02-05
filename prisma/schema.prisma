@@ -65,6 +65,7 @@ model Slot {
 model Appointment {
   id                      String                     @id @default(cuid())
   patientId               String
+  patientName             String?
   providerId              String
   slotId                  String?
   status                  String                     @default("PENDING")

@@ -58,7 +58,7 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
           <div class="row"><span class="label">Amount:</span> ₹${(payment.amount / 100).toFixed(2)}</div>
           <div class="row"><span class="label">Status:</span> ${payment.status}</div>
           <div class="row"><span class="label">Provider:</span> ${appt.provider?.name ?? "—"}</div>
-          <div class="row"><span class="label">Patient:</span> ${appt.patient?.name ?? "—"}</div>
+          <div class="row"><span class="label">Patient:</span> ${appt.patientName || appt.patient?.name || "—"}</div>
           <div class="row"><span class="label">Scheduled:</span> ${whenText} IST</div>
           <div class="row"><span class="label">Generated:</span> ${new Date(payment.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</div>
         </div>

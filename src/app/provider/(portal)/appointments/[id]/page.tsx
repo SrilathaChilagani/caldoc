@@ -210,7 +210,10 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
                 <dd className="text-sm text-slate-600">
                   This appointment is audio-only. Tap below to connect via CalDoc&apos;s bridge when you&apos;re ready.
                 </dd>
-                <CallPatientButton appointmentId={appointment.id} patientName={appointment.patient?.name} />
+                <CallPatientButton
+                  appointmentId={appointment.id}
+                  patientName={appointment.patientName || appointment.patient?.name}
+                />
               </div>
             ) : appointment.videoRoom ? (
               <div className="space-y-2">
@@ -246,7 +249,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
               Patient
             </dt>
             <dd className="text-sm font-medium text-slate-900">
-              {appointment.patient?.name ?? "—"}
+              {appointment.patientName || appointment.patient?.name || "—"}
             </dd>
             <dd className="text-xs text-slate-500">
               {appointment.patient?.phone ?? "No phone"}

@@ -70,6 +70,9 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
             <p className="text-sm text-slate-500">
               {appointment.provider?.speciality || "Teleconsultation"} · {formatIST(scheduledFor)}
             </p>
+            <p className="text-sm text-slate-500">
+              Patient: {appointment.patientName || patient.name || "Patient"}
+            </p>
           </div>
           <Link href="/patient/appointments" className="text-sm font-semibold text-blue-600 hover:text-blue-800">
             ← Back to appointments

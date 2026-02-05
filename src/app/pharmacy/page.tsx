@@ -85,7 +85,7 @@ export default async function PharmacyDashboardPage() {
 
   const appointmentRows = appointments.map((appt) => {
     const snapshot = (appt.deliveryAddressSnapshot as DeliverySnapshot | null) ?? null;
-    const contactName = snapshot?.contactName || appt.patient?.name || "—";
+    const contactName = snapshot?.contactName || appt.patientName || appt.patient?.name || "—";
     const contactPhone = snapshot?.contactPhone || appt.patient?.phone || "—";
     const isDelivery = appt.deliveryOpt === "DELIVERY";
     const delivery = isDelivery ? "Delivery" : "WhatsApp";

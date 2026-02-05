@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { buildPatientPhoneMeta } from "@/lib/phone";
 import { getErrorMessage } from "@/lib/errors";
 import { notifyProviderOfBooking } from "@/lib/sendProviderBookingNotification";
@@ -44,12 +45,32 @@ export async function POST(req: Request) {
 
     const result = await prisma.$transaction(
       async (tx) => {
-        const patient = await tx.patient.upsert({
+        let patient = await tx.patient.findUnique({
           where: { phone: meta.canonical },
-          update: { name, consentAt: new Date() },
-          create: { name, phone: meta.canonical, consentAt: new Date() },
           select: { id: true, name: true, phone: true },
         });
+
+        if (!patient) {
+          try {
+            patient = await tx.patient.create({
+              data: { name, phone: meta.canonical, consentAt: new Date() },
+              select: { id: true, name: true, phone: true },
+            });
+          } catch (err) {
+            if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+              patient = await tx.patient.findUnique({
+                where: { phone: meta.canonical },
+                select: { id: true, name: true, phone: true },
+              });
+            } else {
+              throw err;
+            }
+          }
+        }
+
+        if (!patient) {
+          throw new Error("Unable to create patient profile");
+        }
 
         const slotRecord = await tx.slot.findUnique({
           where: { id: slotId },
@@ -76,6 +97,7 @@ export async function POST(req: Request) {
         const appointment = await tx.appointment.create({
           data: {
             patientId: patient.id,
+            patientName: name,
             providerId,
             slotId,
             status: "PENDING",

@@ -59,7 +59,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
     data: {
       appointmentId: appointment.id,
       patientId: appointment.patientId,
-      patientName: appointment.patient?.name,
+      patientName: appointment.patientName || appointment.patient?.name,
       patientPhone: appointment.patient?.phone,
       deliveryMode,
       tests,
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
   });
 
   const providerName = appointment.provider?.name || "Your doctor";
-  const patientName = appointment.patient?.name || "patient";
+  const patientName = appointment.patientName || appointment.patient?.name || "patient";
   const testsLabel = tests.join(", ");
 
   const labMessage = `New lab order from ${providerName} (${appointment.provider?.speciality || ""}). Tests: ${testsLabel}. Patient: ${patientName}. Mode: ${deliveryMode === "IN_HOUSE" ? "CalDoc labs" : "External"}.`;

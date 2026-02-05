@@ -97,12 +97,14 @@ export default async function ProviderConfirmPage({ searchParams }: PageProps) {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold text-emerald-600">Appointment confirmed</h1>
         <p className="text-sm text-slate-600">
-          We&apos;ve confirmed the visit for {current.patient?.name || "the patient"}. Patients will see the update instantly.
+          We&apos;ve confirmed the visit for {current.patientName || current.patient?.name || "the patient"}. Patients will see the update instantly.
         </p>
       </div>
       <div className="rounded-3xl border border-slate-100 bg-white p-5 text-left shadow-sm">
         <p className="text-xs uppercase text-slate-500">Visit details</p>
-        <p className="mt-1 text-lg font-semibold text-slate-900">{current.patient?.name || "Patient"}</p>
+        <p className="mt-1 text-lg font-semibold text-slate-900">
+          {current.patientName || current.patient?.name || "Patient"}
+        </p>
         <p className="text-sm text-slate-600">{current.slot?.startsAt?.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
         <p className="mt-3 text-sm text-slate-600">
           Want to make changes? Head back to the provider portal to reschedule or cancel.

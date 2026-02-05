@@ -46,6 +46,7 @@ export async function notifyVideoLinks(
     visitMode: string | null;
     videoRoom: string | null;
     slotStartsAt?: Date | null;
+    patientName?: string | null;
     patient?: { phone: string | null; name?: string | null } | null;
     provider?: { phone?: string | null; name?: string | null } | null;
   },
@@ -92,6 +93,8 @@ export async function notifyVideoLinks(
     });
   };
 
+  const displayName = appt.patientName || appt.patient?.name || "Patient";
+
   if (notifyPatient && appt.patient?.phone && PATIENT_VIDEO_TEMPLATE) {
     const body = `Video link: ${link}`;
     try {
@@ -99,7 +102,7 @@ export async function notifyVideoLinks(
         to: appt.patient.phone,
         template: PATIENT_VIDEO_TEMPLATE,
         lang,
-        vars: [appt.patient.name || "Patient", link, visitTimeLabel, appt.provider?.name || "Doctor"],
+        vars: [displayName, link, visitTimeLabel, appt.provider?.name || "Doctor"],
       });
       await logMessage("PATIENT", "SENT", body, PATIENT_VIDEO_TEMPLATE, result?.messageId);
     } catch (err) {
@@ -114,7 +117,7 @@ export async function notifyVideoLinks(
         to: appt.provider.phone,
         template: PROVIDER_VIDEO_TEMPLATE,
         lang,
-        vars: [appt.provider.name || "Doctor", link, visitTimeLabel, appt.patient?.name || "Patient"],
+        vars: [appt.provider.name || "Doctor", link, visitTimeLabel, displayName],
       });
       await logMessage("PROVIDER", "SENT", body, PROVIDER_VIDEO_TEMPLATE, result?.messageId);
     } catch (err) {
@@ -150,6 +153,7 @@ export async function sendPatientVideoConfirmation(
     visitMode: string | null;
     slotStartsAt?: Date | null;
     slot?: { startsAt?: Date | null } | null;
+    patientName?: string | null;
     patient?: { phone: string | null; name?: string | null } | null;
     provider?: { name?: string | null } | null;
   },
@@ -164,7 +168,7 @@ export async function sendPatientVideoConfirmation(
   const rescheduleLink = `${baseUrl}/patient/appointments/${appt.id}`;
   const joinLink = link;
   const visitTimeLabel = formatIST(slotStartsAt);
-  const patientFirstName = (appt.patient?.name || "there").split(" ")[0];
+  const patientFirstName = (appt.patientName || appt.patient?.name || "there").split(" ")[0];
   const providerName = appt.provider?.name || "your doctor";
 
   const body = `Video link: ${joinLink}`;

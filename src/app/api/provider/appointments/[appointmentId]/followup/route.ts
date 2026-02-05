@@ -26,8 +26,8 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
   const appointment = await prisma.appointment.findUnique({
     where: { id: appointmentId },
     include: {
-      patient: true,
-      provider: true,
+      patient: { select: { phone: true, name: true } },
+      provider: { select: { name: true, slug: true } },
     },
   });
 
@@ -40,12 +40,12 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
     return NextResponse.json({ error: "Patient phone unavailable" }, { status: 400 });
   }
 
-  const providerSlug = appointment.provider?.slug || appointment.provider?.id;
+  const providerSlug = appointment.provider?.slug || appointment.providerId;
   const followupLink = providerSlug
     ? `${BASE_URL}/book/${encodeURIComponent(providerSlug)}?ref=doctor-followup`
     : `${BASE_URL}/providers`;
 
-  const patientName = appointment.patient?.name || "there";
+  const patientName = appointment.patientName || appointment.patient?.name || "there";
   const providerName = appointment.provider?.name || "your doctor";
   const message = `Hi ${patientName}, ${providerName} recommends a follow-up teleconsultation. Tap ${followupLink} to pick a slot for your next visit.`;
 

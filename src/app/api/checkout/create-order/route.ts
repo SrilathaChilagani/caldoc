@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
       where: { id: appointmentId },
       select: {
         feePaise: true,
+        patientName: true,
         patient: {
           select: {
             name: true,
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
       key,
       orderId: order.id,
       prefill: {
-        name: appointment.patient?.name || undefined,
+        name: appointment.patientName || appointment.patient?.name || undefined,
         contact: appointment.patient?.phone || undefined,
       },
     });

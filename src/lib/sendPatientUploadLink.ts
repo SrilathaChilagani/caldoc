@@ -7,6 +7,7 @@ type AppointmentForUpload = {
   id: string;
   patientId: string | null;
   uploadLinkSentAt: Date | null;
+  patientName?: string | null;
   patient: { phone: string | null; name?: string | null } | null;
   provider: { name?: string | null } | null;
 };
@@ -29,11 +30,12 @@ export async function sendPatientUploadLink(
 
   const template = DEFAULT_TEMPLATE;
   const lang = process.env.WHATSAPP_LANG || "en_US";
+  const displayName = appt.patientName || appt.patient?.name || "Patient";
   const vars =
     template === "hello_world"
       ? []
       : [
-          appt.patient?.name || "Patient",
+          displayName,
           uploadUrl,
           appt.provider?.name || "Doctor",
         ];
