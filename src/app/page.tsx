@@ -177,19 +177,7 @@ export default async function Home() {
             </div>
             </div>
 
-            <div className="flex flex-1 justify-center lg:justify-end">
-              <div className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-4 shadow-2xl shadow-blue-100/70 backdrop-blur lg:max-w-lg xl:max-w-xl">
-                <div className="relative h-80 w-full overflow-hidden rounded-[24px] sm:h-[22rem] md:h-[26rem] lg:h-[28rem] xl:h-[30rem]">
-                  <Image
-                    src={IMAGES.TEAM}
-                    alt="CalDoc care team standing together"
-                    fill
-                    priority
-                    className="object-cover"
-                  />
-                </div>
-              </div>
-            </div>
+            <div className="flex flex-1 justify-center lg:justify-end" />
           </div>
         </div>
       </section>
