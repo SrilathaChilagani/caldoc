@@ -1,8 +1,5 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
-import { SignatureV4MultiRegion } from "@aws-sdk/signature-v4-multi-region";
-import { Sha256 } from "@aws-crypto/sha256-js";
-import { HttpRequest } from "@smithy/protocol-http";
-import { formatUrl } from "@aws-sdk/util-format-url";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const region = process.env.AWS_REGION;
 const bucket = process.env.AWS_S3_BUCKET;
@@ -61,25 +58,9 @@ export async function s3ObjectExists(key: string) {
 
 export async function getSignedS3Url(key: string, expiresInSeconds = 60) {
   if (!bucket || !region) throw new Error("Missing AWS config for signed URLs");
-  const resolvedCredentials =
-    typeof s3.config.credentials === "function" ? await s3.config.credentials() : s3.config.credentials;
-  const resolvedRegion = typeof s3.config.region === "function" ? await s3.config.region() : region;
-  const signer = new SignatureV4MultiRegion({
-    credentials: resolvedCredentials,
-    region: resolvedRegion,
-    service: "s3",
-    sha256: Sha256,
+  const command = new GetObjectCommand({
+    Bucket: bucket,
+    Key: key,
   });
-
-  const request = new HttpRequest({
-    protocol: "https",
-    hostname: `${bucket}.s3.${region}.amazonaws.com`,
-    method: "GET",
-    path: `/${key}`,
-    query: undefined,
-    headers: {},
-  });
-
-  const signed = await signer.presign(request, { expiresIn: expiresInSeconds });
-  return formatUrl(signed);
+  return getSignedUrl(s3, command, { expiresIn: expiresInSeconds });
 }

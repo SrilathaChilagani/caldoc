@@ -14,11 +14,12 @@ type PageProps = {
   searchParams?: Promise<{ filter?: string; phone?: string; err?: string }>;
 };
 
-type FilterKey = "ALL" | "CONFIRMED" | "CANCELED" | "NO_SHOW" | "UPCOMING";
+type FilterKey = "ALL" | "CONFIRMED" | "PENDING" | "CANCELED" | "NO_SHOW" | "UPCOMING";
 
 const allowedFilters: FilterKey[] = [
   "ALL",
   "CONFIRMED",
+  "PENDING",
   "CANCELED",
   "NO_SHOW",
   "UPCOMING",
@@ -122,6 +123,7 @@ export default async function PatientAppointments(props: PageProps) {
   const whereBase: Prisma.AppointmentWhereInput = { patientId: patient.id };
   let statusFilter: Prisma.AppointmentWhereInput = {};
   if (activeFilter === "CONFIRMED") statusFilter = { status: "CONFIRMED" };
+  else if (activeFilter === "PENDING") statusFilter = { status: "PENDING" };
   else if (activeFilter === "CANCELED") statusFilter = { status: "CANCELED" };
   else if (activeFilter === "NO_SHOW") statusFilter = { status: "NO_SHOW" };
   else if (activeFilter === "UPCOMING") statusFilter = { status: { in: ["CONFIRMED", "PENDING"] } };
@@ -237,7 +239,11 @@ export default async function PatientAppointments(props: PageProps) {
                   : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
               }`}
             >
-              {filter === "ALL" ? "All" : filter.charAt(0) + filter.slice(1).toLowerCase()}
+              {filter === "ALL"
+                ? "All"
+                : filter === "NO_SHOW"
+                ? "No_show"
+                : filter.charAt(0) + filter.slice(1).toLowerCase()}
             </Link>
           ))}
         </div>

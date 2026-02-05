@@ -53,8 +53,8 @@ export default function ProfileForm({ initial }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col gap-6 md:flex-row md:items-start">
+        <div className="flex w-full flex-col items-start gap-3 md:w-48">
           <div className="h-24 w-24 overflow-hidden rounded-full bg-slate-100">
             {photoPreview ? (
               // eslint-disable-next-line @next/next/no-img-element
