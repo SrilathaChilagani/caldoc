@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { IMAGES } from "@/lib/imagePaths";
 
 const specialties = [
@@ -29,6 +30,8 @@ const loginLinks = [
 ];
 
 export default function SiteHeader() {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
   const [mobileOpen, setMobileOpen] = useState(false);
   const [specialtyOpen, setSpecialtyOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
@@ -54,8 +57,24 @@ export default function SiteHeader() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  const headerClassName = isHome
+    ? "sticky top-0 z-50 border-b border-transparent bg-transparent"
+    : "sticky top-0 z-50 border-b border-gray-200 bg-white";
+  const navLinkClassName = isHome
+    ? "text-sm text-slate-800 hover:text-slate-950"
+    : "text-sm text-gray-700 hover:text-gray-900";
+  const dropdownTriggerClassName = isHome
+    ? "inline-flex items-center gap-1 text-sm text-slate-800 hover:text-slate-950"
+    : "inline-flex items-center gap-1 text-sm text-gray-700 hover:text-gray-900";
+  const loginButtonClassName = isHome
+    ? "inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-medium text-slate-800 backdrop-blur hover:border-slate-300 hover:text-slate-950"
+    : "inline-flex items-center gap-1 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-gray-800 hover:border-blue-400 hover:text-blue-700";
+  const mobileToggleClassName = isHome
+    ? "inline-flex items-center justify-center rounded-md p-2 text-slate-800 hover:bg-white/40 md:hidden"
+    : "inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 md:hidden";
+
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
+    <header className={headerClassName}>
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
       <Link href="/" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/80">
@@ -70,12 +89,12 @@ export default function SiteHeader() {
               className="object-contain"
               priority
             />
-            <span className="text-[11px] text-slate-500 tracking-wide uppercase">Telemedicine made simple</span>
+            <span className="text-[11px] text-slate-600 tracking-wide uppercase">Telemedicine made simple</span>
           </div>
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
-          <Link href="/" className="text-sm text-gray-700 hover:text-gray-900">
+          <Link href="/" className={navLinkClassName}>
             Home
           </Link>
 
@@ -83,7 +102,7 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setSpecialtyOpen((v) => !v)}
-              className="inline-flex items-center gap-1 text-sm text-gray-700 hover:text-gray-900"
+              className={dropdownTriggerClassName}
             >
               Specialties
               <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
@@ -119,7 +138,7 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setServicesOpen((v) => !v)}
-              className="inline-flex items-center gap-1 text-sm text-gray-700 hover:text-gray-900"
+              className={dropdownTriggerClassName}
             >
               Services
               <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
@@ -155,7 +174,7 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setLoginOpen((v) => !v)}
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-gray-800 hover:border-blue-400 hover:text-blue-700"
+              className={loginButtonClassName}
             >
               Login
               <svg width="12" height="12" viewBox="0 0 20 20" fill="none">
@@ -192,7 +211,7 @@ export default function SiteHeader() {
 
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 md:hidden"
+          className={mobileToggleClassName}
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}
         >
@@ -203,7 +222,7 @@ export default function SiteHeader() {
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-gray-200 md:hidden">
+        <div className="border-t border-gray-200 bg-white/95 backdrop-blur md:hidden">
           <nav className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 sm:px-6">
             <Link href="/" className="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setMobileOpen(false)}>
               Home

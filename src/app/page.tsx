@@ -116,21 +116,21 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-white text-gray-900">
       <section
-        className="relative overflow-hidden bg-white"
+        className="relative -mt-16 overflow-hidden bg-white"
         style={{
           backgroundImage:
-            `linear-gradient(rgba(255,255,255,0.68), rgba(255,255,255,0.85)), url(${IMAGES.HOMEPAGE})`,
+            `linear-gradient(rgba(255,255,255,0.28), rgba(255,255,255,0.5)), url(${IMAGES.HOMEPAGE})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
-        <div className="relative container mx-auto px-4 pt-14 pb-20 md:pt-16 md:pb-12">
+        <div className="relative container mx-auto px-4 pt-28 pb-36 md:pt-32 md:pb-28">
           <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-2xl space-y-6 flex-1">
-              <h1 className="text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+            <div className="max-w-2xl space-y-6 flex-1 pt-[4.5rem] md:pt-[5.5rem]">
+              <h1 className="text-4xl font-semibold leading-tight tracking-tight text-slate-950 md:text-5xl">
                 Book your teleconsultations today.
               </h1>
-            <p className="text-lg text-gray-600">Search by specialty, doctor name, or diagnosis to find the right care.</p>
+            <p className="text-lg text-slate-700">Search by specialty, doctor name, or diagnosis to find the right care.</p>
 
             <form
               action="/providers"
@@ -155,7 +155,7 @@ export default async function Home() {
               </button>
             </form>
 
-            <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+            <div className="flex flex-wrap gap-4 text-xs text-slate-700">
               <span>✔ WhatsApp confirmations</span>
               <span>✔ UPI / cards</span>
               <span>✔ Instant video links</span>
@@ -178,8 +178,8 @@ export default async function Home() {
             </div>
 
             <div className="flex flex-1 justify-center lg:justify-end">
-              <div className="relative w-full max-w-sm overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-3 shadow-2xl shadow-blue-100/70 backdrop-blur lg:max-w-md xl:max-w-lg">
-                <div className="relative h-60 w-full overflow-hidden rounded-[24px] sm:h-64 md:h-72 lg:h-[18rem] xl:h-[20rem]">
+              <div className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-white/70 bg-white/80 p-4 shadow-2xl shadow-blue-100/70 backdrop-blur lg:max-w-lg xl:max-w-xl">
+                <div className="relative h-80 w-full overflow-hidden rounded-[24px] sm:h-[22rem] md:h-[26rem] lg:h-[28rem] xl:h-[30rem]">
                   <Image
                     src={IMAGES.TEAM}
                     alt="CalDoc care team standing together"
