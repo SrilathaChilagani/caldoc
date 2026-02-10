@@ -125,69 +125,112 @@ export default async function Home() {
     <main className="min-h-screen bg-white text-gray-900">
       <section
         className="relative -mt-16 min-h-screen overflow-hidden bg-[#f7f2ea]"
-        style={{
-          backgroundImage:
-            `linear-gradient(90deg, rgba(247,242,234,0.9), rgba(247,242,234,0.6), rgba(247,242,234,0.08)), url(${IMAGES.HOMEPAGE})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
       >
-        <div className="relative container mx-auto px-4 pt-28 pb-36 md:pt-32 md:pb-28">
-          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-2xl space-y-6 flex-1 pt-[4.5rem] md:pt-[5.5rem]">
-              <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight text-slate-900 md:text-5xl">
-                Book your <span className="text-[#2f6ea5]">teleconsultations</span> today.
-              </h1>
-            <p className="text-lg text-slate-600">
+        <div className="absolute inset-0">
+          <Image src={IMAGES.HOMEPAGE} alt="Doctor consultation" fill className="object-cover" priority />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#f7f2ea]/90 via-[#f7f2ea]/50 to-transparent" />
+        </div>
+
+        <div className="relative container mx-auto px-6 py-32 lg:px-12">
+          <div className="max-w-2xl pt-[4.5rem] md:pt-[5.5rem]">
+            <h1 className="font-serif text-5xl font-normal leading-tight tracking-tight text-slate-900 md:text-6xl lg:text-7xl">
+              Book your
+              <br />
+              <span className="text-[#2f6ea5]">teleconsultations</span>
+              <br />
+              today.
+            </h1>
+            <p className="mt-4 text-lg text-slate-600">
               Search by specialty, doctor name, or diagnosis to find the right care.
             </p>
 
             <form
               action="/providers"
               method="GET"
-              className="flex w-full flex-col gap-3 rounded-3xl border border-white/50 bg-white/70 p-4 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-xl md:flex-row md:items-center"
+              className="mt-10 flex w-full max-w-xl flex-col gap-2 rounded-2xl border border-white/60 bg-white/70 p-2 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-xl sm:flex-row sm:items-center"
             >
-              <input
-                name="q"
-                placeholder="Search doctors, specialties, symptoms…"
-                className="w-full rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
-              />
+              <div className="relative flex-1">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M20 20l-3.5-3.5" />
+                </svg>
+                <input
+                  name="q"
+                  placeholder="Search doctors, specialties, symptoms…"
+                  className="h-12 w-full rounded-xl border-0 bg-white/60 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#2f6ea5]/30"
+                />
+              </div>
               <input
                 name="specialty"
                 placeholder="Specialty (optional)"
-                className="w-full rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20 md:w-56"
+                className="h-12 w-full rounded-xl border-0 bg-white/60 px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#2f6ea5]/30 sm:max-w-[180px]"
               />
               <button
                 type="submit"
-                className="inline-flex min-w-[140px] items-center justify-center rounded-xl bg-[#2f6ea5] px-5 py-3 text-sm font-medium text-white hover:bg-[#255b8b]"
+                className="h-12 w-full rounded-xl bg-[#2f6ea5] px-6 text-sm font-medium text-white hover:bg-[#255b8b] sm:w-auto"
               >
                 Find a doctor
               </button>
             </form>
 
-            <div className="flex flex-wrap gap-4 text-xs text-slate-600">
-              <span>✔ WhatsApp confirmations</span>
-              <span>✔ UPI / cards</span>
-              <span>✔ Instant video links</span>
+            <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-slate-600">
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-[#2f6ea5]" />
+                WhatsApp confirmations
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-[#2f6ea5]" />
+                UPI / cards
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-[#2f6ea5]" />
+                Instant video links
+              </span>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/services/rx-delivery"
-                className="inline-flex min-w-[260px] items-center justify-center rounded-xl bg-[#2f6ea5] px-6 py-3 text-sm font-medium text-white hover:bg-[#255b8b]"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/60 bg-white/70 px-8 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white"
               >
                 Pharmacy
               </Link>
               <Link
                 href="/services/labs-at-home"
-                className="inline-flex min-w-[260px] items-center justify-center rounded-xl bg-[#2f6ea5] px-6 py-3 text-sm font-medium text-white hover:bg-[#255b8b]"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/60 bg-white/70 px-8 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white"
               >
                 Labs
               </Link>
             </div>
-            </div>
 
-            <div className="flex flex-1 justify-center lg:justify-end" />
+            <a
+              href="#specialties"
+              className="mt-10 hidden items-center gap-2 text-sm text-slate-600 transition-colors hover:text-[#2f6ea5] lg:inline-flex"
+            >
+              Discover More
+              <span className="inline-flex h-5 w-5 items-center justify-center motion-safe:animate-bounce">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 lg:hidden">
+          <div className="flex flex-col items-center text-slate-600">
+            <span className="text-sm mb-2">Discover More</span>
+            <span className="inline-flex h-5 w-5 items-center justify-center motion-safe:animate-bounce">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </span>
           </div>
         </div>
       </section>
