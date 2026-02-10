@@ -109,18 +109,21 @@ export default function LoginClient({ next, initialPhone }: LoginClientProps) {
   }, [initialPhone, phone, prefillRequested, step]);
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-slate-100">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-slate-900">Patient portal</h2>
-        {step === "otp" && (
-          <button onClick={resetToPhone} className="text-xs font-medium text-blue-600 hover:text-blue-800">
+    <div className="rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
+      <div className="space-y-1 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Patient portal</p>
+        <h2 className="text-2xl font-semibold text-slate-900">Sign in to view your visits</h2>
+        <p className="text-sm text-slate-500">
+          {step === "phone" ? "Enter your mobile number to get a WhatsApp OTP." : "Enter the code we sent on WhatsApp."}
+        </p>
+      </div>
+      {step === "otp" && (
+        <div className="mt-2 text-center">
+          <button onClick={resetToPhone} className="text-xs font-medium text-emerald-600 hover:text-emerald-700">
             Change number
           </button>
-        )}
-      </div>
-      <p className="mt-1 text-sm text-slate-500">
-        {step === "phone" ? "Enter your mobile number to get a WhatsApp OTP." : "Enter the code we sent on WhatsApp."}
-      </p>
+        </div>
+      )}
 
       {error && (
         <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -142,7 +145,7 @@ export default function LoginClient({ next, initialPhone }: LoginClientProps) {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               type="tel"
-              className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-3 text-base"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
               placeholder="+91 98765 43210"
               required
             />
@@ -151,7 +154,7 @@ export default function LoginClient({ next, initialPhone }: LoginClientProps) {
           <button
             type="submit"
             disabled={loading || cooldown > 0}
-            className="w-full rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            className="w-full rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60"
           >
             {loading ? "Sending…" : cooldown > 0 ? `Wait ${cooldown}s` : "Send OTP"}
           </button>
@@ -165,7 +168,7 @@ export default function LoginClient({ next, initialPhone }: LoginClientProps) {
               onChange={(e) => setOtp(e.target.value)}
               inputMode="numeric"
               maxLength={6}
-              className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-3 text-base tracking-[0.3em]"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm tracking-[0.3em] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
               placeholder="••••••"
               required
             />
@@ -174,14 +177,14 @@ export default function LoginClient({ next, initialPhone }: LoginClientProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            className="w-full rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60"
           >
             {loading ? "Verifying…" : "Verify & continue"}
           </button>
         </form>
       )}
 
-      <p className="mt-4 text-xs text-slate-500">
+      <p className="mt-4 text-center text-xs text-slate-500">
         By continuing you agree to our privacy policy and terms. TELEMEDICINE services are not for emergency care.
       </p>
     </div>

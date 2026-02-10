@@ -50,95 +50,40 @@ export default async function ProviderLoginPage({
   const portalCopy = {
     provider: {
       badge: "Provider portal",
-      headline: "Secure access for CalDoc doctors",
-      body:
-        "View pending visits, review patient uploads, confirm or reschedule appointments, and update your availability — all in one streamlined dashboard.",
-      accent: "from-[#eef3ff] via-white to-white",
+      headline: "Sign in to manage appointments",
+      body: "Use your provider credentials to continue.",
     },
     admin: {
-      badge: "Admin dashboard",
-      headline: "Operations login for CalDoc admins",
-      body:
-        "Manage providers, generate slots, review captured payments, and reconcile appointments securely.",
-      accent: "from-[#fff7ed] via-white to-white",
+      badge: "Admin portal",
+      headline: "Sign in to CalDoc admin",
+      body: "Operations staff only.",
     },
     pharmacy: {
-      badge: "Pharmacy queue",
-      headline: "Log in to fulfill prescriptions",
-      body:
-        "Review delivery addresses, download prescriptions, and keep patients updated on dispatches.",
-      accent: "from-[#f0f7ff] via-white to-white",
+      badge: "Pharmacy portal",
+      headline: "Sign in to manage prescriptions",
+      body: "Use the whitelisted pharmacy account.",
     },
     labs: {
-      badge: "Labs command center",
-      headline: "Manage CalDoc lab workflows",
-      body:
-        "Track doctor-initiated orders, confirm sample pickups, and keep patients updated on results without leaving the dashboard.",
-      accent: "from-[#f0fff9] via-white to-white",
+      badge: "Labs portal",
+      headline: "Sign in to manage lab orders",
+      body: "Labs team members only.",
     },
   } as const;
 
   const copy = portalCopy[portalTarget];
 
   return (
-    <main className={`bg-gradient-to-b ${copy.accent} py-14`}>
-      <div className="mx-auto grid max-w-5xl items-center gap-10 px-6 md:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6 text-slate-800">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{copy.badge}</p>
-          <h1 className="text-3xl font-semibold text-slate-900">{copy.headline}</h1>
-          <p className="text-base text-slate-600">{copy.body}</p>
-          <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur">
-            <p className="text-sm font-semibold text-slate-800">You can:</p>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
-              {portalTarget === "admin" ? (
-                <>
-                  <li>Generate appointment slots and onboard providers</li>
-                  <li>Monitor captured payments and receipts</li>
-                  <li>Review appointments by status in real time</li>
-                </>
-              ) : portalTarget === "labs" ? (
-                <>
-                  <li>See doctor-prescribed test requests instantly</li>
-                  <li>Update status as samples move through the funnel</li>
-                  <li>Share results with providers and patients</li>
-                </>
-              ) : portalTarget === "pharmacy" ? (
-                <>
-                  <li>See every prescription with delivery details</li>
-                  <li>Download PDF scripts and patient uploads</li>
-                  <li>Keep operations synced for dispatch</li>
-                </>
-              ) : (
-                <>
-                  <li>Confirm or cancel remote visits in two clicks</li>
-                  <li>Check prescription requests & upload notes</li>
-                  <li>Generate future slots or adjust your schedule</li>
-                </>
-              )}
-            </ul>
-          </div>
+    <main className="flex min-h-[80vh] items-center justify-center bg-gradient-to-b from-[#f0fff9] via-white to-white px-4 py-16">
+      <div className="w-full max-w-md space-y-6 rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
+        <div className="space-y-1 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">{copy.badge}</p>
+          <h1 className="text-2xl font-semibold text-slate-900">{copy.headline}</h1>
+          <p className="text-sm text-slate-500">{copy.body}</p>
         </div>
-
-        <div className="rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-slate-900">Sign in to continue</h2>
-            <p className="text-sm text-slate-500">
-              {portalTarget === "admin"
-                ? "Use your CalDoc admin credentials."
-                : portalTarget === "pharmacy"
-                ? "Access for licensed pharmacy partners."
-                : portalTarget === "labs"
-                ? "Labs team members only. Use the whitelisted account."
-                : "Use your provider credentials."}
-            </p>
-          </div>
-          <div className="mt-6 space-y-4">
-            <LoginForm nextUrl={next} loggedOut={loggedOut} errorMessage={errorMessage} defaultEmail={lastEmail} />
-            <p className="text-xs text-slate-500 text-center">
-              You&apos;ll be redirected to <span className="font-medium">{next}</span> after login.
-            </p>
-          </div>
-        </div>
+        <LoginForm nextUrl={next} loggedOut={loggedOut} errorMessage={errorMessage} defaultEmail={lastEmail} />
+        <p className="text-center text-xs text-slate-500">
+          You&apos;ll be redirected to <span className="font-medium">{next}</span> after login.
+        </p>
       </div>
     </main>
   );

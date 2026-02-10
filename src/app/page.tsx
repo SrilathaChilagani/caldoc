@@ -63,6 +63,14 @@ const FALLBACK_PROVIDERS: ProviderCard[] = [
     qualification: "MBBS, DGO",
     languages: ["en", "ta"],
   },
+  {
+    id: "fallback-4",
+    slug: "heart-care",
+    name: "Dr. Heart Care",
+    speciality: "Cardiology",
+    qualification: "MBBS, DM",
+    languages: ["en", "hi"],
+  },
 ];
 
 export default async function Home() {
@@ -73,7 +81,7 @@ export default async function Home() {
       by: ["providerId"],
       _count: { providerId: true },
       orderBy: { _count: { providerId: "desc" } },
-      take: 3,
+      take: 4,
     });
 
     const topIds = topAppointments.map((t) => t.providerId);
@@ -90,10 +98,10 @@ export default async function Home() {
       },
     });
 
-    if (featuredProviders.length < 3) {
+    if (featuredProviders.length < 4) {
       const fillers = await prisma.provider.findMany({
         orderBy: { name: "asc" },
-        take: 3,
+        take: 4,
         select: {
           id: true,
           slug: true,
@@ -116,10 +124,10 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-white text-gray-900">
       <section
-        className="relative -mt-16 overflow-hidden bg-white"
+        className="relative -mt-16 min-h-screen overflow-hidden bg-[#f7f2ea]"
         style={{
           backgroundImage:
-            `linear-gradient(rgba(255,255,255,0.28), rgba(255,255,255,0.5)), url(${IMAGES.HOMEPAGE})`,
+            `linear-gradient(90deg, rgba(247,242,234,0.9), rgba(247,242,234,0.6), rgba(247,242,234,0.08)), url(${IMAGES.HOMEPAGE})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -127,35 +135,37 @@ export default async function Home() {
         <div className="relative container mx-auto px-4 pt-28 pb-36 md:pt-32 md:pb-28">
           <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-2xl space-y-6 flex-1 pt-[4.5rem] md:pt-[5.5rem]">
-              <h1 className="text-4xl font-semibold leading-tight tracking-tight text-slate-950 md:text-5xl">
-                Book your teleconsultations today.
+              <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight text-slate-900 md:text-5xl">
+                Book your <span className="text-[#2f6ea5]">teleconsultations</span> today.
               </h1>
-            <p className="text-lg text-slate-700">Search by specialty, doctor name, or diagnosis to find the right care.</p>
+            <p className="text-lg text-slate-600">
+              Search by specialty, doctor name, or diagnosis to find the right care.
+            </p>
 
             <form
               action="/providers"
               method="GET"
-              className="flex w-full flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm md:flex-row md:items-center"
+              className="flex w-full flex-col gap-3 rounded-3xl border border-white/50 bg-white/70 p-4 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-xl md:flex-row md:items-center"
             >
               <input
                 name="q"
                 placeholder="Search doctors, specialties, symptoms…"
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
               />
               <input
                 name="specialty"
                 placeholder="Specialty (optional)"
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 md:w-56"
+                className="w-full rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20 md:w-56"
               />
               <button
                 type="submit"
-                className="inline-flex min-w-[140px] items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700"
+                className="inline-flex min-w-[140px] items-center justify-center rounded-xl bg-[#2f6ea5] px-5 py-3 text-sm font-medium text-white hover:bg-[#255b8b]"
               >
                 Find a doctor
               </button>
             </form>
 
-            <div className="flex flex-wrap gap-4 text-xs text-slate-700">
+            <div className="flex flex-wrap gap-4 text-xs text-slate-600">
               <span>✔ WhatsApp confirmations</span>
               <span>✔ UPI / cards</span>
               <span>✔ Instant video links</span>
@@ -164,13 +174,13 @@ export default async function Home() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/services/rx-delivery"
-                className="inline-flex min-w-[260px] items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700"
+                className="inline-flex min-w-[260px] items-center justify-center rounded-xl bg-[#2f6ea5] px-6 py-3 text-sm font-medium text-white hover:bg-[#255b8b]"
               >
                 Pharmacy
               </Link>
               <Link
                 href="/services/labs-at-home"
-                className="inline-flex min-w-[260px] items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700"
+                className="inline-flex min-w-[260px] items-center justify-center rounded-xl bg-[#2f6ea5] px-6 py-3 text-sm font-medium text-white hover:bg-[#255b8b]"
               >
                 Labs
               </Link>
@@ -182,29 +192,32 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="specialties" className="bg-white">
+      <section id="specialties" className="bg-[#f7f2ea]">
         <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="mb-6 flex items-end justify-between">
-          <h2 className="text-2xl font-semibold md:text-3xl">Browse by specialty</h2>
-          <Link href="/providers" className="text-sm font-medium text-teal-700 hover:text-teal-800">
-            See all doctors →
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
-          {specialties.map((s) => (
-            <Link
-              key={s.slug}
-              href={`/providers?specialty=${encodeURIComponent(s.slug)}`}
-              className="group rounded-2xl border border-gray-200 bg-white p-2 shadow-sm transition hover:shadow-md"
-            >
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl">
-                <Image src={s.img} alt={s.name} fill className="object-cover transition group-hover:scale-105" priority />
-              </div>
-              <div className="mt-2 text-sm font-medium text-gray-800">{s.name}</div>
+          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="font-serif text-2xl font-semibold text-slate-900 md:text-3xl">Browse by specialty</h2>
+              <p className="text-sm text-slate-600">Find the right care team based on your needs.</p>
+            </div>
+            <Link href="/providers" className="text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]">
+              See all doctors →
             </Link>
-          ))}
-        </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+            {specialties.map((s) => (
+              <Link
+                key={s.slug}
+                href={`/providers?specialty=${encodeURIComponent(s.slug)}`}
+                className="group rounded-3xl border border-white/60 bg-white/80 p-2 shadow-[0_20px_50px_-18px_rgba(88,110,132,0.2)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:shadow-[0_26px_60px_-20px_rgba(88,110,132,0.28)]"
+              >
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
+                  <Image src={s.img} alt={s.name} fill className="object-cover transition group-hover:scale-105" priority />
+                </div>
+                <div className="mt-2 text-sm font-medium text-slate-800">{s.name}</div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -237,63 +250,210 @@ export default async function Home() {
       </section>
       )}
 
-      <section className="container mx-auto px-4 py-12 md:py-16">
-        <h2 className="mb-6 text-2xl font-semibold md:text-3xl">Featured doctors</h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          {featuredProviders.map((provider) => {
-            const href = `/book/${encodeURIComponent(provider.slug || provider.id)}`;
-            const languages = provider.languages.map(formatLanguage).join(", ");
-            return (
-              <div
-                key={provider.id}
-                className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
-              >
-                <div className="flex items-center gap-4">
-                  <Link
-                    href={href}
-                    className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-lg font-semibold text-slate-600 hover:bg-slate-200"
-                  >
-                    {provider.name.charAt(0)}
-                  </Link>
-                  <div>
-                    <div className="font-medium text-gray-900">{provider.name}</div>
-                    <div className="text-xs text-gray-500">{provider.speciality}</div>
+      <section id="doctors" className="bg-[#f7f2ea]">
+        <div className="container mx-auto px-4 py-12 md:py-16">
+          <div className="mb-10 text-center">
+            <h2 className="font-serif text-3xl text-slate-900 md:text-4xl">Meet Our Doctors</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Expert healthcare professionals dedicated to your wellbeing
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {featuredProviders.map((provider, index) => {
+              const href = `/book/${encodeURIComponent(provider.slug || provider.id)}`;
+              const languages = provider.languages.map(formatLanguage).join(", ");
+              const initials = provider.name
+                .split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0])
+                .join("")
+                .toUpperCase();
+              const gradients = [
+                "from-[#2f6ea5] to-[#5fa1d3]",
+                "from-[#d8895b] to-[#f0b38a]",
+                "from-[#7c6bd6] to-[#b08cff]",
+                "from-[#e07aa1] to-[#f4a1bf]",
+              ];
+              const gradient = gradients[index % gradients.length];
+
+              return (
+                <div
+                  key={provider.id}
+                  className="group rounded-3xl border border-white/60 bg-white/80 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_-18px_rgba(88,110,132,0.28)]"
+                >
+                  <div className={`mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient}`}>
+                    <span className="font-serif text-3xl font-semibold text-white">{initials}</span>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="font-serif text-xl text-slate-900">{provider.name}</h3>
+                    <p className="text-sm font-medium text-[#2f6ea5]">{provider.speciality}</p>
                     {provider.qualification && (
-                      <div className="text-xs text-gray-400">{provider.qualification}</div>
+                      <p className="text-xs text-slate-500">{provider.qualification}</p>
                     )}
+                    {languages && (
+                      <p className="mt-3 text-xs text-slate-600">Speaks: {languages}</p>
+                    )}
+                    <Link
+                      href={href}
+                      className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[#2f6ea5]/10 px-4 py-2 text-sm font-medium text-[#2f6ea5] transition hover:bg-[#2f6ea5] hover:text-white"
+                    >
+                      Book Now
+                    </Link>
                   </div>
                 </div>
-                {languages && <p className="mt-3 text-xs text-gray-500">Speaks: {languages}</p>}
-                <div className="mt-4 flex gap-2">
-                  <Link
-                    href={href}
-                    className="inline-flex flex-1 items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                  >
-                    Book online
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          <div className="mt-10 text-center">
+            <Link
+              href="/providers"
+              className="inline-flex items-center gap-2 text-sm font-medium text-[#2f6ea5] hover:gap-3"
+            >
+              View all doctors →
+            </Link>
+          </div>
         </div>
       </section>
 
-      <section id="how-it-works" className="container mx-auto px-4 py-12 md:py-16">
-        <h2 className="mb-6 text-2xl font-semibold md:text-3xl">How it works</h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          {[
-            { step: "1", title: "Search & compare", desc: "Filter by specialty, language, rating, and availability." },
-            { step: "2", title: "Book & pay online", desc: "Confirm your slot, accept the consent, and pay securely." },
-            { step: "3", title: "Join your visit", desc: "Get WhatsApp reminders and a video link before the visit." },
-          ].map((x) => (
-            <div key={x.step} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-              <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-sm font-bold text-white">
-                {x.step}
+      <section id="how-it-works" className="bg-[#f7f2ea]">
+        <div className="container mx-auto grid gap-12 px-4 py-12 md:grid-cols-2 md:gap-16 md:py-16">
+          <div>
+            <h2 className="font-serif text-3xl text-slate-900 md:text-4xl">
+              Your journey to better health, <span className="text-[#2f6ea5]">simplified.</span>
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-slate-600">
+              From booking to follow-up, we&apos;ve designed every step to be seamless and stress-free. Here&apos;s how it
+              works.
+            </p>
+          </div>
+          <div className="space-y-6">
+            {[
+              {
+                step: "01",
+                title: "Search & Compare",
+                desc: "Filter by specialty, language, rating, and availability to find your perfect match.",
+                icon: (
+                  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M20 20l-3.5-3.5" />
+                  </svg>
+                ),
+              },
+              {
+                step: "02",
+                title: "Book & Pay",
+                desc: "Confirm your slot, accept the consent, and pay securely via UPI or cards.",
+                icon: (
+                  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <rect x="3" y="5" width="18" height="16" rx="3" />
+                    <path d="M7 3v4M17 3v4M3 11h18" />
+                  </svg>
+                ),
+              },
+              {
+                step: "03",
+                title: "Join Your Visit",
+                desc: "Get WhatsApp reminders and a video link before your consultation.",
+                icon: (
+                  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <rect x="3" y="7" width="13" height="10" rx="2" />
+                    <path d="M16 10l5-3v10l-5-3" />
+                  </svg>
+                ),
+              },
+              {
+                step: "04",
+                title: "Follow Up",
+                desc: "Receive prescriptions, book follow-ups, and access your health records.",
+                icon: (
+                  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path d="M9 12l2 2 4-4" />
+                    <circle cx="12" cy="12" r="9" />
+                  </svg>
+                ),
+              },
+            ].map((x) => (
+              <div key={x.step} className="flex items-start gap-5">
+                <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/80 text-[#2f6ea5] shadow-[0_15px_40px_-18px_rgba(88,110,132,0.35)]">
+                  {x.icon}
+                </div>
+                <div className="pt-1">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold tracking-[0.2em] text-[#2f6ea5]/70">{x.step}</span>
+                    <h3 className="font-serif text-xl text-slate-900">{x.title}</h3>
+                  </div>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600">{x.desc}</p>
+                </div>
               </div>
-              <div className="text-lg font-medium text-gray-900">{x.title}</div>
-              <p className="mt-1 text-sm text-gray-600">{x.desc}</p>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="testimonials" className="bg-[#f7f2ea]">
+        <div className="container mx-auto px-4 py-12 md:py-16">
+          <div className="mb-10 text-center">
+            <h2 className="font-serif text-3xl text-slate-900 md:text-4xl">What Our Patients Say</h2>
+            <p className="mt-2 text-sm text-slate-600">Real stories from people who found care with CalDoc</p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              {
+                name: "Priya Nair",
+                location: "Mumbai",
+                text: "CalDoc made it so easy to consult a dermatologist from home. The doctor was incredibly thorough and my skin has never looked better!",
+                avatar: "PN",
+              },
+              {
+                name: "Rahul Krishnan",
+                location: "Bangalore",
+                text: "As a busy professional, I don't have time for clinic visits. CalDoc's video consultations are a game-changer. Highly recommended!",
+                avatar: "RK",
+              },
+              {
+                name: "Anjali Sharma",
+                location: "Delhi",
+                text: "The pediatrician on CalDoc helped us at 2 AM when our baby had a fever. The peace of mind is priceless.",
+                avatar: "AS",
+              },
+            ].map((testimonial) => (
+              <div
+                key={testimonial.name}
+                className="relative rounded-3xl border border-white/60 bg-white/80 p-6 shadow-[0_20px_50px_-18px_rgba(88,110,132,0.2)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:shadow-[0_26px_60px_-20px_rgba(88,110,132,0.28)]"
+              >
+                <div className="absolute right-6 top-6 text-[#2f6ea5]/10">
+                  <svg viewBox="0 0 24 24" className="h-8 w-8" fill="currentColor">
+                    <path d="M7.2 6.5c-2.3 1.5-3.7 3.7-3.7 6.4 0 2.5 1.5 4.4 3.7 4.4 1.8 0 3.2-1.3 3.2-3.1 0-1.7-1.1-2.8-2.6-3 0.4-1.4 1.3-2.5 2.7-3.4l-1.3-1.3zm9 0c-2.3 1.5-3.7 3.7-3.7 6.4 0 2.5 1.5 4.4 3.7 4.4 1.8 0 3.2-1.3 3.2-3.1 0-1.7-1.1-2.8-2.6-3 0.4-1.4 1.3-2.5 2.7-3.4l-1.3-1.3z" />
+                  </svg>
+                </div>
+                <div className="flex gap-1">
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <svg
+                      key={idx}
+                      viewBox="0 0 24 24"
+                      className="h-4 w-4 text-amber-400"
+                      fill="currentColor"
+                    >
+                      <path d="M12 17.3l-5.1 3 1.4-5.8L3 9.8l5.9-.5L12 4l3.1 5.3 5.9.5-5.3 4.7 1.4 5.8z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-slate-700">
+                  &quot;{testimonial.text}&quot;
+                </p>
+                <div className="mt-6 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#2f6ea5]/10 text-sm font-semibold text-[#2f6ea5]">
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-900">{testimonial.name}</div>
+                    <div className="text-xs text-slate-600">{testimonial.location}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </main>

@@ -24,10 +24,10 @@ export default async function AdminLoginPage({
       : undefined;
 
   return (
-    <main className="flex min-h-[80vh] items-center justify-center bg-gradient-to-b from-[#eef4ff] via-white to-white px-4 py-16">
+    <main className="flex min-h-[80vh] items-center justify-center bg-gradient-to-b from-[#f0fff9] via-white to-white px-4 py-16">
       <div className="w-full max-w-md space-y-6 rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
         <div className="space-y-1 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600">Admin portal</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Admin portal</p>
           <h1 className="text-2xl font-semibold text-slate-900">Sign in to CalDoc admin</h1>
           <p className="text-sm text-slate-500">Only CalDoc operations staff should use this form.</p>
         </div>
@@ -40,7 +40,7 @@ export default async function AdminLoginPage({
               type="email"
               name="email"
               defaultValue={uid}
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
               required
             />
           </label>
@@ -49,13 +49,13 @@ export default async function AdminLoginPage({
             <input
               type="password"
               name="password"
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
               required
             />
           </label>
           <button
             type="submit"
-            className="w-full rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+            className="w-full rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
           >
             Sign in
           </button>

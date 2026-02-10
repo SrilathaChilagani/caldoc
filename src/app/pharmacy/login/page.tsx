@@ -24,10 +24,10 @@ export default async function PharmacyLoginPage({
       : undefined;
 
   return (
-    <main className="flex min-h-[80vh] items-center justify-center bg-gradient-to-b from-[#f4f7ff] via-white to-white px-4 py-16">
+    <main className="flex min-h-[80vh] items-center justify-center bg-gradient-to-b from-[#f0fff9] via-white to-white px-4 py-16">
       <div className="w-full max-w-md space-y-6 rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
         <div className="space-y-1 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">Pharmacy portal</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Pharmacy portal</p>
           <h1 className="text-2xl font-semibold text-slate-900">Sign in to manage prescriptions</h1>
           <p className="text-sm text-slate-500">Use the whitelisted pharmacy account to continue.</p>
         </div>
@@ -40,7 +40,7 @@ export default async function PharmacyLoginPage({
               type="email"
               name="email"
               defaultValue={uid}
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
               required
             />
           </label>
@@ -49,13 +49,13 @@ export default async function PharmacyLoginPage({
             <input
               type="password"
               name="password"
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
               required
             />
           </label>
           <button
             type="submit"
-            className="w-full rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            className="w-full rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
           >
             Sign in
           </button>

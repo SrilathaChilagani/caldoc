@@ -77,7 +77,7 @@ export default function SiteHeader() {
     <header className={headerClassName}>
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
       <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/80">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-transparent">
             <Image src={IMAGES.LOGO_MARK} alt="CalDoc icon" width={40} height={40} priority />
           </div>
           <div className="flex flex-col leading-tight">
@@ -89,7 +89,6 @@ export default function SiteHeader() {
               className="object-contain"
               priority
             />
-            <span className="text-[11px] text-slate-600 tracking-wide uppercase">Telemedicine made simple</span>
           </div>
         </Link>
 
