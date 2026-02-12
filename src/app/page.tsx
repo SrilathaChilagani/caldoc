@@ -5,6 +5,8 @@ import OfflineRequestForm from "@/components/OfflineRequestForm";
 import { prisma } from "@/lib/db";
 import { IMAGES } from "@/lib/imagePaths";
 
+export const revalidate = 86400;
+
 const specialties = [
   { name: "Dermatology", slug: "dermatology", img: IMAGES.SPEC_DERM },
   { name: "Pediatrics", slug: "pediatrics", img: IMAGES.SPEC_PEDS },
@@ -74,6 +76,12 @@ const FALLBACK_PROVIDERS: ProviderCard[] = [
 ];
 
 export default async function Home() {
+  const heroBackgrounds = [IMAGES.HOMEPAGE, IMAGES.HERO_DOCTOR];
+  const today = new Date();
+  const utcDay = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const dayIndex = Math.floor(utcDay / 86_400_000);
+  const heroBackground = heroBackgrounds[dayIndex % heroBackgrounds.length];
+
   let featuredProviders: ProviderCard[] = FALLBACK_PROVIDERS;
 
   try {
@@ -128,7 +136,7 @@ export default async function Home() {
       >
         <div className="absolute inset-0">
           <Image
-            src={IMAGES.HOMEPAGE}
+            src={heroBackground}
             alt="Doctor consultation"
             fill
             className="object-cover"
