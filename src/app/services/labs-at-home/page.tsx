@@ -89,7 +89,7 @@ export const metadata = {
 export default function LabsAtHomePage() {
   return (
     <main className="bg-[#f7f2ea] text-slate-900">
-      <section className="relative min-h-[110vh]">
+      <section className="relative -mt-16 min-h-[110vh]">
         <div className="absolute inset-0">
           <Image
             src={IMAGES.HERO_LABS}
