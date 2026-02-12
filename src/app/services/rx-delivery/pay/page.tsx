@@ -2,14 +2,23 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import RxOrderCheckoutClient from "../ui/RxOrderCheckoutClient";
 import { formatINR } from "@/lib/format";
+import { RX_DELIVERY_UNIT_PRICE_PAISE } from "@/lib/rxDeliveryPricing";
+import BackButton from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
 type Search = { order?: string };
 
-function summarizeItems(items: unknown): string {
-  if (!Array.isArray(items)) return "";
-  return items.map((item) => `${item?.name || "medicine"} × ${item?.qty || 1}`).join(", ");
+type OrderItem = { name?: string; qty?: number };
+
+function normalizeItems(items: unknown): OrderItem[] {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((item) => ({
+      name: String(item?.name || "").trim(),
+      qty: Number(item?.qty) || 1,
+    }))
+    .filter((item) => item.name);
 }
 
 export default async function RxDeliveryPayPage({ searchParams }: { searchParams: Promise<Search> }) {
@@ -22,11 +31,13 @@ export default async function RxDeliveryPayPage({ searchParams }: { searchParams
     redirect(`/services/rx-delivery/success?order=${rxOrder.id}`);
   }
 
-  const itemsLabel = summarizeItems(rxOrder.items);
+  const items = normalizeItems(rxOrder.items);
+  const totalQty = items.reduce((sum, item) => sum + Math.max(1, item.qty || 0), 0);
 
   return (
     <main className="bg-gradient-to-b from-white via-[#f7fbff] to-white py-16">
       <div className="mx-auto max-w-3xl space-y-8 px-6">
+        <BackButton />
         <div className="space-y-2 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">Checkout</p>
           <h1 className="text-3xl font-semibold text-slate-900">Pay for your Rx delivery</h1>
@@ -43,12 +54,39 @@ export default async function RxDeliveryPayPage({ searchParams }: { searchParams
             </div>
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Items</dt>
-              <dd>{itemsLabel}</dd>
+              {items.length ? (
+                <dd className="mt-2">
+                  <div className="space-y-2">
+                    {items.map((item) => (
+                      <div key={`${item.name}-${item.qty}`} className="flex items-center justify-between text-sm">
+                        <div>
+                          <p className="font-medium text-slate-900">{item.name}</p>
+                          <p className="text-xs text-slate-500">Qty {item.qty}</p>
+                        </div>
+                        <span className="text-slate-700">
+                          {formatINR(Math.max(1, item.qty || 0) * RX_DELIVERY_UNIT_PRICE_PAISE)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </dd>
+              ) : (
+                <dd className="text-sm text-slate-500">No items found.</dd>
+              )}
             </div>
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Amount</dt>
               <dd className="text-xl font-semibold text-slate-900">{formatINR(rxOrder.amountPaise)}</dd>
+              <dd className="text-xs text-slate-500">
+                {totalQty} item{totalQty === 1 ? "" : "s"} × {formatINR(RX_DELIVERY_UNIT_PRICE_PAISE)}
+              </dd>
             </div>
+            {rxOrder.rxDocumentKey && (
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Prescription</dt>
+                <dd className="text-sm text-emerald-600">Uploaded</dd>
+              </div>
+            )}
           </dl>
           <RxOrderCheckoutClient orderId={rxOrder.id} />
         </section>

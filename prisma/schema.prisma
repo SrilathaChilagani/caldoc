@@ -369,6 +369,11 @@ model RxOrder {
   address      Json
   items        Json
   notes        String?
+  rxDocumentKey        String?
+  rxDocumentName       String?
+  rxDocumentType       String?
+  rxDocumentSize       Int?
+  rxDocumentUploadedAt DateTime?
   amountPaise  Int
   status       String   @default("AWAITING_PAYMENT")
   payment      Payment? @relation("RxOrderPayment")

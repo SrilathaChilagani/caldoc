@@ -6,15 +6,26 @@ import { getErrorMessage } from "@/lib/errors";
 
 type Props = {
   options: string[];
+  initialItems?: { name: string; qty: number }[];
+  showTestsSection?: boolean;
 };
 
-type TestItem = { id: string; name: string };
+type TestItem = { id: string; name: string; qty: number };
 
-const EMPTY_TEST = (): TestItem => ({ id: crypto.randomUUID(), name: "" });
+const EMPTY_TEST = (): TestItem => ({ id: crypto.randomUUID(), name: "", qty: 1 });
 
-export default function LabHomeForm({ options }: Props) {
+export default function LabHomeForm({ options, initialItems, showTestsSection = true }: Props) {
   const router = useRouter();
-  const [tests, setTests] = useState<TestItem[]>([EMPTY_TEST()]);
+  const [tests, setTests] = useState<TestItem[]>(() => {
+    if (initialItems && initialItems.length > 0) {
+      return initialItems.map((item) => ({
+        id: crypto.randomUUID(),
+        name: item.name,
+        qty: Math.max(1, Number(item.qty) || 1),
+      }));
+    }
+    return [EMPTY_TEST()];
+  });
   const [patientName, setPatientName] = useState("");
   const [patientPhone, setPatientPhone] = useState("");
   const [patientEmail, setPatientEmail] = useState("");
@@ -27,6 +38,10 @@ export default function LabHomeForm({ options }: Props) {
 
   function updateTest(id: string, name: string) {
     setTests((prev) => prev.map((test) => (test.id === id ? { ...test, name } : test)));
+  }
+
+  function updateQty(id: string, qty: number) {
+    setTests((prev) => prev.map((test) => (test.id === id ? { ...test, qty } : test)));
   }
 
   function removeTest(id: string) {
@@ -45,9 +60,17 @@ export default function LabHomeForm({ options }: Props) {
         address,
         instructions,
         tests: tests
-          .map((test) => test.name.trim())
-          .filter((name) => Boolean(name))
-          .filter((name, idx, arr) => arr.indexOf(name) === idx),
+          .map((test) => ({ name: test.name.trim(), qty: Math.max(1, Number(test.qty) || 1) }))
+          .filter((test) => Boolean(test.name))
+          .reduce<{ name: string; qty: number }[]>((acc, item) => {
+            const existing = acc.find((entry) => entry.name.toLowerCase() === item.name.toLowerCase());
+            if (existing) {
+              existing.qty += item.qty;
+              return acc;
+            }
+            acc.push({ ...item });
+            return acc;
+          }, []),
       };
       if (!payload.tests.length) {
         throw new Error("Select at least one lab test");
@@ -71,47 +94,60 @@ export default function LabHomeForm({ options }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <div>
-        <h2 className="font-serif text-lg text-slate-900">Tests</h2>
-        <p className="text-sm text-slate-500">Search for a test or enter the exact panel requested by your doctor.</p>
-        <div className="mt-4 space-y-4">
-          {tests.map((test) => (
-            <div key={test.id} className="flex flex-col gap-3 rounded-2xl border border-[#e7e0d5] bg-white/70 p-4 sm:flex-row sm:items-center">
-              <div className="flex-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Test name</label>
-                <input
-                  list="lab-test-options"
-                  value={test.name}
-                  onChange={(e) => updateTest(test.id, e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
-                  placeholder="Start typing to search"
-                  required
-                />
+      {showTestsSection && (
+        <div>
+          <h2 className="font-serif text-lg text-slate-900">Tests</h2>
+          <p className="text-sm text-slate-500">Search for a test or enter the exact panel requested by your doctor.</p>
+          <div className="mt-4 space-y-4">
+            {tests.map((test) => (
+              <div key={test.id} className="flex flex-col gap-3 rounded-2xl border border-[#e7e0d5] bg-white/70 p-4 sm:flex-row sm:items-center">
+                <div className="flex-1">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Test name</label>
+                  <input
+                    list="lab-test-options"
+                    value={test.name}
+                    onChange={(e) => updateTest(test.id, e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
+                    placeholder="Start typing to search"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Qty</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={test.qty}
+                    onChange={(e) => updateQty(test.id, Number(e.target.value))}
+                    className="mt-1 w-24 rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeTest(test.id)}
+                  className="text-xs font-semibold text-rose-500 hover:text-rose-600"
+                  disabled={tests.length === 1}
+                >
+                  Remove
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => removeTest(test.id)}
-                className="text-xs font-semibold text-rose-500 hover:text-rose-600"
-                disabled={tests.length === 1}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setTests((prev) => [...prev, EMPTY_TEST()])}
-            className="rounded-full border border-dashed border-[#2f6ea5]/40 px-4 py-2 text-xs font-semibold text-[#2f6ea5]"
-          >
-            + Add another test
-          </button>
-          <datalist id="lab-test-options">
-            {lookupOptions.map((name) => (
-              <option key={name} value={name} />
             ))}
-          </datalist>
+            <button
+              type="button"
+              onClick={() => setTests((prev) => [...prev, EMPTY_TEST()])}
+              className="rounded-full border border-dashed border-[#2f6ea5]/40 px-4 py-2 text-xs font-semibold text-[#2f6ea5]"
+            >
+              + Add another test
+            </button>
+            <datalist id="lab-test-options">
+              {lookupOptions.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+          </div>
         </div>
-      </div>
+      )}
 
       <div>
         <h2 className="font-serif text-lg text-slate-900">Patient contact</h2>

@@ -7,7 +7,15 @@ const LAB_ADMIN_PHONE = process.env.LABS_ADMIN_PHONE || "+15135608528";
 
 function formatTests(tests: unknown): string {
   if (!Array.isArray(tests)) return "";
-  return tests.map((test) => String(test || "test")).join(", ");
+  return tests
+    .map((test) => {
+      if (typeof test === "string") return test;
+      const value = test as Record<string, unknown>;
+      const name = String(value?.name || "test");
+      const qty = Math.max(1, Number(value?.qty) || 1);
+      return qty > 1 ? `${name} × ${qty}` : name;
+    })
+    .join(", ");
 }
 
 function formatAddress(address: unknown): string {

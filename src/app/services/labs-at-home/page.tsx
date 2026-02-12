@@ -1,21 +1,8 @@
 import Image from "next/image";
 import LabHomeForm from "./ui/LabHomeForm";
 import { IMAGES } from "@/lib/imagePaths";
-
-const LAB_TEST_OPTIONS = [
-  "Complete blood count (CBC)",
-  "Comprehensive metabolic panel (CMP)",
-  "Lipid profile",
-  "HbA1c",
-  "Thyroid panel",
-  "Vitamin D",
-  "Urinalysis",
-  "Liver function test",
-  "Kidney function test",
-  "CRP",
-  "Ferritin",
-  "Electrolytes",
-];
+import { LAB_TEST_OPTIONS } from "@/lib/labTests";
+import LabsHeroSearch from "./ui/LabsHeroSearch";
 
 const categories = [
   { name: "Blood Tests", icon: "🩸" },
@@ -113,27 +100,7 @@ export default function LabsAtHomePage() {
               Search by test name or upload your doctor's prescription for comprehensive diagnostics.
             </p>
 
-            <div className="rounded-2xl border border-white/40 bg-white/85 p-2 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] flex flex-col sm:flex-row gap-2 max-w-xl">
-              <div className="flex-1 relative">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                >
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-3.5-3.5" />
-                </svg>
-                <input
-                  placeholder="Search tests, packages..."
-                  className="h-12 w-full rounded-xl border-0 bg-white/50 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[#2f6ea5]/20"
-                />
-              </div>
-              <button className="h-12 px-6 rounded-xl bg-[#2f6ea5] hover:bg-[#255b8b] text-white font-medium whitespace-nowrap">
-                Search
-              </button>
-            </div>
+            <LabsHeroSearch />
 
             <div className="flex flex-wrap items-center gap-4 mt-5 text-sm text-slate-600">
               <span className="flex items-center gap-1.5">
@@ -188,8 +155,8 @@ export default function LabsAtHomePage() {
                   {f.icon}
                 </div>
                 <div>
-                  <h3 className="font-serif text-base font-semibold text-slate-900">{f.title}</h3>
-                  <p className="text-sm text-slate-500">{f.desc}</p>
+                  <h3 className="text-sm font-semibold text-slate-900">{f.title}</h3>
+                  <p className="text-sm text-slate-600">{f.desc}</p>
                 </div>
               </div>
             ))}

@@ -133,7 +133,12 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
     id: order.id,
     status: order.status,
     tests: Array.isArray(order.tests)
-      ? (order.tests as unknown as string[]).map((t) => String(t))
+      ? (order.tests as unknown as Array<{ name?: string; qty?: number } | string>).map((t) => {
+          if (typeof t === "string") return t;
+          const name = String(t?.name || "");
+          const qty = Math.max(1, Number(t?.qty) || 1);
+          return qty > 1 ? `${name} × ${qty}` : name;
+        })
       : order.tests
       ? [String(order.tests)]
       : [],

@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-
-const UNIT_PRICE = Number(process.env.LABS_HOME_TEST_PAISE || 79900);
-
-function computeAmount(tests: string[]) {
-  if (!tests.length) return 0;
-  return tests.length * UNIT_PRICE;
-}
+import { computeLabAmount } from "@/lib/labPricing";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const tests = Array.isArray(body?.tests)
-      ? body.tests
-          .map((item: unknown) => String(item || "").trim())
-          .filter((item: string) => Boolean(item))
-      : [];
+    const tests = Array.isArray(body?.tests) ? body.tests : [];
+    const items = tests
+      .map((item: unknown) => {
+        if (typeof item === "string") {
+          return { name: item.trim(), qty: 1 };
+        }
+        const value = item as Record<string, unknown>;
+        return {
+          name: String(value?.name || "").trim(),
+          qty: Math.max(1, Number(value?.qty) || 1),
+        };
+      })
+      .filter((item: { name: string }) => Boolean(item.name));
 
-    if (!tests.length) {
+    if (!items.length) {
       return NextResponse.json({ error: "Please select at least one lab test" }, { status: 400 });
     }
 
@@ -36,7 +38,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Please fill patient contact and address" }, { status: 400 });
     }
 
-    const amountPaise = computeAmount(tests);
+    const amountPaise = computeLabAmount(items);
     if (!amountPaise) {
       return NextResponse.json({ error: "Unable to compute price" }, { status: 400 });
     }
@@ -47,7 +49,7 @@ export async function POST(req: NextRequest) {
         patientPhone,
         patientEmail,
         deliveryMode: "IN_HOUSE",
-        tests,
+        tests: items,
         notes: body?.instructions ? String(body.instructions) : null,
         status: "AWAITING_PAYMENT",
         address,

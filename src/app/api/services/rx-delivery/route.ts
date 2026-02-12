@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-
-const UNIT_PRICE = Number(process.env.RX_DELIVERY_ITEM_PAISE || 19900);
+import { computeRxDeliveryAmount } from "@/lib/rxDeliveryPricing";
 
 type ItemPayload = { name: string; qty: number };
-
-function computeAmount(items: ItemPayload[]) {
-  if (!items.length) return 0;
-  return items.reduce((sum, item) => sum + Math.max(1, Number(item.qty) || 0) * UNIT_PRICE, 0);
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Add at least one medicine" }, { status: 400 });
     }
 
-    const amountPaise = computeAmount(items);
+    const amountPaise = computeRxDeliveryAmount(items);
     if (!amountPaise || Number.isNaN(amountPaise)) {
       return NextResponse.json({ error: "Unable to compute price" }, { status: 400 });
     }
@@ -45,6 +39,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Fill all contact and address fields" }, { status: 400 });
     }
 
+    const prescription = body?.prescription as
+      | { key?: string; fileName?: string; contentType?: string; size?: number }
+      | undefined;
+
+    const matchedMeds = await prisma.medication.findMany({
+      where: {
+        OR: items.map((item) => ({
+          name: { equals: item.name, mode: "insensitive" },
+        })),
+      },
+      select: { name: true, category: true },
+    });
+    const requiresPrescription = matchedMeds.some(
+      (med) => med.category && med.category !== "OTC",
+    );
+
+    if (requiresPrescription && !prescription?.key) {
+      return NextResponse.json(
+        { error: "Prescription upload required for Rx-only medicines" },
+        { status: 400 },
+      );
+    }
+
     const order = await prisma.rxOrder.create({
       data: {
         patientName,
@@ -53,6 +70,12 @@ export async function POST(req: NextRequest) {
         address,
         notes: body?.instructions ? String(body.instructions) : null,
         items,
+        rxDocumentKey: prescription?.key || null,
+        rxDocumentName: prescription?.fileName || null,
+        rxDocumentType: prescription?.contentType || null,
+        rxDocumentSize:
+          typeof prescription?.size === "number" ? Math.max(0, prescription.size) : null,
+        rxDocumentUploadedAt: prescription?.key ? new Date() : null,
         amountPaise,
         status: "AWAITING_PAYMENT",
       },
