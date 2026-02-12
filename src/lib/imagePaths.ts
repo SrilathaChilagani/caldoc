@@ -79,6 +79,9 @@ export const IMAGES = {
   
   // Other images
   HOMEPAGE: '/images/Homepage.jpg',
+  HERO_DOCTOR: '/images/hero-doctor.jpg',
+  HERO_PHARMACY: '/images/hero-pharmacy.jpg',
+  HERO_LABS: '/images/hero-labs.jpg',
   TEAM: '/images/team.png',
 } as const;
 
@@ -89,4 +92,3 @@ export const IMAGES = {
  * This ensures type safety when working with image paths.
  */
 export type ImagePath = typeof IMAGES[keyof typeof IMAGES] | string;
-

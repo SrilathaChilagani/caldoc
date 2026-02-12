@@ -69,11 +69,14 @@ export default function RxDeliveryForm({ options }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">Medicines</h2>
+        <h2 className="font-serif text-lg text-slate-900">Medicines</h2>
         <p className="text-sm text-slate-500">Select OTC medicines or type the brand name. Add quantity for each.</p>
         <div className="mt-4 space-y-4">
           {items.map((item) => (
-            <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center">
+            <div
+              key={item.id}
+              className="flex flex-col gap-3 rounded-2xl border border-[#e7e0d5] bg-white/70 p-4 sm:flex-row sm:items-center"
+            >
               <div className="flex-1">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Medicine</label>
                 <div className="relative mt-1">
@@ -82,13 +85,13 @@ export default function RxDeliveryForm({ options }: Props) {
                     onFocus={() => setOpenSuggestionFor(item.id)}
                     onBlur={() => setTimeout(() => setOpenSuggestionFor((prev) => (prev === item.id ? null : prev)), 120)}
                     onChange={(e) => updateItem(item.id, { name: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+                    className="w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
                     placeholder="Start typing to search"
                     required
                     autoComplete="off"
                   />
                   {openSuggestionFor === item.id && (
-                    <div className="absolute left-0 right-0 z-20 mt-2 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+                    <div className="absolute left-0 right-0 z-20 mt-2 max-h-60 overflow-y-auto rounded-xl border border-[#e7e0d5] bg-white shadow-lg">
                       {lookupOptions
                         .filter((opt) =>
                           item.name.trim()
@@ -105,7 +108,7 @@ export default function RxDeliveryForm({ options }: Props) {
                               updateItem(item.id, { name: opt });
                               setOpenSuggestionFor(null);
                             }}
-                            className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-slate-800 hover:bg-slate-50"
+                            className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-slate-800 hover:bg-[#f6f1e9]"
                           >
                             <span>{opt}</span>
                           </button>
@@ -125,7 +128,7 @@ export default function RxDeliveryForm({ options }: Props) {
                   max={10}
                   value={item.qty}
                   onChange={(e) => updateItem(item.id, { qty: Number(e.target.value) })}
-                  className="mt-1 w-24 rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+                  className="mt-1 w-24 rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
                 />
               </div>
               <button
@@ -141,7 +144,7 @@ export default function RxDeliveryForm({ options }: Props) {
           <button
             type="button"
             onClick={() => setItems((prev) => [...prev, EMPTY_ITEM()])}
-            className="rounded-full border border-dashed border-slate-300 px-4 py-2 text-xs font-semibold text-slate-600"
+            className="rounded-full border border-dashed border-[#2f6ea5]/40 px-4 py-2 text-xs font-semibold text-[#2f6ea5]"
           >
             + Add another medicine
           </button>
@@ -149,7 +152,7 @@ export default function RxDeliveryForm({ options }: Props) {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">Patient contact</h2>
+        <h2 className="font-serif text-lg text-slate-900">Patient contact</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="text-sm text-slate-700">
             Full name
@@ -158,7 +161,7 @@ export default function RxDeliveryForm({ options }: Props) {
               value={patientName}
               onChange={(e) => setPatientName(e.target.value)}
               required
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
           <label className="text-sm text-slate-700">
@@ -168,7 +171,7 @@ export default function RxDeliveryForm({ options }: Props) {
               value={patientPhone}
               onChange={(e) => setPatientPhone(e.target.value)}
               required
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
           <label className="text-sm text-slate-700">
@@ -177,14 +180,14 @@ export default function RxDeliveryForm({ options }: Props) {
               type="email"
               value={patientEmail}
               onChange={(e) => setPatientEmail(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
         </div>
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">Delivery address</h2>
+        <h2 className="font-serif text-lg text-slate-900">Delivery address</h2>
         <div className="mt-4 grid gap-4">
           <label className="text-sm text-slate-700">
             Address line 1
@@ -193,7 +196,7 @@ export default function RxDeliveryForm({ options }: Props) {
               value={address.line1}
               onChange={(e) => setAddress((prev) => ({ ...prev, line1: e.target.value }))}
               required
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
           <label className="text-sm text-slate-700">
@@ -202,7 +205,7 @@ export default function RxDeliveryForm({ options }: Props) {
               type="text"
               value={address.line2}
               onChange={(e) => setAddress((prev) => ({ ...prev, line2: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -213,7 +216,7 @@ export default function RxDeliveryForm({ options }: Props) {
                 value={address.city}
                 onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))}
                 required
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
               />
             </label>
             <label className="text-sm text-slate-700">
@@ -223,7 +226,7 @@ export default function RxDeliveryForm({ options }: Props) {
                 value={address.state}
                 onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))}
                 required
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
               />
             </label>
             <label className="text-sm text-slate-700">
@@ -233,7 +236,7 @@ export default function RxDeliveryForm({ options }: Props) {
                 value={address.postalCode}
                 onChange={(e) => setAddress((prev) => ({ ...prev, postalCode: e.target.value }))}
                 required
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
               />
             </label>
           </div>
@@ -246,7 +249,7 @@ export default function RxDeliveryForm({ options }: Props) {
           rows={3}
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none"
+          className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
           placeholder="Landmark, preferred time, etc."
         />
       </label>
@@ -255,7 +258,7 @@ export default function RxDeliveryForm({ options }: Props) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-full bg-[#2f6ea5] px-6 py-3 text-sm font-semibold text-white hover:bg-[#255b8b] disabled:opacity-50"
         >
           {saving ? "Preparing checkout…" : "Proceed to payment"}
         </button>

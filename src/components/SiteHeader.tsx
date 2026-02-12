@@ -57,19 +57,23 @@ export default function SiteHeader() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const headerClassName = isHome
+  const transparentHeader =
+    isHome ||
+    pathname?.startsWith("/services/rx-delivery") ||
+    pathname?.startsWith("/services/labs-at-home");
+  const headerClassName = transparentHeader
     ? "sticky top-0 z-50 border-b border-transparent bg-transparent"
     : "sticky top-0 z-50 border-b border-gray-200 bg-white";
-  const navLinkClassName = isHome
+  const navLinkClassName = transparentHeader
     ? "text-sm text-slate-800 hover:text-slate-950"
     : "text-sm text-gray-700 hover:text-gray-900";
-  const dropdownTriggerClassName = isHome
+  const dropdownTriggerClassName = transparentHeader
     ? "inline-flex items-center gap-1 text-sm text-slate-800 hover:text-slate-950"
     : "inline-flex items-center gap-1 text-sm text-gray-700 hover:text-gray-900";
-  const loginButtonClassName = isHome
-    ? "inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-medium text-slate-800 backdrop-blur hover:border-slate-300 hover:text-slate-950"
+  const loginButtonClassName = transparentHeader
+    ? "inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-800 hover:border-slate-300 hover:text-slate-950"
     : "inline-flex items-center gap-1 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-gray-800 hover:border-blue-400 hover:text-blue-700";
-  const mobileToggleClassName = isHome
+  const mobileToggleClassName = transparentHeader
     ? "inline-flex items-center justify-center rounded-md p-2 text-slate-800 hover:bg-white/40 md:hidden"
     : "inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 md:hidden";
 
@@ -221,7 +225,7 @@ export default function SiteHeader() {
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-gray-200 bg-white/95 backdrop-blur md:hidden">
+        <div className="border-t border-gray-200 bg-white/95 md:hidden">
           <nav className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 sm:px-6">
             <Link href="/" className="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setMobileOpen(false)}>
               Home

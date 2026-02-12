@@ -72,18 +72,18 @@ export default function LabHomeForm({ options }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">Tests</h2>
+        <h2 className="font-serif text-lg text-slate-900">Tests</h2>
         <p className="text-sm text-slate-500">Search for a test or enter the exact panel requested by your doctor.</p>
         <div className="mt-4 space-y-4">
           {tests.map((test) => (
-            <div key={test.id} className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center">
+            <div key={test.id} className="flex flex-col gap-3 rounded-2xl border border-[#e7e0d5] bg-white/70 p-4 sm:flex-row sm:items-center">
               <div className="flex-1">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Test name</label>
                 <input
                   list="lab-test-options"
                   value={test.name}
                   onChange={(e) => updateTest(test.id, e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
                   placeholder="Start typing to search"
                   required
                 />
@@ -101,7 +101,7 @@ export default function LabHomeForm({ options }: Props) {
           <button
             type="button"
             onClick={() => setTests((prev) => [...prev, EMPTY_TEST()])}
-            className="rounded-full border border-dashed border-emerald-200 px-4 py-2 text-xs font-semibold text-emerald-700"
+            className="rounded-full border border-dashed border-[#2f6ea5]/40 px-4 py-2 text-xs font-semibold text-[#2f6ea5]"
           >
             + Add another test
           </button>
@@ -114,7 +114,7 @@ export default function LabHomeForm({ options }: Props) {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">Patient contact</h2>
+        <h2 className="font-serif text-lg text-slate-900">Patient contact</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="text-sm text-slate-700">
             Full name
@@ -123,7 +123,7 @@ export default function LabHomeForm({ options }: Props) {
               value={patientName}
               onChange={(e) => setPatientName(e.target.value)}
               required
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
           <label className="text-sm text-slate-700">
@@ -133,7 +133,7 @@ export default function LabHomeForm({ options }: Props) {
               value={patientPhone}
               onChange={(e) => setPatientPhone(e.target.value)}
               required
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
           <label className="text-sm text-slate-700">
@@ -142,14 +142,14 @@ export default function LabHomeForm({ options }: Props) {
               type="email"
               value={patientEmail}
               onChange={(e) => setPatientEmail(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
         </div>
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">Sample collection address</h2>
+        <h2 className="font-serif text-lg text-slate-900">Sample collection address</h2>
         <div className="mt-4 grid gap-4">
           <label className="text-sm text-slate-700">
             Address line 1
@@ -158,7 +158,7 @@ export default function LabHomeForm({ options }: Props) {
               value={address.line1}
               onChange={(e) => setAddress((prev) => ({ ...prev, line1: e.target.value }))}
               required
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
           <label className="text-sm text-slate-700">
@@ -167,7 +167,7 @@ export default function LabHomeForm({ options }: Props) {
               type="text"
               value={address.line2}
               onChange={(e) => setAddress((prev) => ({ ...prev, line2: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -178,7 +178,7 @@ export default function LabHomeForm({ options }: Props) {
                 value={address.city}
                 onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))}
                 required
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
               />
             </label>
             <label className="text-sm text-slate-700">
@@ -188,7 +188,7 @@ export default function LabHomeForm({ options }: Props) {
                 value={address.state}
                 onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))}
                 required
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
               />
             </label>
             <label className="text-sm text-slate-700">
@@ -198,7 +198,7 @@ export default function LabHomeForm({ options }: Props) {
                 value={address.postalCode}
                 onChange={(e) => setAddress((prev) => ({ ...prev, postalCode: e.target.value }))}
                 required
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
               />
             </label>
           </div>
@@ -211,7 +211,7 @@ export default function LabHomeForm({ options }: Props) {
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
           rows={4}
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+          className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
           placeholder="Mention fasting requirements or collection preferences"
         />
       </label>
@@ -221,7 +221,7 @@ export default function LabHomeForm({ options }: Props) {
       <button
         type="submit"
         disabled={saving}
-        className="rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="rounded-full bg-[#2f6ea5] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-[#255b8b] disabled:opacity-50"
       >
         {saving ? "Processing…" : "Continue to payment"}
       </button>
