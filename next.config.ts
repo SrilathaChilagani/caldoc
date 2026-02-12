@@ -11,9 +11,6 @@ const nextConfig: NextConfig = {
       { pathname: "/images/**" },
       { pathname: "/api/providers/**" },
     ],
-    // Temporarily disable optimization to ensure images load reliably
-    // This bypasses Next.js image optimization which can cause inconsistent loading
-    unoptimized: true,
     // Support common image formats
     formats: ['image/avif', 'image/webp'],
     // Ensure images load reliably with proper caching

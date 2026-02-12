@@ -127,7 +127,14 @@ export default async function Home() {
         className="relative -mt-16 min-h-screen overflow-hidden bg-[#f7f2ea]"
       >
         <div className="absolute inset-0">
-          <Image src={IMAGES.HOMEPAGE} alt="Doctor consultation" fill className="object-cover" priority />
+          <Image
+            src={IMAGES.HOMEPAGE}
+            alt="Doctor consultation"
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
+          />
           <div className="absolute inset-0 bg-gradient-to-r from-[#f7f2ea]/90 via-[#f7f2ea]/50 to-transparent" />
         </div>
 
@@ -237,12 +244,16 @@ export default async function Home() {
 
       <section id="specialties" className="bg-[#f7f2ea]">
         <div className="container mx-auto px-4 py-12 md:py-16">
-          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="font-serif text-2xl font-semibold text-slate-900 md:text-3xl">Browse by specialty</h2>
-              <p className="text-sm text-slate-600">Find the right care team based on your needs.</p>
-            </div>
-            <Link href="/providers" className="text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]">
+          <div className="mb-10 text-center">
+            <p className="text-xs uppercase tracking-[0.3em] text-[#2f6ea5]">Browse by specialty</p>
+            <h2 className="mt-2 font-serif text-3xl text-slate-900 md:text-4xl">Find the right care team</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Choose a specialty to explore doctors that match your needs.
+            </p>
+            <Link
+              href="/providers"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#2f6ea5] hover:gap-3"
+            >
               See all doctors →
             </Link>
           </div>
@@ -252,12 +263,19 @@ export default async function Home() {
               <Link
                 key={s.slug}
                 href={`/providers?specialty=${encodeURIComponent(s.slug)}`}
-                className="group rounded-3xl border border-white/60 bg-white/80 p-2 shadow-[0_20px_50px_-18px_rgba(88,110,132,0.2)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:shadow-[0_26px_60px_-20px_rgba(88,110,132,0.28)]"
+                className="group rounded-3xl border border-white/70 bg-white/85 p-3 shadow-[0_20px_50px_-18px_rgba(88,110,132,0.2)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_26px_60px_-20px_rgba(88,110,132,0.28)]"
               >
                 <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
-                  <Image src={s.img} alt={s.name} fill className="object-cover transition group-hover:scale-105" priority />
+                  <Image
+                    src={s.img}
+                    alt={s.name}
+                    fill
+                    className="object-cover transition group-hover:scale-105"
+                    sizes="(min-width: 768px) 160px, 45vw"
+                    priority
+                  />
                 </div>
-                <div className="mt-2 text-sm font-medium text-slate-800">{s.name}</div>
+                <div className="mt-3 text-center text-sm font-medium text-slate-800">{s.name}</div>
               </Link>
             ))}
           </div>
