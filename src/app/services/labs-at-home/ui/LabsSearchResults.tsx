@@ -16,6 +16,7 @@ export default function LabsSearchResults({ tests }: Props) {
   const router = useRouter();
   const [cart, setCart] = useState<LabCartItem[]>([]);
   const [draftQty, setDraftQty] = useState<Record<string, number>>({});
+  const [draftVisible, setDraftVisible] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setCart(loadLabCart());
@@ -77,6 +78,7 @@ export default function LabsSearchResults({ tests }: Props) {
         <div className="divide-y divide-[#e7e0d5]">
           {tests.map((test) => {
             const cartItem = cartMap.get(normalizeName(test));
+            const isDraft = draftVisible[normalizeName(test)] && !cartItem;
             return (
               <div key={test} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -125,7 +127,7 @@ export default function LabsSearchResults({ tests }: Props) {
                         Remove
                       </button>
                     </>
-                  ) : (
+                  ) : isDraft ? (
                     <>
                       <div className="inline-flex items-center gap-2 rounded-full border border-[#e7e0d5] bg-white px-2 py-1 text-sm text-slate-700">
                         <span className="text-xs text-slate-500">Qty</span>
@@ -143,12 +145,27 @@ export default function LabsSearchResults({ tests }: Props) {
                       </div>
                       <button
                         type="button"
-                        onClick={() => updateCartItem(test, draftQty[normalizeName(test)] ?? 1)}
+                        onClick={() => {
+                          updateCartItem(test, draftQty[normalizeName(test)] ?? 1);
+                          setDraftVisible((prev) => ({ ...prev, [normalizeName(test)]: false }));
+                        }}
                         className="inline-flex h-9 items-center justify-center rounded-full bg-[#2f6ea5] px-5 text-sm font-medium text-white hover:bg-[#255b8b]"
                       >
                         Add to order
                       </button>
                     </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const key = normalizeName(test);
+                        setDraftVisible((prev) => ({ ...prev, [key]: true }));
+                        setDraftQty((prev) => ({ ...prev, [key]: prev[key] ?? 1 }));
+                      }}
+                      className="inline-flex h-9 items-center justify-center rounded-full bg-[#2f6ea5] px-5 text-sm font-medium text-white hover:bg-[#255b8b]"
+                    >
+                      Add to order
+                    </button>
                   )}
                 </div>
               </div>

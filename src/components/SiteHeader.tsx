@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { IMAGES } from "@/lib/imagePaths";
+import { loadRxCart, RX_CART_EVENT } from "@/app/services/rx-delivery/ui/rxCart";
+import { loadLabCart, LAB_CART_EVENT } from "@/app/services/labs-at-home/ui/labCart";
 
 const specialties = [
   { name: "Dermatology", slug: "dermatology" },
@@ -36,6 +38,7 @@ export default function SiteHeader() {
   const [specialtyOpen, setSpecialtyOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const loginRef = useRef<HTMLDivElement | null>(null);
   const specialtyRef = useRef<HTMLDivElement | null>(null);
   const servicesRef = useRef<HTMLDivElement | null>(null);
@@ -57,24 +60,73 @@ export default function SiteHeader() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const transparentHeader =
-    isHome ||
-    pathname?.startsWith("/services/rx-delivery") ||
-    pathname?.startsWith("/services/labs-at-home");
+  const isRxRoute = pathname?.startsWith("/services/rx-delivery") ?? false;
+  const isLabsRoute = pathname?.startsWith("/services/labs-at-home") ?? false;
+  const transparentHeader = isHome || pathname === "/services/rx-delivery" || pathname === "/services/labs-at-home";
+  const themedHeader = isRxRoute || isLabsRoute;
+  const cartHref = isRxRoute ? "/services/rx-delivery/review" : "/services/labs-at-home/review";
+
+  const cartLabel = useMemo(() => {
+    if (isRxRoute) return "Cart";
+    if (isLabsRoute) return "Cart";
+    return "";
+  }, [isRxRoute, isLabsRoute]);
+
+  useEffect(() => {
+    if (!isRxRoute && !isLabsRoute) {
+      setCartCount(0);
+      return;
+    }
+
+    const computeCount = () => {
+      if (isRxRoute) {
+        const items = loadRxCart();
+        setCartCount(items.reduce((sum, item) => sum + Math.max(1, item.qty || 0), 0));
+        return;
+      }
+      if (isLabsRoute) {
+        const items = loadLabCart();
+        setCartCount(items.reduce((sum, item) => sum + Math.max(1, item.qty || 0), 0));
+      }
+    };
+
+    computeCount();
+
+    const eventName = isRxRoute ? RX_CART_EVENT : LAB_CART_EVENT;
+    const handler = () => computeCount();
+    window.addEventListener(eventName, handler);
+    window.addEventListener("storage", handler);
+    window.addEventListener("focus", handler);
+    return () => {
+      window.removeEventListener(eventName, handler);
+      window.removeEventListener("storage", handler);
+      window.removeEventListener("focus", handler);
+    };
+  }, [isRxRoute, isLabsRoute]);
   const headerClassName = transparentHeader
     ? "sticky top-0 z-50 border-b border-transparent bg-transparent"
+    : themedHeader
+    ? "sticky top-0 z-50 border-b border-[#e7e0d5] bg-[#f7f2ea]"
     : "sticky top-0 z-50 border-b border-gray-200 bg-white";
   const navLinkClassName = transparentHeader
+    ? "text-sm text-slate-800 hover:text-slate-950"
+    : themedHeader
     ? "text-sm text-slate-800 hover:text-slate-950"
     : "text-sm text-gray-700 hover:text-gray-900";
   const dropdownTriggerClassName = transparentHeader
     ? "inline-flex items-center gap-1 text-sm text-slate-800 hover:text-slate-950"
+    : themedHeader
+    ? "inline-flex items-center gap-1 text-sm text-slate-800 hover:text-slate-950"
     : "inline-flex items-center gap-1 text-sm text-gray-700 hover:text-gray-900";
   const loginButtonClassName = transparentHeader
     ? "inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-800 hover:border-slate-300 hover:text-slate-950"
+    : themedHeader
+    ? "inline-flex items-center gap-1 rounded-full border border-[#e7e0d5] bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:border-[#d7cfc3] hover:text-slate-950"
     : "inline-flex items-center gap-1 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-gray-800 hover:border-blue-400 hover:text-blue-700";
   const mobileToggleClassName = transparentHeader
     ? "inline-flex items-center justify-center rounded-md p-2 text-slate-800 hover:bg-white/40 md:hidden"
+    : themedHeader
+    ? "inline-flex items-center justify-center rounded-md p-2 text-slate-800 hover:bg-white/60 md:hidden"
     : "inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 md:hidden";
 
   return (
@@ -210,6 +262,28 @@ export default function SiteHeader() {
               </div>
             )}
           </div>
+          {(isRxRoute || isLabsRoute) && (
+            <Link
+              href={cartHref}
+              className={`relative inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium ${
+                themedHeader
+                  ? "border-[#e7e0d5] bg-white text-slate-800 hover:border-[#d7cfc3]"
+                  : "border-slate-200 bg-white text-slate-800 hover:border-slate-300"
+              }`}
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <path d="M3 5h2l2 10h10l2-6H7" />
+                <circle cx="9" cy="19" r="1.5" />
+                <circle cx="17" cy="19" r="1.5" />
+              </svg>
+              {cartLabel}
+              {cartCount > 0 && (
+                <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#2f6ea5] px-1 text-[11px] font-semibold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          )}
         </nav>
 
         <button
@@ -265,6 +339,15 @@ export default function SiteHeader() {
                 ))}
               </div>
             </div>
+            {(isRxRoute || isLabsRoute) && (
+              <Link
+                href={cartHref}
+                className="rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setMobileOpen(false)}
+              >
+                Cart{cartCount > 0 ? ` (${cartCount})` : ""}
+              </Link>
+            )}
           </nav>
         </div>
       )}

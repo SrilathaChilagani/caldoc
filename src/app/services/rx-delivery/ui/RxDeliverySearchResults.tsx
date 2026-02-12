@@ -24,6 +24,7 @@ export default function RxDeliverySearchResults({ meds }: Props) {
   const router = useRouter();
   const [cart, setCart] = useState<RxCartItem[]>([]);
   const [draftQty, setDraftQty] = useState<Record<string, number>>({});
+  const [draftVisible, setDraftVisible] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setCart(loadRxCart());
@@ -94,6 +95,7 @@ export default function RxDeliverySearchResults({ meds }: Props) {
             const details = [med.form, med.strength, med.generic].filter(Boolean).join(" • ");
             const isRxOnly = med.category && med.category !== "OTC";
             const cartItem = cartMap.get(normalizeName(med.name));
+            const isDraft = draftVisible[normalizeName(med.name)] && !cartItem;
             return (
               <div key={med.name} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -144,15 +146,15 @@ export default function RxDeliverySearchResults({ meds }: Props) {
                     >
                       Added
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => updateCartItem(med, 0)}
-                      className="text-xs font-semibold text-rose-500 hover:text-rose-600"
-                    >
-                      Remove
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => updateCartItem(med, 0)}
+                        className="text-xs font-semibold text-rose-500 hover:text-rose-600"
+                      >
+                        Remove
+                      </button>
                     </>
-                  ) : (
+                  ) : isDraft ? (
                     <>
                       <div className="inline-flex items-center gap-2 rounded-full border border-[#e7e0d5] bg-white px-2 py-1 text-sm text-slate-700">
                         <span className="text-xs text-slate-500">Qty</span>
@@ -170,12 +172,27 @@ export default function RxDeliverySearchResults({ meds }: Props) {
                       </div>
                       <button
                         type="button"
-                        onClick={() => updateCartItem(med, draftQty[normalizeName(med.name)] ?? 1)}
+                        onClick={() => {
+                          updateCartItem(med, draftQty[normalizeName(med.name)] ?? 1);
+                          setDraftVisible((prev) => ({ ...prev, [normalizeName(med.name)]: false }));
+                        }}
                         className="inline-flex h-9 items-center justify-center rounded-full bg-[#2f6ea5] px-5 text-sm font-medium text-white hover:bg-[#255b8b]"
                       >
                         Add to order
                       </button>
                     </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const key = normalizeName(med.name);
+                        setDraftVisible((prev) => ({ ...prev, [key]: true }));
+                        setDraftQty((prev) => ({ ...prev, [key]: prev[key] ?? 1 }));
+                      }}
+                      className="inline-flex h-9 items-center justify-center rounded-full bg-[#2f6ea5] px-5 text-sm font-medium text-white hover:bg-[#255b8b]"
+                    >
+                      Add to order
+                    </button>
                   )}
                 </div>
               </div>

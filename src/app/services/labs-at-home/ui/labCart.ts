@@ -4,6 +4,7 @@ export type LabCartItem = {
 };
 
 const STORAGE_KEY = "labDeliveryCart";
+export const LAB_CART_EVENT = "lab-cart-updated";
 
 function normalizeItem(item: LabCartItem): LabCartItem | null {
   const name = String(item.name || "").trim();
@@ -29,9 +30,11 @@ export function saveLabCart(items: LabCartItem[]) {
   if (typeof window === "undefined") return;
   const normalized = items.map((item) => normalizeItem(item)).filter(Boolean) as LabCartItem[];
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+  window.dispatchEvent(new Event(LAB_CART_EVENT));
 }
 
 export function clearLabCart() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(STORAGE_KEY);
+  window.dispatchEvent(new Event(LAB_CART_EVENT));
 }

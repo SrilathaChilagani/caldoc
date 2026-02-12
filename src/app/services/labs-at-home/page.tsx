@@ -3,6 +3,7 @@ import LabHomeForm from "./ui/LabHomeForm";
 import { IMAGES } from "@/lib/imagePaths";
 import { LAB_TEST_OPTIONS } from "@/lib/labTests";
 import LabsHeroSearch from "./ui/LabsHeroSearch";
+import LabsPopularTests from "./ui/LabsPopularTests";
 
 const categories = [
   { name: "Blood Tests", icon: "🩸" },
@@ -190,26 +191,7 @@ export default function LabsAtHomePage() {
             <h2 className="font-serif text-3xl lg:text-4xl text-slate-900 mb-3">Popular Tests</h2>
             <p className="text-slate-600 max-w-md mx-auto">Most frequently booked by our customers</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            {popularTests.map((test) => (
-              <div
-                key={test.name}
-                className="rounded-2xl border border-white/40 bg-white/70 p-5 flex items-center justify-between hover:shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] transition-all duration-300"
-              >
-                <div>
-                  <h3 className="font-medium text-slate-900">{test.name}</h3>
-                  <p className="text-xs text-slate-600">{test.category}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="font-semibold text-slate-900">{test.price}</span>
-                    <span className="text-xs text-[#2f6ea5] font-medium">{test.discount}</span>
-                  </div>
-                </div>
-                <button className="rounded-xl bg-[#2f6ea5] hover:bg-[#255b8b] text-white text-sm px-4 py-2">
-                  Book
-                </button>
-              </div>
-            ))}
-          </div>
+          <LabsPopularTests tests={popularTests} />
         </div>
       </section>
 

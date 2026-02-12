@@ -2,6 +2,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/db";
 import RxDeliveryForm from "./ui/RxDeliveryForm";
 import RxDeliveryHeroSearch from "./ui/RxDeliveryHeroSearch";
+import RxPopularMeds from "./ui/RxPopularMeds";
 import { IMAGES } from "@/lib/imagePaths";
 
 export const dynamic = "force-dynamic";
@@ -185,26 +186,7 @@ export default async function RxDeliveryPage({ searchParams }: RxDeliveryPagePro
             <h2 className="font-serif text-3xl lg:text-4xl text-slate-900 mb-3">Popular Medicines</h2>
             <p className="text-slate-600 max-w-md mx-auto">Frequently ordered by our customers</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            {popularMeds.map((med) => (
-              <div
-                key={med.name}
-                className="rounded-2xl border border-white/40 bg-white/70 p-5 flex items-center justify-between hover:shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] transition-all duration-300"
-              >
-                <div>
-                  <h3 className="font-medium text-slate-900">{med.name}</h3>
-                  <p className="text-xs text-slate-600">{med.category}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="font-semibold text-slate-900">{med.price}</span>
-                    <span className="text-xs text-[#2f6ea5] font-medium">{med.discount}</span>
-                  </div>
-                </div>
-                <button className="rounded-xl bg-[#2f6ea5] hover:bg-[#255b8b] text-white text-sm px-4 py-2">
-                  Add
-                </button>
-              </div>
-            ))}
-          </div>
+          <RxPopularMeds meds={popularMeds} />
         </div>
       </section>
 
