@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireAdminSession, readProviderSession } from "@/lib/auth.server";
 
-const DEFAULT_FEE_PAISE = 49900;
+const DEFAULT_FEE_PAISE = 100;
 
 export async function POST(req: NextRequest) {
   const adminSess = await requireAdminSession();

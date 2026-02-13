@@ -42,7 +42,7 @@ model Provider {
   profilePhotoKey    String?
   registrationDocKey String?
   phone              String?
-  defaultFeePaise    Int              @default(49900)
+  defaultFeePaise    Int              @default(100)
   appointments       Appointment[]
   ngoReservations    NgoReservation[]
   users              ProviderUser[]

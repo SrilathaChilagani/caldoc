@@ -6,7 +6,7 @@ import { getErrorMessage } from "@/lib/errors";
 import { notifyProviderOfBooking } from "@/lib/sendProviderBookingNotification";
 import { sendPatientAudioConfirmation } from "@/lib/sendPatientAudioConfirmation";
 
-const DEFAULT_AMOUNT = Number(process.env.CONSULT_FEE_PAISE || 49900);
+const DEFAULT_AMOUNT = Number(process.env.CONSULT_FEE_PAISE || 100);
 
 type CreateAppointmentPayload = {
   providerId?: string;

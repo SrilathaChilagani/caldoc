@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-const DEFAULT_AMOUNT = Number(process.env.CONSULT_FEE_PAISE || 49900);
+const DEFAULT_AMOUNT = Number(process.env.CONSULT_FEE_PAISE || 100);
 
 function basicAuthHeader(key: string, secret: string) {
   const token = Buffer.from(`${key}:${secret}`).toString("base64");
