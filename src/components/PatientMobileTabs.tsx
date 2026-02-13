@@ -16,6 +16,12 @@ export default function PatientMobileTabs() {
       <Link href="/patient/appointments" className={active("/patient/appointments")}>
         Appointments
       </Link>
+      <Link href="/patient/pharmacy" className={active("/patient/pharmacy")}>
+        Pharmacy
+      </Link>
+      <Link href="/patient/labs" className={active("/patient/labs")}>
+        Labs
+      </Link>
 
       <a href="/api/patient/logout" className="text-rose-500 font-medium">
         Sign out

@@ -25,10 +25,6 @@ const serviceLinks = [
 
 const loginLinks = [
   { label: "Patient portal", href: "/patient/login", helper: "View appointments & prescriptions" },
-  { label: "Provider portal", href: "/provider/login", helper: "Manage teleconsultations" },
-  { label: "Admin dashboard", href: "/provider/login?next=/admin", helper: "Ops, slots & onboarding" },
-  { label: "Pharmacy queue", href: "/pharmacy", helper: "Fulfil prescriptions" },
-  { label: "Labs queue", href: "/labs/login?next=/labs", helper: "Manage lab tests" },
 ];
 
 export default function SiteHeader() {

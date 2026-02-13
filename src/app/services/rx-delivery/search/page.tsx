@@ -8,7 +8,12 @@ import BackButton from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = { q?: string | string[]; page?: string | string[]; all?: string | string[] };
+type SearchParams = {
+  q?: string | string[];
+  page?: string | string[];
+  all?: string | string[];
+  category?: string | string[];
+};
 
 type SearchPageProps = {
   searchParams?: SearchParams | Promise<SearchParams>;
@@ -22,11 +27,23 @@ function getQuery(value: string | string[] | undefined) {
 export default async function RxDeliverySearchPage({ searchParams }: SearchPageProps) {
   const resolvedParams = (await searchParams) || {};
   const query = getQuery(resolvedParams.q);
+  const categoryParam = getQuery(resolvedParams.category);
   const pageParam = getQuery(resolvedParams.page);
   const showAll = getQuery(resolvedParams.all) === "1";
   const page = Math.max(1, Number(pageParam) || 1);
   const PAGE_SIZE = 24;
-  const where = query
+  const CATEGORY_KEYWORDS: Record<string, string[]> = {
+    "pain-relief": ["paracetamol", "ibuprofen", "dolo", "crocin", "pain"],
+    vitamins: ["vitamin", "becosules", "calcium", "shelcal"],
+    "skin-care": ["skin", "cream", "ointment"],
+    diabetes: ["diabetes", "insulin", "glucose", "metformin"],
+    "heart-health": ["heart", "cholesterol", "statin", "aspirin"],
+    immunity: ["immunity", "vitamin", "zinc", "cough"],
+    digestive: ["pantoprazole", "domperidone", "pan", "digestive", "acid"],
+    "womens-health": ["women", "pregnancy", "folic", "calcium"],
+  };
+
+  const queryFilter = query
     ? {
         OR: [
           { name: { contains: query, mode: "insensitive" as const } },
@@ -35,7 +52,20 @@ export default async function RxDeliverySearchPage({ searchParams }: SearchPageP
           { strength: { contains: query, mode: "insensitive" as const } },
         ],
       }
-    : {};
+    : null;
+
+  const keywords = CATEGORY_KEYWORDS[categoryParam] || [];
+  const categoryFilter = keywords.length
+    ? {
+        OR: keywords.flatMap((keyword) => [
+          { name: { contains: keyword, mode: "insensitive" as const } },
+          { generic: { contains: keyword, mode: "insensitive" as const } },
+        ]),
+      }
+    : null;
+
+  const where =
+    queryFilter && categoryFilter ? { AND: [queryFilter, categoryFilter] } : queryFilter || categoryFilter || {};
 
   const total = await prisma.medication.count({ where });
   const take = showAll ? 240 : PAGE_SIZE;
@@ -71,7 +101,7 @@ export default async function RxDeliverySearchPage({ searchParams }: SearchPageP
             </p>
           </div>
 
-          <RxDeliverySearchBar initialQuery={query} />
+          <RxDeliverySearchBar initialQuery={query} category={categoryParam} />
         </div>
       </section>
 
@@ -81,11 +111,26 @@ export default async function RxDeliverySearchPage({ searchParams }: SearchPageP
             <h2 className="font-serif text-2xl">
               {query ? "Suggested Products" : "Popular in our catalog"}
             </h2>
-            {query ? (
-              <p className="text-sm text-slate-600">Showing results for “{query}”.</p>
-            ) : (
-              <p className="text-sm text-slate-600">Start typing to see more precise results.</p>
-            )}
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+              {query ? (
+                <span>Showing results for “{query}”.</span>
+              ) : (
+                <span>Start typing to see more precise results.</span>
+              )}
+              {categoryParam && (
+                <>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-[#e7e0d5] bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
+                    {categoryParam.replace(/-/g, " ")}
+                    <Link
+                      href={`/services/rx-delivery/search${query ? `?q=${encodeURIComponent(query)}` : ""}`}
+                      className="text-[#2f6ea5] hover:text-[#255b8b]"
+                    >
+                      Clear
+                    </Link>
+                  </span>
+                </>
+              )}
+            </div>
           </div>
           <span className="text-sm text-slate-500">
             {showAll ? `Showing ${meds.length} of ${total}` : `Showing ${meds.length} of ${total}`}

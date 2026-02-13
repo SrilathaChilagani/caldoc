@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import PatientMobileTabs from "@/components/PatientMobileTabs";
 import PatientBookingModal from "@/components/PatientBookingModal";
+import PatientPortalNav from "@/components/PatientPortalNav";
 
 export const dynamic = "force-dynamic";
 
@@ -212,6 +213,7 @@ export default async function PatientAppointments(props: PageProps) {
           <p className="mt-4 text-sm text-slate-500">
             Review upcoming visits, download receipts, and share documents with your doctor before the call.
           </p>
+          <PatientPortalNav active="appointments" phone={urlPhone || patient.phone} />
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             {summary.map((item) => (
               <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 text-center">

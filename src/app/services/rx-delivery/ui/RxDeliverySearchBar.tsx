@@ -11,9 +11,10 @@ type Suggestion = {
 
 type Props = {
   initialQuery?: string;
+  category?: string;
 };
 
-export default function RxDeliverySearchBar({ initialQuery = "" }: Props) {
+export default function RxDeliverySearchBar({ initialQuery = "", category }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -61,10 +62,16 @@ export default function RxDeliverySearchBar({ initialQuery = "" }: Props) {
   const submitSearch = (value: string) => {
     const q = value.trim();
     if (!q) {
-      router.push("/services/rx-delivery/search");
+      router.push(
+        category
+          ? `/services/rx-delivery/search?category=${encodeURIComponent(category)}`
+          : "/services/rx-delivery/search",
+      );
       return;
     }
-    router.push(`/services/rx-delivery/search?q=${encodeURIComponent(q)}`);
+    const params = new URLSearchParams({ q });
+    if (category) params.set("category", category);
+    router.push(`/services/rx-delivery/search?${params.toString()}`);
   };
 
   return (

@@ -7,7 +7,12 @@ import BackButton from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = { q?: string | string[]; page?: string | string[]; all?: string | string[] };
+type SearchParams = {
+  q?: string | string[];
+  page?: string | string[];
+  all?: string | string[];
+  category?: string | string[];
+};
 
 type SearchPageProps = {
   searchParams?: SearchParams | Promise<SearchParams>;
@@ -18,21 +23,40 @@ function getQuery(value: string | string[] | undefined) {
   return value?.trim() || "";
 }
 
-function filterTests(query: string) {
-  if (!query) return LAB_TEST_OPTIONS;
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  "blood-tests": ["blood", "cbc", "metabolic", "lipid", "hba1c", "thyroid", "vitamin", "urinalysis", "liver", "kidney", "crp", "ferritin", "electrolytes"],
+  imaging: ["imaging", "scan", "ct", "mri"],
+  pathology: ["pathology", "urinalysis", "crp", "ferritin"],
+  ultrasound: ["ultrasound"],
+  ecg: ["ecg"],
+  "x-ray": ["x-ray", "xray"],
+  allergy: ["allergy"],
+  "covid-19": ["covid", "rt-pcr"],
+};
+
+function filterTests(query: string, category: string) {
+  let base = LAB_TEST_OPTIONS;
+  const keywords = CATEGORY_KEYWORDS[category] || [];
+  if (keywords.length) {
+    base = base.filter((test) =>
+      keywords.some((keyword) => test.toLowerCase().includes(keyword)),
+    );
+  }
+  if (!query) return base;
   const lower = query.toLowerCase();
-  return LAB_TEST_OPTIONS.filter((test) => test.toLowerCase().includes(lower));
+  return base.filter((test) => test.toLowerCase().includes(lower));
 }
 
 export default async function LabsAtHomeSearchPage({ searchParams }: SearchPageProps) {
   const resolvedParams = (await searchParams) || {};
   const query = getQuery(resolvedParams.q);
+  const categoryParam = getQuery(resolvedParams.category);
   const pageParam = getQuery(resolvedParams.page);
   const showAll = getQuery(resolvedParams.all) === "1";
   const page = Math.max(1, Number(pageParam) || 1);
   const PAGE_SIZE = 12;
 
-  const filtered = filterTests(query);
+  const filtered = filterTests(query, categoryParam);
   const total = filtered.length;
   const totalPages = showAll ? 1 : Math.max(1, Math.ceil(total / PAGE_SIZE));
   const take = showAll ? 120 : PAGE_SIZE;
@@ -58,7 +82,7 @@ export default async function LabsAtHomeSearchPage({ searchParams }: SearchPageP
             </p>
           </div>
 
-          <LabsSearchBar initialQuery={query} />
+          <LabsSearchBar initialQuery={query} category={categoryParam} />
         </div>
       </section>
 
@@ -66,11 +90,24 @@ export default async function LabsAtHomeSearchPage({ searchParams }: SearchPageP
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-serif text-2xl">{query ? "Suggested Tests" : "Popular tests"}</h2>
-            {query ? (
-              <p className="text-sm text-slate-600">Showing results for “{query}”.</p>
-            ) : (
-              <p className="text-sm text-slate-600">Start typing to see more precise results.</p>
-            )}
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+              {query ? (
+                <span>Showing results for “{query}”.</span>
+              ) : (
+                <span>Start typing to see more precise results.</span>
+              )}
+              {categoryParam && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#e7e0d5] bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
+                  {categoryParam.replace(/-/g, " ")}
+                  <a
+                    href={`/services/labs-at-home/search${query ? `?q=${encodeURIComponent(query)}` : ""}`}
+                    className="text-[#2f6ea5] hover:text-[#255b8b]"
+                  >
+                    Clear
+                  </a>
+                </span>
+              )}
+            </div>
           </div>
           <span className="text-sm text-slate-500">Showing {tests.length} of {total}</span>
         </div>

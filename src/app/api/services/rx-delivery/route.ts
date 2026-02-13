@@ -4,6 +4,24 @@ import { computeRxDeliveryAmount } from "@/lib/rxDeliveryPricing";
 
 type ItemPayload = { name: string; qty: number };
 
+function buildPhoneCandidates(raw: string | undefined | null) {
+  const trimmed = (raw || "").trim();
+  const digits = trimmed.replace(/\D/g, "");
+  const last10 = digits.slice(-10);
+
+  const set = new Set<string>();
+  if (trimmed) set.add(trimmed);
+  if (digits) set.add(digits);
+  if (last10) {
+    set.add(last10);
+    set.add("+91" + last10);
+    set.add("91" + last10);
+    set.add("0" + last10);
+  }
+
+  return { last10, candidates: Array.from(set) };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -62,8 +80,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const { last10, candidates } = buildPhoneCandidates(patientPhone);
+    const patientMatch = await prisma.patient.findFirst({
+      where: {
+        OR: [{ phone: { contains: last10 } }, { phone: { in: candidates } }],
+      },
+      select: { id: true },
+    });
+
     const order = await prisma.rxOrder.create({
       data: {
+        patientId: patientMatch?.id || null,
         patientName,
         patientPhone,
         patientEmail: body?.patientEmail ? String(body.patientEmail) : null,

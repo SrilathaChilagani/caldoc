@@ -23,6 +23,7 @@ model Patient {
   PatientLoginOtp PatientLoginOtp[]
   otps            PatientOtp[]
   labOrders       LabOrder[]
+  rxOrders        RxOrder[]
 }
 
 model Provider {
@@ -363,6 +364,7 @@ model PharmacyUser {
 
 model RxOrder {
   id           String   @id @default(cuid())
+  patientId    String?
   patientName  String
   patientPhone String
   patientEmail String?
@@ -379,6 +381,9 @@ model RxOrder {
   payment      Payment? @relation("RxOrderPayment")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  patient      Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  @@index([patientId])
 }
 
 model OfflineRequest {

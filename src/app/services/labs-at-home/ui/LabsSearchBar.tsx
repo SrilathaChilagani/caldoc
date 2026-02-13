@@ -9,9 +9,10 @@ type Suggestion = {
 
 type Props = {
   initialQuery?: string;
+  category?: string;
 };
 
-export default function LabsSearchBar({ initialQuery = "" }: Props) {
+export default function LabsSearchBar({ initialQuery = "", category }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -58,10 +59,16 @@ export default function LabsSearchBar({ initialQuery = "" }: Props) {
   const submitSearch = (value: string) => {
     const q = value.trim();
     if (!q) {
-      router.push("/services/labs-at-home/search");
+      router.push(
+        category
+          ? `/services/labs-at-home/search?category=${encodeURIComponent(category)}`
+          : "/services/labs-at-home/search",
+      );
       return;
     }
-    router.push(`/services/labs-at-home/search?q=${encodeURIComponent(q)}`);
+    const params = new URLSearchParams({ q });
+    if (category) params.set("category", category);
+    router.push(`/services/labs-at-home/search?${params.toString()}`);
   };
 
   return (

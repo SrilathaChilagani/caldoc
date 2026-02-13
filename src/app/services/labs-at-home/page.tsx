@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import LabHomeForm from "./ui/LabHomeForm";
 import { IMAGES } from "@/lib/imagePaths";
 import { LAB_TEST_OPTIONS } from "@/lib/labTests";
@@ -6,14 +7,14 @@ import LabsHeroSearch from "./ui/LabsHeroSearch";
 import LabsPopularTests from "./ui/LabsPopularTests";
 
 const categories = [
-  { name: "Blood Tests", icon: "🩸" },
-  { name: "Imaging", icon: "📸" },
-  { name: "Pathology", icon: "🔬" },
-  { name: "Ultrasound", icon: "📡" },
-  { name: "ECG", icon: "❤️" },
-  { name: "X-Ray", icon: "☢️" },
-  { name: "Allergy Tests", icon: "🌡️" },
-  { name: "COVID-19", icon: "🦠" },
+  { name: "Blood Tests", slug: "blood-tests", icon: "🩸" },
+  { name: "Imaging", slug: "imaging", icon: "📸" },
+  { name: "Pathology", slug: "pathology", icon: "🔬" },
+  { name: "Ultrasound", slug: "ultrasound", icon: "📡" },
+  { name: "ECG", slug: "ecg", icon: "❤️" },
+  { name: "X-Ray", slug: "x-ray", icon: "☢️" },
+  { name: "Allergy Tests", slug: "allergy", icon: "🌡️" },
+  { name: "COVID-19", slug: "covid-19", icon: "🦠" },
 ];
 
 const features = [
@@ -118,20 +119,6 @@ export default function LabsAtHomePage() {
               </span>
             </div>
 
-            <div className="flex gap-3 mt-6">
-              <a
-                href="#order"
-                className="inline-flex items-center gap-2 rounded-xl h-11 px-8 border border-[#e7e0d5] bg-white/70 hover:bg-white font-medium"
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M12 16V4" />
-                  <path d="m7 9 5-5 5 5" />
-                  <rect x="4" y="16" width="16" height="4" rx="2" />
-                </svg>
-                Upload Prescription
-              </a>
-            </div>
-
             <a
               href="#categories"
               className="hidden lg:inline-flex items-center gap-2 text-slate-600 hover:text-[#2f6ea5] transition-colors cursor-pointer mt-10"
@@ -173,13 +160,19 @@ export default function LabsAtHomePage() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 max-w-3xl mx-auto">
             {categories.map((cat) => (
-              <button
-                key={cat.name}
+              <Link
+                key={cat.slug}
+                href={`/services/labs-at-home/search?category=${encodeURIComponent(cat.slug)}`}
                 className="rounded-2xl border border-white/40 bg-white/70 p-5 text-center hover:shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] transition-all duration-300"
               >
-                <span className="text-3xl mb-2 block">{cat.icon}</span>
+                <span
+                  className="text-3xl leading-none mb-2 block select-none"
+                  style={{ fontFamily: "Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji" }}
+                >
+                  {cat.icon}
+                </span>
                 <span className="text-sm font-medium text-slate-900">{cat.name}</span>
-              </button>
+              </Link>
             ))}
           </div>
         </div>
@@ -192,26 +185,6 @@ export default function LabsAtHomePage() {
             <p className="text-slate-600 max-w-md mx-auto">Most frequently booked by our customers</p>
           </div>
           <LabsPopularTests tests={popularTests} />
-        </div>
-      </section>
-
-      <section className="py-24 lg:py-32 bg-[#2f6ea5] text-white">
-        <div className="container mx-auto px-6 lg:px-12 text-center">
-          <h2 className="font-serif text-3xl lg:text-4xl mb-4">Have a Doctor's Prescription?</h2>
-          <p className="text-white/70 max-w-xl mx-auto mb-8">
-            Upload your prescription and we'll arrange a free home collection and testing.
-          </p>
-          <a
-            href="#order"
-            className="inline-flex items-center gap-2 rounded-xl h-12 px-10 border border-white/30 text-white bg-white/10 hover:bg-white/20 font-medium"
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M12 16V4" />
-              <path d="m7 9 5-5 5 5" />
-              <rect x="4" y="16" width="16" height="4" rx="2" />
-            </svg>
-            Upload Prescription
-          </a>
         </div>
       </section>
 
