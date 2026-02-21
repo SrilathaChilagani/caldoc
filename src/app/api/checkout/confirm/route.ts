@@ -4,6 +4,15 @@ import { prisma } from "@/lib/db";
 import { notifyProviderOfBooking } from "@/lib/sendProviderBookingNotification";
 import { sendPatientAudioConfirmation } from "@/lib/sendPatientAudioConfirmation";
 import { getErrorMessage } from "@/lib/errors";
+import { ensureVideoRoomIfNeeded } from "@/lib/videoLinkHelpers";
+
+function appBaseUrl() {
+  return (
+    process.env.APP_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "http://localhost:3000"
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,6 +45,7 @@ export async function POST(req: NextRequest) {
         providerId: true,
         slotId: true,
         visitMode: true,
+        videoRoom: true,
         patientName: true,
         patient: { select: { name: true, phone: true } },
         provider: { select: { name: true, phone: true } },
@@ -119,6 +129,20 @@ export async function POST(req: NextRequest) {
         providerName: appointment.provider?.name || "Doctor",
         slotStartsAt: appointment.slot.startsAt,
       }).catch((err) => console.error("patient audio notify error", err));
+    }
+
+    if (appointment.visitMode !== "AUDIO") {
+      const baseUrl = appBaseUrl();
+      ensureVideoRoomIfNeeded(
+        appointment.id,
+        {
+          visitMode: appointment.visitMode,
+          videoRoom: appointment.videoRoom,
+          slotStartsAt: appointment.slot?.startsAt ?? null,
+          forceImmediate: true,
+        },
+        baseUrl,
+      ).catch((err) => console.error("video room ensure error", err));
     }
 
     return NextResponse.json({ ok: true });

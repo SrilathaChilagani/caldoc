@@ -146,7 +146,7 @@ export default async function VisitPage({ params, searchParams }: Props) {
               </a>
             ) : (
               <span className="text-sm text-slate-500">
-                Preparing your video room… you&apos;ll receive the link as soon as your doctor confirms.
+                Preparing your video room… you&apos;ll receive the link as soon as payment is confirmed.
               </span>
             )}
             <Link

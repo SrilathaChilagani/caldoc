@@ -73,7 +73,7 @@ export default async function RxDeliveryPage({ searchParams }: RxDeliveryPagePro
 
   return (
     <main className="bg-[#f7f2ea] text-slate-900">
-      <section className="relative -mt-16 min-h-[110vh]">
+      <section className="relative min-h-[110vh] -mt-16">
         <div className="absolute inset-0">
           <Image
             src={IMAGES.HERO_PHARMACY}
@@ -86,7 +86,7 @@ export default async function RxDeliveryPage({ searchParams }: RxDeliveryPagePro
           <div className="absolute inset-0 bg-gradient-to-r from-[#f7f2ea]/80 via-[#f7f2ea]/40 to-transparent" />
         </div>
 
-        <div className="container relative mx-auto px-6 lg:px-12 py-32">
+        <div className="container relative mx-auto px-6 lg:px-12 pt-32 pb-32">
           <div className="max-w-2xl">
             <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl leading-tight mb-4">
               Your medicines,
@@ -161,7 +161,7 @@ export default async function RxDeliveryPage({ searchParams }: RxDeliveryPagePro
                 className="rounded-2xl border border-white/40 bg-white/70 p-5 text-center hover:shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] transition-all duration-300"
               >
                 <span
-                  className="text-3xl leading-none mb-2 block select-none"
+                  className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90 text-2xl leading-none shadow-sm"
                   style={{ fontFamily: "Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji" }}
                 >
                   {cat.icon}

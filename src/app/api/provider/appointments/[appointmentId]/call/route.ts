@@ -4,6 +4,9 @@ import { readProviderSession, requireAdminSession } from "@/lib/auth.server";
 import { initiateAudioBridge } from "@/lib/exotel";
 import { getErrorMessage } from "@/lib/errors";
 
+const AUDIO_CALL_BEFORE_MS = 10 * 60 * 1000;
+const AUDIO_CALL_AFTER_MS = 30 * 60 * 1000;
+
 type RouteContext = {
   params: Promise<{ appointmentId: string }>;
 };
@@ -36,6 +39,19 @@ export async function POST(_req: Request, context: RouteContext) {
 
   if (appointment.visitMode !== "AUDIO") {
     return NextResponse.json({ error: "Click-to-call is only available for audio appointments." }, { status: 400 });
+  }
+
+  const slotStart = appointment.slot?.startsAt?.getTime();
+  if (!slotStart) {
+    return NextResponse.json({ error: "Missing appointment time for audio call window." }, { status: 400 });
+  }
+
+  const now = Date.now();
+  if (now < slotStart - AUDIO_CALL_BEFORE_MS || now > slotStart + AUDIO_CALL_AFTER_MS) {
+    return NextResponse.json(
+      { error: "Audio calling is only enabled 10 minutes before and 30 minutes after the appointment time." },
+      { status: 400 }
+    );
   }
 
   const patientPhone = appointment.patient?.phone;

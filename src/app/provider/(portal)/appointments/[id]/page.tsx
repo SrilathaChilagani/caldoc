@@ -238,7 +238,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
             ) : (
               <div className="space-y-2">
                 <dd className="text-sm text-slate-600">
-                  We&apos;ll auto-generate a Daily room as soon as the appointment is confirmed.
+                  We&apos;ll auto-generate a Daily room as soon as payment is confirmed.
                 </dd>
                 <Link
                   href={`/visit/${appointment.id}?from=provider`}
