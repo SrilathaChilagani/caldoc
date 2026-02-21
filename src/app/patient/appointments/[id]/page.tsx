@@ -91,7 +91,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
                 Stay near your phone. The doctor will call the registered number at the scheduled time.
               </p>
             )}
-            {appointment.videoRoom && appointment.status === "CONFIRMED" && (
+            {appointment.videoRoom && (
               <a
                 href={appointment.videoRoom}
                 target="_blank"

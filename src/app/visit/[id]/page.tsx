@@ -131,7 +131,7 @@ export default async function VisitPage({ params, searchParams }: Props) {
                 {patientPhoneDisplay ? <strong>{patientPhoneDisplay}</strong> : "the phone number you provided"} around
                 the scheduled time. We&apos;ll remind you shortly before the appointment.
               </span>
-            ) : appt.status === "CONFIRMED" && appt.videoRoom ? (
+            ) : appt.videoRoom ? (
               <a
                 href={
                   fromParam
