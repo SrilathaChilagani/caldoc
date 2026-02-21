@@ -64,7 +64,7 @@ export default async function VisitPage({ params, searchParams }: Props) {
     councilName: appt.provider?.councilName || "Not provided",
   };
 
-  let videoRoom = appt.videoRoom;
+  let videoRoom: string | null | undefined = appt.videoRoom;
   if (
     !videoRoom &&
     appt.visitMode !== "AUDIO" &&
