@@ -1,5 +1,6 @@
 // src/app/visit/[id]/page.tsx
 import { prisma } from "@/lib/db";
+import { ensureVideoRoomIfNeeded } from "@/lib/videoLinkHelpers";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,14 @@ function fmtIST(d: Date) {
   });
 }
 
+function appBaseUrl() {
+  return (
+    process.env.APP_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "http://localhost:3000"
+  );
+}
+
 export default async function VisitPage({ params, searchParams }: Props) {
   const { id } = await params;
   const sp = (await searchParams) ?? {};
@@ -34,6 +43,7 @@ export default async function VisitPage({ params, searchParams }: Props) {
       provider: true,
       patient: true,
       slot: { select: { startsAt: true } },
+      payment: { select: { status: true } },
     },
   });
 
@@ -53,6 +63,28 @@ export default async function VisitPage({ params, searchParams }: Props) {
     registrationNumber: appt.provider?.registrationNumber || "Not provided",
     councilName: appt.provider?.councilName || "Not provided",
   };
+
+  let videoRoom = appt.videoRoom;
+  if (
+    !videoRoom &&
+    appt.visitMode !== "AUDIO" &&
+    appt.payment?.status === "CAPTURED"
+  ) {
+    try {
+      videoRoom = await ensureVideoRoomIfNeeded(
+        appt.id,
+        {
+          visitMode: appt.visitMode,
+          videoRoom: appt.videoRoom,
+          slotStartsAt: appt.slot?.startsAt ?? null,
+          forceImmediate: true,
+        },
+        appBaseUrl(),
+      );
+    } catch (err) {
+      console.error("visit page video room ensure error", err);
+    }
+  }
 
   const patientPortalHref =
     appt.patient?.phone
@@ -131,12 +163,12 @@ export default async function VisitPage({ params, searchParams }: Props) {
                 {patientPhoneDisplay ? <strong>{patientPhoneDisplay}</strong> : "the phone number you provided"} around
                 the scheduled time. We&apos;ll remind you shortly before the appointment.
               </span>
-            ) : appt.videoRoom ? (
+            ) : videoRoom ? (
               <a
                 href={
                   fromParam
-                    ? `${appt.videoRoom}${appt.videoRoom.includes("?") ? "&" : "?"}from=provider`
-                    : appt.videoRoom
+                    ? `${videoRoom}${videoRoom.includes("?") ? "&" : "?"}from=provider`
+                    : videoRoom
                 }
                 target="_blank"
                 rel="noreferrer"

@@ -133,16 +133,20 @@ export async function POST(req: NextRequest) {
 
     if (appointment.visitMode !== "AUDIO") {
       const baseUrl = appBaseUrl();
-      ensureVideoRoomIfNeeded(
-        appointment.id,
-        {
-          visitMode: appointment.visitMode,
-          videoRoom: appointment.videoRoom,
-          slotStartsAt: appointment.slot?.startsAt ?? null,
-          forceImmediate: true,
-        },
-        baseUrl,
-      ).catch((err) => console.error("video room ensure error", err));
+      try {
+        await ensureVideoRoomIfNeeded(
+          appointment.id,
+          {
+            visitMode: appointment.visitMode,
+            videoRoom: appointment.videoRoom,
+            slotStartsAt: appointment.slot?.startsAt ?? null,
+            forceImmediate: true,
+          },
+          baseUrl,
+        );
+      } catch (err) {
+        console.error("video room ensure error", err);
+      }
     }
 
     return NextResponse.json({ ok: true });
