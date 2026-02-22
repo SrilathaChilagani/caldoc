@@ -223,6 +223,27 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
   }
 
   function handleDeliveryContinue() {
+    if (deliveryOpt === "DELIVERY") {
+      const { contactName, contactPhone, line1, city, state, postalCode } = address;
+      if (
+        !contactName.trim() ||
+        !contactPhone.trim() ||
+        !line1.trim() ||
+        !city.trim() ||
+        !state.trim() ||
+        !postalCode.trim()
+      ) {
+        setError(
+          "Please fill in all required delivery fields: contact name, phone, address line 1, city, state, and PIN code."
+        );
+        return;
+      }
+      if (!/^\d{6}$/.test(postalCode.trim())) {
+        setError("Please enter a valid 6-digit PIN code.");
+        return;
+      }
+    }
+    setError(null);
     setStep("pay");
   }
 
@@ -566,11 +587,13 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
               </label>
             </div>
 
+            {error && <p className="text-sm text-rose-600">{error}</p>}
+
             <div className="flex items-center justify-between">
               <button
                 type="button"
                 className="text-sm font-medium text-slate-500 hover:text-slate-700"
-                onClick={() => handleBack("slot")}
+                onClick={() => { setError(null); handleBack("slot"); }}
               >
                 ← Back to slots
               </button>

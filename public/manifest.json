@@ -1,0 +1,44 @@
+{
+  "name": "CalDoc - Virtual Healthcare",
+  "short_name": "CalDoc",
+  "description": "Telemedicine consultations, lab tests at home, and pharmacy delivery",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F8FAFF",
+  "theme_color": "#0F62FE",
+  "categories": ["health", "medical"],
+  "icons": [
+    {
+      "src": "/pwa-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Patient Portal",
+      "url": "/patient/appointments",
+      "description": "View your appointments"
+    },
+    {
+      "name": "Book Appointment",
+      "url": "/book",
+      "description": "Book a new consultation"
+    }
+  ]
+}

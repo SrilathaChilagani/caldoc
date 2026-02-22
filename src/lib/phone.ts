@@ -7,24 +7,32 @@ export type PatientPhoneMeta = {
 
 export function buildPatientPhoneMeta(raw: string): PatientPhoneMeta | null {
   const digits = (raw || "").replace(/\D/g, "");
-  const last10 = digits.slice(-10);
-  if (!last10) return null;
 
-  const canonical = canonicalIndiaPhone(digits, last10);
+  // Strict Indian mobile validation.
+  // Accepted formats → normalised last-10:
+  //   XXXXXXXXXX      (10 digits, must start 6–9)
+  //   0XXXXXXXXXX     (11 digits with leading 0)
+  //   91XXXXXXXXXX    (12 digits with country code)
+  // Indian mobile numbers always start with 6, 7, 8 or 9.
+  let last10: string;
+  if (digits.length === 10 && /^[6-9]/.test(digits)) {
+    last10 = digits;
+  } else if (digits.length === 11 && digits.startsWith("0") && /^[6-9]/.test(digits.slice(1))) {
+    last10 = digits.slice(1);
+  } else if (digits.length === 12 && digits.startsWith("91") && /^[6-9]/.test(digits.slice(2))) {
+    last10 = digits.slice(2);
+  } else {
+    // Reject anything else (too short, too long, or non-Indian prefix)
+    return null;
+  }
+
+  const canonical = `+91${last10}`;
   return {
     canonical,
     digits,
     last10,
     masked: maskFromLast10(last10),
   };
-}
-
-function canonicalIndiaPhone(digits: string, last10: string) {
-  if (digits.startsWith("91") && digits.length === 12) return `+${digits}`;
-  if (digits.startsWith("0") && digits.length === 11) return `+91${digits.slice(1)}`;
-  if (digits.length === 10) return `+91${digits}`;
-  if (digits.length >= 6 && digits.length <= 15) return `+${digits}`;
-  return `+91${last10}`;
 }
 
 function maskFromLast10(last10: string) {

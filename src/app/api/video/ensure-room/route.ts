@@ -76,8 +76,13 @@ export async function POST(req: Request) {
     }
 
     if (!roomUrl) {
-      const origin = req.headers.get("origin") || new URL(req.url).origin;
-      roomUrl = `${origin}/room/${appointmentId}`;
+      // Use the trusted server-side base URL — never use the request Origin header
+      // as it can be spoofed, causing video room links to point to attacker domains.
+      const baseUrl =
+        process.env.APP_BASE_URL ||
+        process.env.NEXT_PUBLIC_APP_URL ||
+        "https://www.caldoc.in";
+      roomUrl = `${baseUrl}/room/${appointmentId}`;
       await prisma.appointment.update({
         where: { id: appointmentId },
         data: { videoRoom: roomUrl },

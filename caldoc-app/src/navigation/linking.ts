@@ -2,9 +2,16 @@ import * as Linking from 'expo-linking';
 
 const config = {
   screens: {
+    Web:   'web',
     Login: 'login',
-    Dashboard: 'dashboard',
-    Web: 'web',
+    Main: {
+      screens: {
+        Appointments: 'appointments',
+        Labs:         'labs',
+        Pharmacy:     'pharmacy',
+        Profile:      'profile',
+      },
+    },
     Visit: 'visit/:appointmentId',
   },
 };

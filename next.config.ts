@@ -35,8 +35,19 @@ const nextConfig: NextConfig = {
               // images (logos from gateways + Next.js image optimization)
               "img-src 'self' data: blob: https://*.daily.co https://checkout.razorpay.com https://*.razorpay.com; " +
               // styles
-              "style-src 'self' 'unsafe-inline';",
+              "style-src 'self' 'unsafe-inline'; " +
+              // service worker (PWA)
+              "worker-src 'self';",
           },
+        ],
+      },
+      // Allow service worker to be served with correct headers
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
         ],
       },
     ];

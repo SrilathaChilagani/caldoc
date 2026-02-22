@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-const DEFAULT_AMOUNT = Number(process.env.CONSULT_FEE_PAISE || 100);
-
 function basicAuthHeader(key: string, secret: string) {
   const token = Buffer.from(`${key}:${secret}`).toString("base64");
   return `Basic ${token}`;
@@ -12,7 +10,6 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const appointmentId: string = body?.appointmentId;
-    let amount: number = Number(body?.amount);
 
     if (!appointmentId) {
       return NextResponse.json({ error: "Missing appointmentId" }, { status: 400 });
@@ -22,6 +19,7 @@ export async function POST(req: NextRequest) {
       where: { id: appointmentId },
       select: {
         feePaise: true,
+        status: true,
         patientName: true,
         patient: {
           select: {
@@ -36,12 +34,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     }
 
-    if (!amount || Number.isNaN(amount)) {
-      amount = appointment.feePaise ?? DEFAULT_AMOUNT;
+    // Block if appointment is already confirmed/completed
+    if (appointment.status === "CONFIRMED" || appointment.status === "COMPLETED") {
+      return NextResponse.json(
+        { error: "This appointment has already been paid for." },
+        { status: 409 }
+      );
     }
 
-    if (!amount || Number.isNaN(amount) || amount <= 0) {
-      amount = DEFAULT_AMOUNT;
+    // Idempotency guard — block if a captured payment already exists
+    const existingPayment = await prisma.payment.findUnique({
+      where: { appointmentId },
+      select: { status: true },
+    });
+    if (existingPayment?.status === "CAPTURED") {
+      return NextResponse.json(
+        { error: "Payment already completed for this appointment." },
+        { status: 409 }
+      );
+    }
+
+    // Fee must be explicitly set — no silent fallback to ₹1
+    const amount = appointment.feePaise;
+    if (!amount || amount <= 0) {
+      return NextResponse.json(
+        { error: "Consultation fee not configured for this appointment. Please contact support." },
+        { status: 400 }
+      );
     }
 
     const key = process.env.RZP_KEY;
