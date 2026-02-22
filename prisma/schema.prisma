@@ -61,6 +61,7 @@ model Slot {
   provider        Provider         @relation(fields: [providerId], references: [id])
 
   @@unique([providerId, startsAt])
+  @@index([providerId, isBooked, startsAt])
 }
 
 model Appointment {
@@ -102,6 +103,10 @@ model Appointment {
   prescription            Prescription?
   visitNote               VisitNote?
   labOrders               LabOrder[]
+
+  @@index([providerId, createdAt])
+  @@index([patientId, createdAt])
+  @@index([status])
 }
 
 model Payment {
@@ -121,6 +126,8 @@ model Payment {
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])
   rxOrder       RxOrder?     @relation("RxOrderPayment", fields: [rxOrderId], references: [id])
   labOrder      LabOrder?    @relation("LabOrderPayment", fields: [labOrderId], references: [id])
+
+  @@index([status])
 }
 
 model PatientAddress {

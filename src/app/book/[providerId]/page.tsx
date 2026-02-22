@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { getProviderBySlugOrId } from "@/lib/provider";
 import BookClient from "./ui/BookClient";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +46,28 @@ export default async function BookPage({ params, searchParams }: PageProps) {
 
   const initialSlotId = getInitialSlotId(await searchParams);
 
-  const provider = await getProviderBySlugOrId(providerId);
+  // Single query: fetch provider + available slots together to avoid two round-trips.
+  const now = new Date();
+  const provider = await prisma.provider.findFirst({
+    where: { OR: [{ id: providerId }, { slug: providerId }] },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      speciality: true,
+      qualification: true,
+      registrationNumber: true,
+      councilName: true,
+      defaultFeePaise: true,
+      slots: {
+        where: { isBooked: false, startsAt: { gte: now } },
+        orderBy: { startsAt: "asc" },
+        take: 18,
+        select: { id: true, startsAt: true, feePaise: true },
+      },
+    },
+  });
+
   if (!provider) {
     return (
       <main className="mx-auto max-w-3xl p-8">
@@ -58,18 +78,6 @@ export default async function BookPage({ params, searchParams }: PageProps) {
       </main>
     );
   }
-
-  const now = new Date();
-  const slots = await prisma.slot.findMany({
-    where: {
-      providerId: provider.id,
-      isBooked: false,
-      startsAt: { gte: now },
-    },
-    orderBy: { startsAt: "asc" },
-    take: 18,
-    select: { id: true, startsAt: true, feePaise: true },
-  });
 
   return (
     <main className="min-h-[calc(100vh-120px)] bg-[#f7f9fc] py-10">
@@ -84,7 +92,7 @@ export default async function BookPage({ params, searchParams }: PageProps) {
             councilName: provider.councilName,
             defaultFeePaise: provider.defaultFeePaise,
           }}
-          slots={slots.map((s) => ({
+          slots={provider.slots.map((s) => ({
             id: s.id,
             startsAt: s.startsAt.toISOString(),
             feePaise: s.feePaise ?? undefined,

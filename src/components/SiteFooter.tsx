@@ -11,7 +11,7 @@ export default function SiteFooter() {
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/80">
-                <Image src={IMAGES.LOGO_MARK} alt="CalDoc icon" width={36} height={36} priority />
+                <Image src={IMAGES.LOGO_MARK} alt="CalDoc icon" width={36} height={36} />
               </div>
               <Image
                 src={IMAGES.COMPANY_NAME}
@@ -19,7 +19,6 @@ export default function SiteFooter() {
                 width={120}
                 height={28}
                 className="object-contain"
-                priority
               />
             </div>
             <p className="text-sm text-gray-600">

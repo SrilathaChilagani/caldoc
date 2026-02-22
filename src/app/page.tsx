@@ -5,7 +5,7 @@ import OfflineRequestForm from "@/components/OfflineRequestForm";
 import { prisma } from "@/lib/db";
 import { IMAGES } from "@/lib/imagePaths";
 
-export const revalidate = 86400;
+export const revalidate = 3600;
 
 const specialties = [
   { name: "Dermatology", slug: "dermatology", img: IMAGES.SPEC_DERM },
@@ -280,7 +280,6 @@ export default async function Home() {
                     fill
                     className="object-cover transition group-hover:scale-105"
                     sizes="(min-width: 768px) 160px, 45vw"
-                    priority
                   />
                 </div>
                 <div className="mt-3 text-center text-sm font-medium text-slate-800">{s.name}</div>

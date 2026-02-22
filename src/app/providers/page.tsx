@@ -1,11 +1,24 @@
 import Link from "next/link";
 import Image from "next/image";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { FiltersPanel } from "./FiltersPanel";
 import { IMAGES } from "@/lib/imagePaths";
 
 export const dynamic = "force-dynamic";
+
+// Specialty list changes rarely — cache it for 5 minutes to avoid a DB round-trip on every request.
+const getCachedSpecialties = unstable_cache(
+  () =>
+    prisma.provider.findMany({
+      select: { speciality: true },
+      distinct: ["speciality"],
+      orderBy: { speciality: "asc" },
+    }),
+  ["provider-specialties"],
+  { revalidate: 300 }
+);
 
 const languageLabels: Record<string, string> = {
   en: "English",
@@ -253,11 +266,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
         },
       },
     }),
-    prisma.provider.findMany({
-      select: { speciality: true },
-      distinct: ["speciality"],
-      orderBy: { speciality: "asc" },
-    }),
+    getCachedSpecialties(),
   ]);
 
   const filteredProviders = providers.filter((provider) => {
@@ -359,10 +368,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
               </div>
             ) : (
               filteredProviders.map((provider) => {
-                const sortedSlots = [...provider.slots].sort(
-                  (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
-                );
-                const displayedSlots = sortedSlots.slice(0, 3);
+                const displayedSlots = provider.slots.slice(0, 3);
                 const feeLabel = formatFee(provider.defaultFeePaise);
                 const meta = deriveMeta(provider.slug);
                 const photoToken = provider.profilePhotoKey
