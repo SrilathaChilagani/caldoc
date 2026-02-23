@@ -5,9 +5,19 @@ type RouteCtx = {
   params: Promise<{ orderId: string }>;
 };
 
-export async function GET(_req: NextRequest, { params }: RouteCtx) {
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export async function GET(req: NextRequest, { params }: RouteCtx) {
   try {
     const { orderId } = await params;
+    const download = req.nextUrl.searchParams.get("download") === "1";
     const payment = await prisma.payment.findUnique({
       where: { orderId },
       include: {
@@ -36,6 +46,7 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
       minute: "2-digit",
       hour12: true,
     });
+    const downloadHref = `/api/payments/${encodeURIComponent(orderId)}/receipt?download=1`;
 
     const html = `<!DOCTYPE html>
       <html lang="en">
@@ -48,19 +59,31 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
           h1 { margin-top:0; font-size:24px; color:#0f172a; }
           .row { margin:8px 0; font-size:14px; color:#334155; }
           .label { font-weight:600; color:#0f172a; }
+          .actions { max-width:640px; margin:0 auto 12px; display:flex; gap:10px; justify-content:flex-end; }
+          .btn { border:1px solid #cbd5e1; background:#fff; color:#0f172a; padding:8px 12px; border-radius:999px; font-size:14px; font-weight:600; cursor:pointer; text-decoration:none; }
+          .btn.primary { background:#0f172a; border-color:#0f172a; color:#fff; }
+          @media print {
+            body { padding:0; background:#fff; }
+            .actions { display:none !important; }
+            .card { box-shadow:none; border-radius:0; max-width:none; }
+          }
         </style>
       </head>
       <body>
+        <div class="actions">
+          <a class="btn" href="${downloadHref}">Download</a>
+          <button class="btn primary" type="button" onclick="window.print()">Print</button>
+        </div>
         <div class="card">
           <h1>CalDoc Receipt</h1>
-          <div class="row"><span class="label">Order ID:</span> ${payment.orderId}</div>
-          <div class="row"><span class="label">Appointment:</span> ${appt.id}</div>
+          <div class="row"><span class="label">Order ID:</span> ${escapeHtml(payment.orderId)}</div>
+          <div class="row"><span class="label">Appointment:</span> ${escapeHtml(appt.id)}</div>
           <div class="row"><span class="label">Amount:</span> ₹${(payment.amount / 100).toFixed(2)}</div>
-          <div class="row"><span class="label">Status:</span> ${payment.status}</div>
-          <div class="row"><span class="label">Provider:</span> ${appt.provider?.name ?? "—"}</div>
-          <div class="row"><span class="label">Patient:</span> ${appt.patientName || appt.patient?.name || "—"}</div>
-          <div class="row"><span class="label">Scheduled:</span> ${whenText} IST</div>
-          <div class="row"><span class="label">Generated:</span> ${new Date(payment.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</div>
+          <div class="row"><span class="label">Status:</span> ${escapeHtml(payment.status)}</div>
+          <div class="row"><span class="label">Provider:</span> ${escapeHtml(appt.provider?.name ?? "—")}</div>
+          <div class="row"><span class="label">Patient:</span> ${escapeHtml(appt.patientName || appt.patient?.name || "—")}</div>
+          <div class="row"><span class="label">Scheduled:</span> ${escapeHtml(whenText)} IST</div>
+          <div class="row"><span class="label">Generated:</span> ${escapeHtml(new Date(payment.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }))}</div>
         </div>
       </body>
       </html>`;
@@ -70,6 +93,9 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "no-store",
+        ...(download
+          ? { "Content-Disposition": `attachment; filename="caldoc-receipt-${payment.orderId}.html"` }
+          : {}),
       },
     });
   } catch (err) {
