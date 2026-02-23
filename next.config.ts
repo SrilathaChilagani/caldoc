@@ -13,8 +13,8 @@ const nextConfig: NextConfig = {
     ],
     // Support common image formats
     formats: ['image/avif', 'image/webp'],
-    // Ensure images load reliably with proper caching
-    minimumCacheTTL: 60,
+    // Cache optimized image variants longer to reduce repeated image processing.
+    minimumCacheTTL: 86400,
   },
   async headers() {
     return [

@@ -67,7 +67,7 @@ export const IMAGES = {
   COMPANY_NAME: '/images/company-name.png',
   
   // Provider images
-  DOC_PLACEHOLDER: '/images/doc.jpg',
+  DOC_PLACEHOLDER: '/images/doc-optimized.jpg',
   
   // Specialty images
   SPEC_DERM: '/images/spec-derm.jpg',
@@ -78,7 +78,7 @@ export const IMAGES = {
   SPEC_PSYCH: '/images/spec-psych.jpg',
   
   // Other images
-  HOMEPAGE: '/images/Homepage.jpg',
+  HOMEPAGE: '/images/Homepage-optimized.jpg',
   HERO_DOCTOR: '/images/hero-doctor.jpg',
   HERO_PHARMACY: '/images/hero-pharmacy.jpg',
   HERO_LABS: '/images/hero-labs.jpg',

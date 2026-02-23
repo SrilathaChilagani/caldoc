@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Prisma } from "@prisma/client";
 import { readProviderSession } from "@/lib/auth.server";
 import ProviderScheduleModal from "@/components/ProviderScheduleModal";
+import { IMAGES } from "@/lib/imagePaths";
 
 export const dynamic = "force-dynamic";
 
@@ -226,7 +227,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
   const photoToken = provider?.profilePhotoKey ? encodeURIComponent(provider.profilePhotoKey) : null;
   const photoUrl = photoToken
     ? `/api/providers/${provider?.slug}/photo?v=${photoToken}`
-    : "/images/doc.jpg";
+    : IMAGES.DOC_PLACEHOLDER;
 
   return (
     <div className="space-y-8">
