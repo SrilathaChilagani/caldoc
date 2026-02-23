@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type AvailableSlot = {
   id: string;
@@ -129,8 +130,8 @@ export default function AppointmentActions({
           disabled={busy !== null || currentStatus === "CONFIRMED"}
           className={`inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold shadow-sm ${
             currentStatus === "CONFIRMED"
-              ? "bg-green-500 text-white"
-              : "bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              ? "bg-emerald-500 text-white"
+              : "bg-[#2f6ea5] text-white hover:bg-[#255b8b] disabled:opacity-50"
           }`}
         >
           {busy === "CONFIRM"
@@ -162,7 +163,7 @@ export default function AppointmentActions({
           type="button"
           onClick={() => setRescheduleOpen(true)}
           disabled={!hasSlots}
-          className="inline-flex items-center rounded-full border border-blue-300 px-5 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-40"
+          className="inline-flex items-center rounded-full border border-[#2f6ea5]/40 px-5 py-2 text-sm font-semibold text-[#2f6ea5] hover:bg-[#e7edf3] disabled:opacity-40"
         >
           Reschedule
         </button>
@@ -232,16 +233,24 @@ export default function AppointmentActions({
                   <button
                     type="submit"
                     disabled={rescheduleBusy}
-                    className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b] disabled:opacity-50"
                   >
                     {rescheduleBusy ? "Rescheduling…" : "Save changes"}
                   </button>
                 </div>
               </form>
             ) : (
-              <p className="mt-4 text-sm text-slate-500">
-                No open slots are available. Generate new slots first from the schedule builder.
-              </p>
+              <div className="mt-4 space-y-3">
+                <p className="text-sm text-slate-500">
+                  No open slots are available. Generate slots to reschedule this appointment.
+                </p>
+                <Link
+                  href="/provider/schedule"
+                  className="inline-flex items-center rounded-full bg-[#2f6ea5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]"
+                >
+                  Open schedule builder →
+                </Link>
+              </div>
             )}
           </div>
         </div>

@@ -244,7 +244,7 @@ export default async function PatientAppointments(props: PageProps) {
               {filter === "ALL"
                 ? "All"
                 : filter === "NO_SHOW"
-                ? "No_show"
+                ? "No show"
                 : filter.charAt(0) + filter.slice(1).toLowerCase()}
             </Link>
           ))}
@@ -337,12 +337,6 @@ export default async function PatientAppointments(props: PageProps) {
                     className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
                   >
                     View details
-                  </Link>
-                  <Link
-                    href={`/patient/appointments/${appt.id}`}
-                    className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-                  >
-                    Upload documents
                   </Link>
                 </div>
               </div>

@@ -8,7 +8,7 @@ import { buildProviderWhere } from "../utils";
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  searchParams?: Promise<{ q?: string }>;
+  searchParams?: Promise<{ q?: string; providerId?: string }>;
 };
 
 export default async function AdminSlotsPage({ searchParams }: PageProps) {
@@ -17,6 +17,7 @@ export default async function AdminSlotsPage({ searchParams }: PageProps) {
 
   const sp = (await searchParams) ?? {};
   const providerQuery = sp.q?.trim() || "";
+  const preselectedId = sp.providerId?.trim() || "";
 
   const providers = await prisma.provider.findMany({
     where: buildProviderWhere(providerQuery),
@@ -26,39 +27,42 @@ export default async function AdminSlotsPage({ searchParams }: PageProps) {
   });
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 px-4 py-10">
-      <div className="flex flex-col gap-3">
-        <Link
-          href="/admin"
-          className="w-fit rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:border-blue-200 hover:text-blue-700"
-        >
-          ← Back to dashboard
-        </Link>
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Slot generator</h1>
-          <p className="text-sm text-slate-500">
-            Search for a provider or enter an ID, then bulk-generate slots.
-          </p>
-        </div>
+    <>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">Admin portal</p>
+        <h1 className="font-serif text-3xl font-semibold text-slate-900">Schedule slots</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Bulk-generate availability windows for providers.
+        </p>
       </div>
 
-      <form method="GET" className="flex flex-col gap-3 md:flex-row">
-        <input
-          type="search"
-          name="q"
-          defaultValue={providerQuery}
-          placeholder="Search providers"
-          className="flex-1 rounded border border-slate-200 px-3 py-2 text-sm"
-        />
-        <button
-          type="submit"
-          className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-        >
-          Search
-        </button>
-      </form>
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+        <form method="GET" className="flex flex-col gap-3 sm:flex-row mb-6">
+          <input
+            type="search"
+            name="q"
+            defaultValue={providerQuery}
+            placeholder="Search providers by name or speciality"
+            className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
+          />
+          <button
+            type="submit"
+            className="rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]"
+          >
+            Search
+          </button>
+          {providerQuery && (
+            <Link
+              href="/admin/slots"
+              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
+            >
+              Clear
+            </Link>
+          )}
+        </form>
 
-      <SlotGeneratorForm providers={providers} />
-    </main>
+        <SlotGeneratorForm providers={providers} preselectedId={preselectedId} />
+      </section>
+    </>
   );
 }

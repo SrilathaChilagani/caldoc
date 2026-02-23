@@ -63,12 +63,12 @@ export default async function PatientLabsPage(props: PageProps) {
 
   if (!last10) {
     return (
-      <main className="min-h-[calc(100vh-140px)] bg-[#f7f9fc] py-12">
+      <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-12">
         <div className="mx-auto max-w-3xl space-y-4 px-4 text-slate-700">
-          <h1 className="text-3xl font-semibold text-slate-900">Patient portal</h1>
+          <h1 className="font-serif text-3xl font-semibold text-slate-900">Patient portal</h1>
           <p>
             To view your lab orders, please{" "}
-            <Link href="/patient/login" className="text-blue-600">sign in</Link>{" "}
+            <Link href="/patient/login" className="text-[#2f6ea5]">sign in</Link>{" "}
             with your mobile number.
           </p>
         </div>
@@ -93,15 +93,15 @@ export default async function PatientLabsPage(props: PageProps) {
 
   if (!patient) {
     return (
-      <main className="min-h-[calc(100vh-140px)] bg-[#f7f9fc] py-12">
+      <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-12">
         <div className="mx-auto max-w-3xl space-y-4 px-4 text-slate-700">
-          <h1 className="text-3xl font-semibold text-slate-900">Patient portal</h1>
+          <h1 className="font-serif text-3xl font-semibold text-slate-900">Patient portal</h1>
           <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             We couldn&apos;t find a patient with that phone number.
           </p>
           <p>
             Make sure you use the same number you booked with or{" "}
-            <Link href="/patient/login" className="text-blue-600">try again</Link>.
+            <Link href="/patient/login" className="text-[#2f6ea5]">try again</Link>.
           </p>
         </div>
         <PatientMobileTabs />
@@ -132,17 +132,17 @@ export default async function PatientLabsPage(props: PageProps) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-140px)] bg-gradient-to-b from-[#eef3ff] via-white to-white py-10">
+    <div className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-10">
       <div className="mx-auto max-w-5xl space-y-8 px-4">
-        <div className="rounded-[32px] bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-8">
+        <div className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-blue-600 text-2xl font-semibold text-white">
+              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#2f6ea5] text-2xl font-semibold text-white">
                 {(patient.name || "P").charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Patient portal</p>
-                <h1 className="text-3xl font-semibold text-slate-900">{patient.name || "Patient"}</h1>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Patient portal</p>
+                <h1 className="font-serif text-3xl font-semibold text-slate-900">{patient.name || "Patient"}</h1>
                 <p className="text-sm font-mono text-slate-500">{patient.phone}</p>
               </div>
             </div>
@@ -152,17 +152,17 @@ export default async function PatientLabsPage(props: PageProps) {
                 path="/providers"
                 patientName={patient.name}
                 patientPhone={patient.phone}
-                className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+                className="inline-flex items-center justify-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b]"
               />
               <Link
                 href="/patient/profile"
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-700"
+                className="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
               >
                 Profile
               </Link>
               <a
                 href="/api/patient/logout"
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-700"
+                className="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
               >
                 Sign out
               </a>
@@ -183,7 +183,7 @@ export default async function PatientLabsPage(props: PageProps) {
             labOrders.map((order) => {
               const tests = normalizeTests(order.tests);
               return (
-                <div key={order.id} className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+                <div key={order.id} className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-slate-500">Lab order</p>
@@ -219,7 +219,7 @@ export default async function PatientLabsPage(props: PageProps) {
                         href={order.payment.receiptUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-blue-400 hover:text-blue-700"
+                        className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
                       >
                         Receipt
                       </a>

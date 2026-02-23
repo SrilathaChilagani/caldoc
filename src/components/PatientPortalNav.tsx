@@ -30,8 +30,8 @@ export default function PatientPortalNav({ active, phone }: Props) {
             href={buildHref(tab.href, phone)}
             className={`rounded-full px-4 py-2 text-sm font-semibold ${
               isActive
-                ? "bg-blue-600 text-white"
-                : "border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-700"
+                ? "bg-[#2f6ea5] text-white"
+                : "border border-slate-200 text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
             }`}
           >
             {tab.label}

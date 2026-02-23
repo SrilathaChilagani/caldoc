@@ -60,12 +60,12 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
   const sess = await readProviderSession();
   if (!sess) {
     return (
-      <main className="rounded-3xl bg-white p-10 text-center shadow-xl">
-        <h1 className="text-xl font-semibold text-rose-600">Please sign in as a doctor</h1>
+      <main className="rounded-3xl border border-white/70 bg-white/90 p-10 text-center shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <h1 className="font-serif text-xl font-semibold text-rose-600">Please sign in as a doctor</h1>
         <p className="mt-2 text-sm text-slate-500">Use your doctor credentials to access the portal.</p>
         <Link
           href="/provider/login?next=/provider/appointments"
-          className="mt-6 inline-flex items-center rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          className="mt-6 inline-flex items-center rounded-full bg-[#2f6ea5] px-6 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]"
         >
           Go to login
         </Link>
@@ -230,14 +230,14 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
 
   return (
     <div className="space-y-8">
-      <section className="rounded-[32px] bg-gradient-to-br from-[#eff4ff] via-white to-white p-6 shadow-sm ring-1 ring-slate-100 lg:p-8">
+      <section className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] lg:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <div className="relative h-12 w-12 overflow-hidden rounded-full border border-white/70 bg-white shadow-sm">
                 <Image src={photoUrl} alt={providerName} fill className="object-cover" sizes="48px" />
               </div>
               <div>
-                <h1 className="text-3xl font-semibold text-slate-900">Hello, Dr. {providerName}</h1>
+                <h1 className="font-serif text-3xl font-semibold text-slate-900">Hello, Dr. {providerName}</h1>
                 <p className="text-sm text-slate-500">
                   Manage today&apos;s teleconsultations, confirm bookings, and share prescriptions from one place.
                 </p>
@@ -246,12 +246,12 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
           <div className="flex gap-3">
             <ProviderScheduleModal
               label="Manage slots"
-              className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+              className="inline-flex items-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b]"
             />
             <form action="/provider/logout" method="post">
               <button
                 type="submit"
-                className="inline-flex items-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-700"
+                className="inline-flex items-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
               >
                 Sign out
               </button>
@@ -260,8 +260,8 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
         </div>
 
         {upcomingAppointment && (
-          <div className="mt-6 rounded-3xl border border-blue-100 bg-white/80 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Next consult</p>
+          <div className="mt-6 rounded-3xl border border-[#2f6ea5]/20 bg-[#e7edf3]/40 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Next consult</p>
             <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-700">
               <span className="text-base font-semibold text-slate-900">
                 {upcomingAppointment.patientName || upcomingAppointment.patient?.name || "Patient"} ·{" "}
@@ -270,7 +270,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
               <span>{formatSlot(upcomingAppointment.slot?.startsAt || upcomingAppointment.createdAt)}</span>
               <Link
                 href={`/provider/appointments/${upcomingAppointment.id}`}
-                className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-blue-700 hover:border-blue-400 hover:text-blue-900"
+                className="inline-flex items-center rounded-full border border-[#2f6ea5]/30 px-3 py-1 text-xs font-semibold text-[#2f6ea5] hover:border-[#2f6ea5] hover:text-[#255b8b]"
               >
                 Open details
               </Link>
@@ -287,11 +287,11 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
                 href={mkStatusHref(item.key)}
                 className={`rounded-2xl border p-4 text-center shadow-sm transition ${
                   isActive
-                    ? "border-blue-400 bg-blue-50 ring-2 ring-blue-100"
-                    : "border-slate-100 bg-white hover:border-blue-200"
+                    ? "border-[#2f6ea5] bg-[#e7edf3] ring-2 ring-[#2f6ea5]/20"
+                    : "border-slate-100 bg-white hover:border-[#2f6ea5]/40"
                 }`}
               >
-                <p className={`text-xs uppercase tracking-wide ${isActive ? "text-blue-700" : "text-slate-500"}`}>
+                <p className={`text-xs uppercase tracking-wide ${isActive ? "text-[#2f6ea5]" : "text-slate-500"}`}>
                   {item.label}
                 </p>
                 <p className="mt-1 text-2xl font-semibold text-slate-900">{item.value}</p>
@@ -302,7 +302,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
       </section>
 
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-md">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
             {timeframeTabs.map((tab) => (
@@ -320,7 +320,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
             ))}
             <Link
               href={refreshHref}
-              className="rounded-full border border-slate-200 px-3 py-1 text-slate-700 hover:border-blue-300 hover:text-blue-700"
+              className="rounded-full border border-slate-200 px-3 py-1 text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
             >
               Refresh
             </Link>
@@ -382,7 +382,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
                         appt.videoRoom ? (
                           <a
                             href={providerRoomLink(appt.videoRoom)}
-                            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+                            className="inline-flex items-center justify-center rounded-full bg-[#2f6ea5] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#255b8b]"
                             target="_blank"
                             rel="noreferrer"
                           >
@@ -401,7 +401,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
                       )}
                       <Link
                         href={`/provider/appointments/${appt.id}`}
-                        className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:text-blue-700"
+                        className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
                       >
                         Open details
                       </Link>

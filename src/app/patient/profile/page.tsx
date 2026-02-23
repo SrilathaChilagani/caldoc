@@ -44,16 +44,16 @@ export default async function PatientProfilePage() {
   };
 
   return (
-    <main className="min-h-[calc(100vh-140px)] bg-gradient-to-b from-[#eef3ff] via-white to-white py-10">
+    <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-10">
       <div className="mx-auto max-w-3xl space-y-6 px-4">
-        <div className="rounded-[32px] bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-8">
+        <div className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] md:p-8">
           <div className="flex flex-col gap-3">
-            <Link href="/patient/appointments" className="text-sm font-semibold text-blue-600 hover:text-blue-800">
+            <Link href="/patient/appointments" className="text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]">
               ← Back to dashboard
             </Link>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Profile</p>
-              <h1 className="text-3xl font-semibold text-slate-900">Manage your info</h1>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Profile</p>
+              <h1 className="font-serif text-3xl font-semibold text-slate-900">Manage your info</h1>
               <p className="text-sm text-slate-500">Update contact details, address, and your profile picture.</p>
             </div>
           </div>

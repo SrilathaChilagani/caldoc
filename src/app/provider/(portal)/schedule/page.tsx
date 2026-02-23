@@ -76,17 +76,17 @@ export default function ProviderSchedule() {
   }
 
   return (
-    <main className="mx-auto max-w-xl p-6 space-y-6">
+    <main className="mx-auto max-w-xl space-y-6 p-6">
       <Link
         href="/provider/appointments"
-        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
+        className="inline-flex items-center text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
       >
         ← Back to appointments
       </Link>
-      <h1 className="text-2xl font-semibold">Provider · Schedule</h1>
+      <h1 className="font-serif text-2xl font-semibold text-slate-900">Schedule builder</h1>
 
-      <div className="rounded-xl border bg-white text-black p-4 space-y-4">
-        <div className="grid grid-cols-1 gap-3">
+      <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <div className="grid grid-cols-1 gap-4">
           {/* NEW: when we know the signed-in provider, show name & hide editable ID */}
           {providerName && providerId ? (
             <>
@@ -98,7 +98,7 @@ export default function ProviderSchedule() {
               <button
                 type="button"
                 onClick={() => setProviderName(null)} // reveals the manual Provider ID input
-                className="w-max rounded border px-2 py-1 text-xs hover:bg-gray-50"
+                className="w-max rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
               >
                 Use a different ID
               </button>
@@ -107,7 +107,7 @@ export default function ProviderSchedule() {
             <label className="text-sm">
               Provider ID
               <input
-                className="mt-1 w-full rounded border p-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
                 value={providerId}
                 onChange={(e) => setProviderId(e.target.value)}
                 placeholder="paste a provider.id"
@@ -120,7 +120,7 @@ export default function ProviderSchedule() {
               Start date
               <input
                 type="date"
-                className="mt-1 w-full rounded border p-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
@@ -129,7 +129,7 @@ export default function ProviderSchedule() {
               End date
               <input
                 type="date"
-                className="mt-1 w-full rounded border p-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
                 value={toDate}
                 min={date || undefined}
                 onChange={(e) => setToDate(e.target.value)}
@@ -142,7 +142,7 @@ export default function ProviderSchedule() {
               Start time
               <input
                 type="time"
-                className="mt-1 w-full rounded border p-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
                 value={start}
                 onChange={(e) => setStart(e.target.value)}
               />
@@ -151,7 +151,7 @@ export default function ProviderSchedule() {
               End time
               <input
                 type="time"
-                className="mt-1 w-full rounded border p-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
                 value={end}
                 onChange={(e) => setEnd(e.target.value)}
               />
@@ -162,7 +162,7 @@ export default function ProviderSchedule() {
             Interval (mins)
             <input
               type="number"
-              className="mt-1 w-full rounded border p-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
               value={intervalMins}
               onChange={(e) =>
                 setIntervalMins(parseInt(e.target.value || "30", 10))
@@ -175,7 +175,7 @@ export default function ProviderSchedule() {
             <input
               type="number"
               step="0.01"
-              className="mt-1 w-full rounded border p-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
               value={feeRupees}
               onChange={(e) => setFeeRupees(e.target.value)}
               placeholder="Example: 599"
@@ -188,12 +188,12 @@ export default function ProviderSchedule() {
           <button
             onClick={handleGenerate}
             disabled={busy || !providerId}
-            className="rounded bg-teal-600 px-4 py-2 text-white disabled:opacity-60"
+            className="rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b] disabled:opacity-60"
           >
             {busy ? "Generating..." : "Generate slots"}
           </button>
 
-          {msg && <div className="text-sm text-gray-700">{msg}</div>}
+          {msg && <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">{msg}</div>}
         </div>
       </div>
     </main>

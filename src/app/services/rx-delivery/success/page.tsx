@@ -21,16 +21,16 @@ export default async function RxDeliverySuccessPage({ searchParams }: { searchPa
   const items = summarizeItems(rxOrder.items);
 
   return (
-    <main className="bg-gradient-to-b from-white via-[#f0fff5] to-white py-16">
+    <main className="bg-[#f7f2ea] py-16">
       <div className="mx-auto max-w-2xl space-y-8 px-6 text-center">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">Payment successful</p>
-          <h1 className="text-3xl font-semibold text-slate-900">Thank you! We&apos;re processing your order.</h1>
+          <h1 className="font-serif text-3xl font-semibold text-slate-900">Thank you! We&apos;re processing your order.</h1>
           <p className="text-sm text-slate-500">
             Order <span className="font-mono text-slate-700">{rxOrder.id}</span>. Our pharmacy team will confirm dispatch over WhatsApp.
           </p>
         </div>
-        <section className="rounded-[32px] bg-white p-8 text-left shadow-xl ring-1 ring-slate-100">
+        <section className="rounded-[32px] border border-white/70 bg-white/90 p-8 text-left shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
           <dl className="space-y-4 text-sm text-slate-700">
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Patient</dt>

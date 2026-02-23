@@ -45,7 +45,7 @@ export default async function LabsAtHomePayPage({ searchParams }: { searchParams
             Order ID {labOrder.id}. Complete the payment to schedule doorstep sample collection.
           </p>
         </div>
-        <section className="rounded-[32px] bg-white p-8 shadow-xl ring-1 ring-slate-100">
+        <section className="rounded-[32px] border border-white/70 bg-white/90 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
           <dl className="space-y-3 text-sm text-slate-700">
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Patient</dt>

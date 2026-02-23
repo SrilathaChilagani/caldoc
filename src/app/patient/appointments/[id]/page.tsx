@@ -59,12 +59,12 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
   const receiptUrl = appointment.payment?.receiptUrl;
 
   return (
-    <main className="min-h-[calc(100vh-140px)] bg-gradient-to-b from-[#eef3ff] via-white to-white py-10">
+    <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-10">
       <div className="mx-auto max-w-5xl space-y-6 px-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Appointment details</p>
-            <h1 className="mt-1 text-3xl font-semibold text-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Appointment details</p>
+            <h1 className="mt-1 font-serif text-3xl font-semibold text-slate-900">
               {appointment.provider?.name || "Your doctor"}
             </h1>
             <p className="text-sm text-slate-500">
@@ -74,13 +74,13 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
               Patient: {appointment.patientName || patient.name || "Patient"}
             </p>
           </div>
-          <Link href="/patient/appointments" className="text-sm font-semibold text-blue-600 hover:text-blue-800">
+          <Link href="/patient/appointments" className="text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]">
             ← Back to appointments
           </Link>
         </div>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
             <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>
             <p className="mt-2 text-xl font-semibold text-slate-900">{appointment.status}</p>
             <p className="mt-2 text-xs text-slate-500">
@@ -96,20 +96,20 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
                 href={appointment.videoRoom}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                className="mt-4 inline-flex items-center justify-center rounded-full bg-[#2f6ea5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]"
               >
                 Join visit
               </a>
             )}
           </div>
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
             <p className="text-xs uppercase tracking-wide text-slate-500">Prescription</p>
             {appointment.prescription ? (
               <a
                 href={`/api/appointments/${appointment.id}/prescription.pdf`}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-blue-400 hover:text-blue-700"
+                className="mt-3 inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
               >
                 View PDF
               </a>
@@ -117,14 +117,14 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
               <p className="mt-2 text-sm text-slate-500">Not uploaded yet.</p>
             )}
           </div>
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
             <p className="text-xs uppercase tracking-wide text-slate-500">Receipt</p>
             {receiptUrl ? (
               <a
                 href={receiptUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-blue-400 hover:text-blue-700"
+                className="mt-3 inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
               >
                 Download receipt
               </a>
@@ -134,10 +134,10 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Patient documents</h2>
+              <h2 className="font-serif text-xl font-semibold text-slate-900">Patient documents</h2>
               <p className="text-sm text-slate-500">
                 Upload lab reports, scans, or any supporting files for this appointment.
               </p>
@@ -159,7 +159,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
                   </div>
                   <a
                     href={`/api/patient/documents/${doc.id}`}
-                    className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+                    className="text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]"
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -171,8 +171,8 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
           )}
         </section>
 
-        <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-900">Doctor&apos;s notes</h2>
+        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+          <h2 className="font-serif text-xl font-semibold text-slate-900">Doctor&apos;s notes</h2>
           {appointment.visitNote ? (
             <p className="mt-3 whitespace-pre-line text-sm text-slate-600">{appointment.visitNote.text}</p>
           ) : (
@@ -180,8 +180,8 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
           )}
         </section>
 
-        <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-900">Provider credentials</h2>
+        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+          <h2 className="font-serif text-xl font-semibold text-slate-900">Provider credentials</h2>
           <dl className="mt-3 grid gap-4 sm:grid-cols-2 text-sm text-slate-600">
             <div>
               <dt className="text-xs uppercase tracking-wide text-slate-500">Qualification</dt>
