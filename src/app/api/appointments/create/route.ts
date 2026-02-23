@@ -16,6 +16,7 @@ type CreateAppointmentPayload = {
   notes?: string;
   consentText?: string;
   visitMode?: "VIDEO" | "AUDIO";
+  bookerPhone?: string;
 };
 
 export async function POST(req: Request) {
@@ -43,6 +44,17 @@ export async function POST(req: Request) {
     const meta = buildPatientPhoneMeta(phone);
     if (!meta) {
       return NextResponse.json({ error: "Enter a valid 10-digit Indian mobile number" }, { status: 400 });
+    }
+
+    // Validate bookerPhone if provided
+    const rawBookerPhone = body.bookerPhone?.trim() || null;
+    let bookerPhone: string | null = null;
+    if (rawBookerPhone) {
+      const bookerMeta = buildPatientPhoneMeta(rawBookerPhone);
+      if (!bookerMeta) {
+        return NextResponse.json({ error: "Enter a valid 10-digit Indian mobile number for the booker" }, { status: 400 });
+      }
+      bookerPhone = bookerMeta.canonical;
     }
 
     const consentPayload = {
@@ -148,6 +160,7 @@ export async function POST(req: Request) {
             visitMode: body.visitMode === "AUDIO" ? "AUDIO" : "VIDEO",
             feePaise: slotFeePaise,
             feeCurrency: "INR",
+            ...(bookerPhone ? { bookerPhone } : {}),
             ...consentPayload,
           },
           select: { id: true },

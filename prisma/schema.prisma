@@ -89,6 +89,7 @@ model Appointment {
   visitMode               String?                    @default("VIDEO")
   feePaise                Int?
   feeCurrency             String?                    @default("INR")
+  bookerPhone             String?
   deliveryAddress         PatientAddress?            @relation("AppointmentDeliveryAddress", fields: [deliveryAddressId], references: [id])
   patient                 Patient                    @relation(fields: [patientId], references: [id])
   provider                Provider                   @relation(fields: [providerId], references: [id])

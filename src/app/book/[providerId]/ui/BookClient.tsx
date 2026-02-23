@@ -82,6 +82,8 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
   const [loading, setLoading] = useState(false);
   const [deliveryOpt, setDeliveryOpt] = useState<"PHONE" | "DELIVERY">("PHONE");
   const [policyModal, setPolicyModal] = useState<null | "disclaimer" | "terms">(null);
+  const [bookingFor, setBookingFor] = useState<"self" | "other">("self");
+  const [bookerPhone, setBookerPhone] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [otherSymptom, setOtherSymptom] = useState("");
   const [address, setAddress] = useState<DeliveryForm>({
@@ -182,7 +184,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
 
   async function handleSlotContinue() {
     if (!selectedSlot || !patientName.trim() || !patientPhone.trim()) {
-      setError("Select a slot and enter your name as well as mobile number.");
+      setError("Select a slot and enter the patient name and mobile number.");
       return;
     }
     if (!consentAccepted) {
@@ -206,6 +208,9 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
           notes: finalNotes || undefined,
           consentText: CONSENT_TEXT,
           visitMode,
+          ...(bookingFor === "other" && bookerPhone.trim()
+            ? { bookerPhone: bookerPhone.trim() }
+            : {}),
         }),
       });
       const data = await res.json();
@@ -329,11 +334,39 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 </button>
               </div>
 
-              <div className="rounded-3xl border border-[#2f6ea5]/20 bg-[#e7edf3] p-4 shadow-inner">
+              <div className="rounded-3xl border border-[#2f6ea5]/20 bg-[#e7edf3] p-4 shadow-inner space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Patient details</p>
-                <div className="mt-3 grid gap-3 md:grid-cols-2">
+
+                {/* Booking-for toggle */}
+                <div className="grid grid-cols-2 gap-2">
+                  <label className={`inline-flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-2.5 text-sm font-semibold transition ${bookingFor === "self" ? "border-[#2f6ea5] bg-white text-[#1e4d77] shadow" : "border-[#2f6ea5]/20 bg-white/60 text-slate-600"}`}>
+                    <input
+                      type="radio"
+                      name="bookingFor"
+                      value="self"
+                      checked={bookingFor === "self"}
+                      onChange={() => { setBookingFor("self"); setBookerPhone(""); }}
+                      className="accent-[#2f6ea5]"
+                    />
+                    Booking for myself
+                  </label>
+                  <label className={`inline-flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-2.5 text-sm font-semibold transition ${bookingFor === "other" ? "border-[#2f6ea5] bg-white text-[#1e4d77] shadow" : "border-[#2f6ea5]/20 bg-white/60 text-slate-600"}`}>
+                    <input
+                      type="radio"
+                      name="bookingFor"
+                      value="other"
+                      checked={bookingFor === "other"}
+                      onChange={() => setBookingFor("other")}
+                      className="accent-[#2f6ea5]"
+                    />
+                    Booking for someone else
+                  </label>
+                </div>
+
+                {/* Patient name + phone */}
+                <div className="grid gap-3 md:grid-cols-2">
                   <label className="text-sm font-medium text-slate-700">
-                    Patient full name
+                    {bookingFor === "other" ? "Patient's full name" : "Full name"}
                     <input
                       value={patientName}
                       onChange={(e) => setPatientName(e.target.value)}
@@ -341,7 +374,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                     />
                   </label>
                   <label className="text-sm font-medium text-slate-700">
-                    Mobile number
+                    {bookingFor === "other" ? "Patient's mobile number" : "Mobile number"}
                     <input
                       value={patientPhone}
                       onChange={(e) => setPatientPhone(e.target.value)}
@@ -350,6 +383,22 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                     />
                   </label>
                 </div>
+
+                {/* Booker phone — only shown when booking for someone else */}
+                {bookingFor === "other" && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">
+                      Your mobile number
+                      <span className="ml-1 text-xs font-normal text-slate-400">(optional — you'll also receive confirmation here)</span>
+                      <input
+                        value={bookerPhone}
+                        onChange={(e) => setBookerPhone(e.target.value)}
+                        className="mt-1 w-full rounded-2xl border border-[#2f6ea5]/20 bg-white px-4 py-3 text-sm shadow-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
+                        placeholder="+91 98765 43210"
+                      />
+                    </label>
+                  </div>
+                )}
               </div>
 
               <div className="rounded-3xl border border-[#2f6ea5]/20 bg-[#e7edf3] p-4 text-sm text-slate-700 shadow-inner">
@@ -630,6 +679,23 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 <dt className="font-medium text-slate-900">Slot</dt>
                 <dd>{selectedSlotLabel}</dd>
               </div>
+              <div>
+                <dt className="font-medium text-slate-900">Patient</dt>
+                <dd>
+                  {patientName}
+                  {bookingFor === "other" && (
+                    <span className="ml-2 rounded-full bg-[#e7edf3] px-2 py-0.5 text-xs font-semibold text-[#2f6ea5]">
+                      booked by you
+                    </span>
+                  )}
+                </dd>
+              </div>
+              {bookingFor === "other" && bookerPhone.trim() && (
+                <div>
+                  <dt className="font-medium text-slate-900">Confirmation also to</dt>
+                  <dd>{bookerPhone.trim()}</dd>
+                </div>
+              )}
               <div>
                 <dt className="font-medium text-slate-900">Prescription delivery</dt>
                 <dd>{deliverySummary}</dd>
