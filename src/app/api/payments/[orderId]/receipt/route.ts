@@ -14,6 +14,7 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
+
 export async function GET(req: NextRequest, { params }: RouteCtx) {
   try {
     const { orderId } = await params;
