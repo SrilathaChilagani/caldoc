@@ -35,17 +35,17 @@ export default async function RxDeliveryPayPage({ searchParams }: { searchParams
   const totalQty = items.reduce((sum, item) => sum + Math.max(1, item.qty || 0), 0);
 
   return (
-    <main className="bg-gradient-to-b from-white via-[#f7fbff] to-white py-16">
+    <main className="bg-[#f7f2ea] py-16">
       <div className="mx-auto max-w-3xl space-y-8 px-6">
         <BackButton />
         <div className="space-y-2 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">Checkout</p>
-          <h1 className="text-3xl font-semibold text-slate-900">Pay for your Rx delivery</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#2f6ea5]">Checkout</p>
+          <h1 className="font-serif text-3xl font-semibold text-slate-900">Pay for your Rx delivery</h1>
           <p className="text-sm text-slate-500">
             Order ID {rxOrder.id}. After completing payment you&apos;ll receive a WhatsApp confirmation.
           </p>
         </div>
-        <section className="rounded-[32px] bg-white p-8 shadow-xl ring-1 ring-slate-100">
+        <section className="rounded-[32px] border border-white/70 bg-white/90 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
           <dl className="space-y-3 text-sm text-slate-700">
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Patient</dt>

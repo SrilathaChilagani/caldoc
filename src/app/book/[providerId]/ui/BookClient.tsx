@@ -260,14 +260,14 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
     <div className="mx-auto w-full max-w-7xl space-y-6 px-3 sm:px-4">
       <Link
         href="/providers"
-        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
+        className="inline-flex items-center text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
       >
         ← Back to doctors
       </Link>
       {step === "slot" && (
-        <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="font-serif text-xl font-semibold text-slate-900">
               Book {provider.name}
               <span className="text-sm font-normal text-slate-500"> · {provider.speciality}</span>
             </h2>
@@ -329,15 +329,15 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 </button>
               </div>
 
-              <div className="rounded-3xl border border-blue-200 bg-[#e6f1ff] p-4 shadow-inner">
-                <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Patient details</p>
+              <div className="rounded-3xl border border-[#2f6ea5]/20 bg-[#e7edf3] p-4 shadow-inner">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Patient details</p>
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <label className="text-sm font-medium text-slate-700">
                     Patient full name
                     <input
                       value={patientName}
                       onChange={(e) => setPatientName(e.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                      className="mt-1 w-full rounded-2xl border border-[#2f6ea5]/20 bg-white px-4 py-3 text-sm shadow-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
                     />
                   </label>
                   <label className="text-sm font-medium text-slate-700">
@@ -345,21 +345,21 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                     <input
                       value={patientPhone}
                       onChange={(e) => setPatientPhone(e.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                      className="mt-1 w-full rounded-2xl border border-[#2f6ea5]/20 bg-white px-4 py-3 text-sm shadow-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
                       placeholder="+91 98765 43210"
                     />
                   </label>
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-emerald-200 bg-[#e3f8ed] p-4 text-sm text-slate-700 shadow-inner">
-                <p className="font-semibold text-blue-900">Connection preference</p>
+              <div className="rounded-3xl border border-[#2f6ea5]/20 bg-[#e7edf3] p-4 text-sm text-slate-700 shadow-inner">
+                <p className="font-semibold text-[#2f6ea5]">Connection preference</p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   <label
                     className={`inline-flex w-full cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
                       visitMode === "VIDEO"
-                        ? "border-blue-400 bg-white text-blue-900 shadow"
-                        : "border-blue-100 bg-white text-slate-700"
+                        ? "border-[#2f6ea5] bg-white text-[#1e4d77] shadow"
+                        : "border-[#2f6ea5]/20 bg-white text-slate-700"
                     }`}
                   >
                     <input
@@ -374,8 +374,8 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                   <label
                     className={`inline-flex w-full cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
                       visitMode === "AUDIO"
-                        ? "border-blue-400 bg-white text-blue-900 shadow"
-                        : "border-blue-100 bg-white text-slate-700"
+                        ? "border-[#2f6ea5] bg-white text-[#1e4d77] shadow"
+                        : "border-[#2f6ea5]/20 bg-white text-slate-700"
                     }`}
                   >
                     <input
@@ -402,7 +402,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                     <button
                       type="button"
                       onClick={() => setPolicyModal("disclaimer")}
-                      className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
+                      className="text-[#2f6ea5] underline-offset-2 hover:text-[#255b8b] hover:underline"
                     >
                       disclaimer
                     </button>{" "}
@@ -410,7 +410,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                     <button
                       type="button"
                       onClick={() => setPolicyModal("terms")}
-                      className="text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
+                      className="text-[#2f6ea5] underline-offset-2 hover:text-[#255b8b] hover:underline"
                     >
                       terms of service
                     </button>
@@ -432,7 +432,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                       <label
                         key={symptom}
                         className={`inline-flex items-center rounded-2xl border px-3 py-2 text-sm font-medium transition ${
-                          isActive ? "border-blue-500 bg-blue-50 text-blue-900" : "border-slate-200 text-slate-600"
+                          isActive ? "border-[#2f6ea5] bg-[#e7edf3] text-[#1e4d77]" : "border-slate-200 text-slate-600"
                         }`}
                       >
                         <input
@@ -448,7 +448,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                   <label
                     className={`inline-flex flex-col rounded-2xl border px-3 py-2 text-sm font-medium transition ${
                       selectedSymptoms.includes("Other")
-                        ? "border-blue-500 bg-blue-50 text-blue-900"
+                        ? "border-[#2f6ea5] bg-[#e7edf3] text-[#1e4d77]"
                         : "border-slate-200 text-slate-600"
                     } sm:col-span-2`}
                   >
@@ -466,7 +466,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                         value={otherSymptom}
                         onChange={(e) => setOtherSymptom(e.target.value)}
                         placeholder="Describe other symptoms"
-                        className="mt-2 w-full rounded-xl border border-blue-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                        className="mt-2 w-full rounded-xl border border-[#2f6ea5]/20 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/10"
                       />
                     )}
                   </label>
@@ -489,7 +489,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
               type="button"
               onClick={handleSlotContinue}
               disabled={loading}
-              className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              className="inline-flex items-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b] disabled:opacity-60"
             >
               {loading ? "Locking slot..." : "Continue"}
             </button>
@@ -498,10 +498,10 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       )}
 
       {step === "delivery" && (
-        <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
           <div className="flex flex-col gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Prescription delivery preference</h2>
+              <h2 className="font-serif text-xl font-semibold text-slate-900">Prescription delivery preference</h2>
               <p className="text-sm text-slate-500">
                 Choose how you would like to receive the prescription for this appointment.
               </p>
@@ -600,7 +600,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
               <button
                 type="button"
                 onClick={handleDeliveryContinue}
-                className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                className="rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]"
               >
                 Continue to payment
               </button>
@@ -610,10 +610,10 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       )}
 
       {step === "pay" && appointmentId && (
-        <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
           <div className="flex flex-col gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Payment & confirmation</h2>
+              <h2 className="font-serif text-xl font-semibold text-slate-900">Payment & confirmation</h2>
               <p className="text-sm text-slate-500">
                 Review the appointment details before proceeding to Razorpay checkout.
               </p>
@@ -652,7 +652,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
               </button>
               <button
                 type="button"
-                className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                className="rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]"
                 onClick={() => {
                   const amountQuery = amount ? `&amount=${amount}` : "";
                   const embedQuery = isEmbed ? "&embed=1" : "";
@@ -667,7 +667,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       )}
 
       {step === "pay" && !appointmentId && (
-        <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
           <p className="text-sm text-slate-500">Lock a slot first to proceed to payment.</p>
         </section>
       )}

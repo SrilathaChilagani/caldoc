@@ -35,12 +35,12 @@ export default async function LabsAtHomePayPage({ searchParams }: { searchParams
   const totalQty = tests.reduce((sum, test) => sum + Math.max(1, test.qty || 0), 0);
 
   return (
-    <main className="bg-gradient-to-b from-white via-[#f0fff5] to-white py-16">
+    <main className="bg-[#f7f2ea] py-16">
       <div className="mx-auto max-w-3xl space-y-8 px-6">
         <BackButton />
         <div className="space-y-2 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-500">Checkout</p>
-          <h1 className="text-3xl font-semibold text-slate-900">Confirm your lab order</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#2f6ea5]">Checkout</p>
+          <h1 className="font-serif text-3xl font-semibold text-slate-900">Confirm your lab order</h1>
           <p className="text-sm text-slate-500">
             Order ID {labOrder.id}. Complete the payment to schedule doorstep sample collection.
           </p>

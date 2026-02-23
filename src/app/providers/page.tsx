@@ -297,22 +297,22 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
   };
 
   return (
-    <main className="min-h-[calc(100vh-120px)] bg-[#f7f9fc] py-10">
+    <main className="min-h-[calc(100vh-120px)] bg-[#f7f2ea] py-10">
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-10">
         <Link
           href="/"
-          className="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800"
+          className="inline-flex items-center text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]"
         >
           ← Back to home
         </Link>
-        <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-          <h1 className="text-3xl font-semibold text-slate-900">Find a doctor</h1>
+        <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+          <h1 className="font-serif text-3xl font-semibold text-slate-900">Find a doctor</h1>
           <form method="GET" className="mt-4 flex flex-col gap-3 md:flex-row">
             <input
               name="q"
               defaultValue={q}
               placeholder="Search specialties, doctor names, symptoms, or registration number"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:ring-1 focus:ring-[#2f6ea5]"
             />
             {patientName && <input type="hidden" name="patientName" value={patientName} />}
             {patientPhone && <input type="hidden" name="patientPhone" value={patientPhone} />}
@@ -337,7 +337,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
             ))}
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+              className="inline-flex items-center justify-center rounded-2xl bg-[#2f6ea5] px-5 py-3 text-sm font-semibold text-white hover:bg-[#255b8b]"
             >
               Search
             </button>
@@ -380,7 +380,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
                 return (
                   <article
                     key={provider.id}
-                    className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm ring-1 ring-slate-100"
+                    className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]"
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                       <div className="flex items-start gap-4">
@@ -428,7 +428,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
                                   href={withPrefill(
                                     `/book/${encodeURIComponent(provider.slug || provider.id)}?slot=${slot.id}`,
                                   )}
-                                  className="inline-flex min-w-[160px] justify-center rounded-2xl border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:border-blue-200 hover:bg-blue-100 md:self-end"
+                                  className="inline-flex min-w-[160px] justify-center rounded-2xl border border-[#2f6ea5]/20 bg-[#e7edf3] px-3 py-1 text-xs font-semibold text-[#2f6ea5] hover:border-[#2f6ea5]/40 hover:bg-[#d9e4ee] md:self-end"
                                 >
                                   {formatSlot(new Date(slot.startsAt))}
                                 </Link>
@@ -438,7 +438,7 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
                         </div>
                         <Link
                           href={withPrefill(`/book/${encodeURIComponent(provider.slug || provider.id)}`)}
-                          className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                          className="inline-flex items-center justify-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]"
                         >
                           Book doctor
                         </Link>
