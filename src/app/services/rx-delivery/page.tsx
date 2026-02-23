@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import RxDeliveryForm from "./ui/RxDeliveryForm";
 import RxDeliveryHeroSearch from "./ui/RxDeliveryHeroSearch";
 import RxPopularMeds from "./ui/RxPopularMeds";
 import { IMAGES } from "@/lib/imagePaths";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const categories = [
   { name: "Pain Relief", slug: "pain-relief", icon: "💊" },
@@ -61,14 +62,21 @@ type RxDeliveryPageProps = {
   searchParams?: { add?: string | string[] };
 };
 
+const getCachedMeds = unstable_cache(
+  () =>
+    prisma.medication.findMany({
+      orderBy: { name: "asc" },
+      take: 400,
+      select: { name: true, category: true },
+    }),
+  ["rx-delivery-medications"],
+  { revalidate: 300 }
+);
+
 export default async function RxDeliveryPage({ searchParams }: RxDeliveryPageProps) {
   const addParam = searchParams?.add;
   const initialItemName = Array.isArray(addParam) ? addParam[0] : addParam;
-  const meds = await prisma.medication.findMany({
-    orderBy: { name: "asc" },
-    take: 400,
-    select: { name: true, category: true },
-  });
+  const meds = await getCachedMeds();
   const options = meds.map((m) => ({ name: m.name, category: m.category }));
 
   return (

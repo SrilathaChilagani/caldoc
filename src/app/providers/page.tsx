@@ -6,7 +6,7 @@ import { Prisma } from "@prisma/client";
 import { FiltersPanel } from "./FiltersPanel";
 import { IMAGES } from "@/lib/imagePaths";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 // Specialty list changes rarely — cache it for 5 minutes to avoid a DB round-trip on every request.
 const getCachedSpecialties = unstable_cache(
@@ -175,6 +175,14 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
       ? resolvedParams.experience[0] ?? ""
       : "";
   const selectedConsultationTypes = new Set(toArray(resolvedParams.consultationType));
+  const pageRaw =
+    typeof resolvedParams.page === "string"
+      ? resolvedParams.page
+      : Array.isArray(resolvedParams.page)
+      ? resolvedParams.page[0]
+      : "1";
+  const pageNumber = Math.max(1, Number.parseInt(pageRaw || "1", 10) || 1);
+  const pageSize = 24;
 
   const INSENSITIVE: Prisma.QueryMode = "insensitive";
 
@@ -245,6 +253,8 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
     prisma.provider.findMany({
       where: whereClause,
       orderBy: { name: "asc" },
+      take: pageSize,
+      skip: (pageNumber - 1) * pageSize,
       select: {
         id: true,
         slug: true,
@@ -362,6 +372,9 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
           />
 
           <section className="flex-1 space-y-4">
+            <p className="text-xs text-slate-500">
+              Showing up to {pageSize} providers per page for faster loading.
+            </p>
             {filteredProviders.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-slate-200 bg-white/80 px-6 py-12 text-center text-sm text-slate-500">
                 No providers matched this search. Try adjusting the filters.
