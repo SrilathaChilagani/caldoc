@@ -278,6 +278,10 @@ export default function RxDeliveryForm({
               value={patientPhone}
               onChange={(e) => setPatientPhone(e.target.value)}
               required
+              pattern="[6-9][0-9]{9}"
+              title="Enter a valid 10-digit Indian mobile number starting with 6–9 (e.g. 9876543210)"
+              placeholder="9876543210"
+              maxLength={10}
               className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>
@@ -343,6 +347,10 @@ export default function RxDeliveryForm({
                 value={address.postalCode}
                 onChange={(e) => setAddress((prev) => ({ ...prev, postalCode: e.target.value }))}
                 required
+                pattern="[0-9]{6}"
+                title="Enter a valid 6-digit Indian PIN code"
+                placeholder="400001"
+                maxLength={6}
                 className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
               />
             </label>

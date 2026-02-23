@@ -9,7 +9,18 @@ type Search = { order?: string };
 
 function summarizeTests(tests: unknown) {
   if (!tests) return [] as string[];
-  if (Array.isArray(tests)) return tests.map((t) => String(t));
+  if (Array.isArray(tests)) {
+    return tests.map((t) => {
+      if (typeof t === "string") return t;
+      if (t && typeof t === "object" && "name" in t) {
+        const obj = t as Record<string, unknown>;
+        const name = String(obj.name || "test");
+        const qty = Number(obj.qty) || 1;
+        return qty > 1 ? `${name} × ${qty}` : name;
+      }
+      return String(t);
+    });
+  }
   if (typeof tests === "string") return [tests];
   return [] as string[];
 }

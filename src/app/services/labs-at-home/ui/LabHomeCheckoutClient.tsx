@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { clearLabCart } from "./labCart";
 
 declare global {
   interface Window {
@@ -80,6 +81,7 @@ export default function LabHomeCheckoutClient({ orderId }: Props) {
               const confirmData = await confirmRes.json().catch(() => ({}));
               if (!confirmRes.ok) throw new Error(confirmData?.error || "Payment confirmation failed");
               setStatus("success");
+              clearLabCart();
               window.location.href = `/services/labs-at-home/success?order=${orderId}`;
             } catch (err) {
               const msg = err instanceof Error ? err.message : "Payment error";
@@ -107,13 +109,22 @@ export default function LabHomeCheckoutClient({ orderId }: Props) {
     start();
   }, [orderId, runKey]);
 
+  const statusLabel: Record<string, string> = {
+    initializing: "Setting up secure checkout…",
+    "creating-order": "Creating your order…",
+    "awaiting-user": "Please complete payment in the Razorpay window.",
+    confirming: "Verifying payment…",
+    success: "Payment confirmed! Redirecting…",
+    cancelled: "Payment was cancelled.",
+    error: "Something went wrong.",
+  };
+
   return (
     <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-      <p className="font-medium text-slate-800">Status: {status}</p>
-      {error ? (
-        <p className="mt-2 text-rose-600">{error}</p>
-      ) : (
-        <p className="mt-2">A Razorpay window will open shortly. Please do not refresh.</p>
+      <p className="font-medium text-slate-800">{statusLabel[status] ?? status}</p>
+      {error && <p className="mt-2 text-rose-600">{error}</p>}
+      {!error && status !== "success" && (
+        <p className="mt-2">Do not refresh this page while the payment window is open.</p>
       )}
       {(status === "error" || status === "cancelled") && (
         <button
