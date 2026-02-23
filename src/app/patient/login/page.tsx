@@ -17,7 +17,7 @@ export default async function PatientLoginPage({ searchParams }: { searchParams:
   if (phone) redirect(next);
 
   return (
-    <main className="flex min-h-[80vh] items-center justify-center bg-gradient-to-b from-[#f0fff9] via-white to-white px-4 py-16">
+    <main className="flex min-h-[80vh] items-center justify-center bg-[#f7f2ea] px-4 py-16">
       <div className="w-full max-w-md">
         <LoginClient next={next} initialPhone={initialPhone} />
       </div>

@@ -278,10 +278,9 @@ export default function RxDeliveryForm({
               value={patientPhone}
               onChange={(e) => setPatientPhone(e.target.value)}
               required
-              pattern="[6-9][0-9]{9}"
-              title="Enter a valid 10-digit Indian mobile number starting with 6–9 (e.g. 9876543210)"
-              placeholder="9876543210"
-              maxLength={10}
+              title="Enter your phone number with country code (e.g. +91 for India, +1 for US)"
+              placeholder="+91 98765 43210 or +1 555 123 4567"
+              maxLength={20}
               className="mt-1 w-full rounded-xl border border-[#e7e0d5] bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
             />
           </label>

@@ -63,7 +63,7 @@ export default function ProfileForm({ initial }: Props) {
               <div className="flex h-full w-full items-center justify-center text-sm text-slate-500">No photo</div>
             )}
           </div>
-          <label className="text-sm font-medium text-blue-700 hover:text-blue-900">
+          <label className="text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]">
             <span>Upload image</span>
             <input
               type="file"
@@ -115,7 +115,7 @@ export default function ProfileForm({ initial }: Props) {
               name="phone"
               defaultValue={initial.phone}
               className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
-              placeholder="+91 98765 43210"
+              placeholder="+91 98765 43210 or +1 555 123 4567"
               required
             />
           </label>
@@ -171,7 +171,7 @@ export default function ProfileForm({ initial }: Props) {
       <button
         type="submit"
         disabled={loading}
-        className="inline-flex min-w-[140px] items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+        className="inline-flex min-w-[140px] items-center justify-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b] disabled:opacity-60"
       >
         {loading ? "Saving…" : "Save profile"}
       </button>

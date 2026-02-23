@@ -8,7 +8,7 @@ export default function PatientMobileTabs() {
 
   const active = (p: string) =>
     path.startsWith(p)
-      ? "text-blue-600 font-semibold"
+      ? "text-[#2f6ea5] font-semibold"
       : "text-slate-500";
 
   return (

@@ -114,7 +114,7 @@ export default function LoginClient({ next, initialPhone }: LoginClientProps) {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Patient portal</p>
         <h2 className="text-2xl font-semibold text-slate-900">Sign in to view your visits</h2>
         <p className="text-sm text-slate-500">
-          {step === "phone" ? "Enter your mobile number to get a WhatsApp OTP." : "Enter the code we sent on WhatsApp."}
+          {step === "phone" ? "Enter your number with country code to get a WhatsApp OTP." : "Enter the code we sent on WhatsApp."}
         </p>
       </div>
       {step === "otp" && (
@@ -146,7 +146,7 @@ export default function LoginClient({ next, initialPhone }: LoginClientProps) {
               onChange={(e) => setPhone(e.target.value)}
               type="tel"
               className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-              placeholder="+91 98765 43210"
+              placeholder="+91 98765 43210 or +1 555 123 4567"
               required
             />
           </label>

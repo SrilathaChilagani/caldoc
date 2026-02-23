@@ -85,7 +85,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
       <main className="mx-auto max-w-4xl space-y-4 px-4 py-10">
         <Link
           href={cameFromAdmin ? "/admin" : "/provider/appointments"}
-          className="text-sm font-medium text-blue-600 hover:text-blue-800"
+          className="text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
         >
           ← Back to {cameFromAdmin ? "admin dashboard" : "appointments"}
         </Link>
@@ -151,7 +151,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
       <div className="flex items-center justify-between">
         <Link
           href={cameFromAdmin ? "/admin" : "/provider/appointments"}
-          className="text-sm font-medium text-blue-600 hover:text-blue-800"
+          className="text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
         >
           ← Back to {cameFromAdmin ? "admin dashboard" : "appointments"}
         </Link>
@@ -171,8 +171,8 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         </span>
       </div>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-900">Visit details</h1>
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <h1 className="font-serif text-2xl font-semibold text-slate-900">Visit details</h1>
         <p className="text-sm text-slate-500">
           Review the booking, confirm it for the patient, or cancel if needed.
         </p>
@@ -227,7 +227,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
                     href={providerVideoRoomHref || appointment.videoRoom}
                     target="_blank"
                     rel="noreferrer"
-                    className="break-all text-blue-600 hover:text-blue-800"
+                    className="break-all text-[#2f6ea5] hover:text-[#255b8b]"
                   >
                     {appointment.videoRoom}
                   </a>
@@ -242,7 +242,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
                 </dd>
                 <Link
                   href={`/visit/${appointment.id}?from=provider`}
-                  className="inline-flex w-full max-w-xs items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-blue-300 hover:text-blue-700"
+                  className="inline-flex w-full max-w-xs items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
                 >
                   Prepare room
                 </Link>
@@ -298,10 +298,10 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         )}
       </section>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Patient documents</h2>
+            <h2 className="font-serif text-lg font-semibold text-slate-900">Patient documents</h2>
             <p className="text-sm text-slate-500">
               Attachments uploaded from the patient portal or secure link.
             </p>
@@ -329,7 +329,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
                 <Link
                   href={`/api/provider/documents/${doc.id}`}
                   target="_blank"
-                  className="mt-2 inline-flex items-center text-xs font-semibold text-blue-600 hover:text-blue-800"
+                  className="mt-2 inline-flex items-center text-xs font-semibold text-[#2f6ea5] hover:text-[#255b8b]"
                 >
                   View / download
                 </Link>
@@ -339,8 +339,8 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         )}
       </section>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">Visit notes</h2>
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <h2 className="font-serif text-lg font-semibold text-slate-900">Visit notes</h2>
         <p className="text-sm text-slate-500">Share clinical notes with the patient portal.</p>
         {readOnly ? (
           <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">
@@ -353,17 +353,17 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         )}
       </section>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Prescription</h2>
+            <h2 className="font-serif text-lg font-semibold text-slate-900">Prescription</h2>
             <p className="text-sm text-slate-500">Add medicines to generate a PDF for the patient.</p>
           </div>
           {appointment.prescription?.pdfKey && (
             <Link
               href={`/api/appointments/${appointment.id}/prescription.pdf`}
               target="_blank"
-              className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+              className="text-xs font-semibold text-[#2f6ea5] hover:text-[#255b8b]"
             >
               View current PDF
             </Link>
@@ -394,8 +394,8 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         )}
       </section>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">Labs</h2>
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <h2 className="font-serif text-lg font-semibold text-slate-900">Labs</h2>
         <p className="text-sm text-slate-500">
           Choose whether CalDoc labs or the patient will handle tests, then list the required panels.
         </p>

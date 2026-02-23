@@ -42,7 +42,7 @@ export default function UploadDocumentsForm({ appointmentId }: Props) {
 
   return (
     <div className="flex flex-col items-start gap-2 text-sm">
-      <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:border-blue-400 hover:text-blue-700">
+      <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]">
         <input
           type="file"
           name="file"
