@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     }
     const meta = buildPatientPhoneMeta(phoneInput);
     if (!meta) {
-      return NextResponse.json({ error: "Invalid mobile number" }, { status: 400 });
+      return NextResponse.json({ error: "Enter a valid phone number with country code (e.g. +91 for India, +1 for US)" }, { status: 400 });
     }
 
     const patient = await prisma.patient.findUnique({

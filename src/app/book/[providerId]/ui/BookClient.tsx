@@ -379,7 +379,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                       value={patientPhone}
                       onChange={(e) => setPatientPhone(e.target.value)}
                       className="mt-1 w-full rounded-2xl border border-[#2f6ea5]/20 bg-white px-4 py-3 text-sm shadow-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
-                      placeholder="+91 98765 43210"
+                      placeholder="+91 or +1 for international"
                     />
                   </label>
                 </div>
@@ -394,7 +394,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                         value={bookerPhone}
                         onChange={(e) => setBookerPhone(e.target.value)}
                         className="mt-1 w-full rounded-2xl border border-[#2f6ea5]/20 bg-white px-4 py-3 text-sm shadow-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
-                        placeholder="+91 98765 43210"
+                        placeholder="+91 or +1 for international"
                       />
                     </label>
                   </div>

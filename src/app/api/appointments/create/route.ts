@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     // Strict phone validation — must be a valid Indian mobile number
     const meta = buildPatientPhoneMeta(phone);
     if (!meta) {
-      return NextResponse.json({ error: "Enter a valid 10-digit Indian mobile number" }, { status: 400 });
+      return NextResponse.json({ error: "Enter a valid phone number with country code (e.g. +91 for India, +1 for US)" }, { status: 400 });
     }
 
     // Validate bookerPhone if provided
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     if (rawBookerPhone) {
       const bookerMeta = buildPatientPhoneMeta(rawBookerPhone);
       if (!bookerMeta) {
-        return NextResponse.json({ error: "Enter a valid 10-digit Indian mobile number for the booker" }, { status: 400 });
+        return NextResponse.json({ error: "Enter a valid phone number with country code for the booker" }, { status: 400 });
       }
       bookerPhone = bookerMeta.canonical;
     }

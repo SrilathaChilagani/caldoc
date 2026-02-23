@@ -115,7 +115,7 @@ export default function ProfileForm({ initial }: Props) {
               name="phone"
               defaultValue={initial.phone}
               className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
-              placeholder="+91 98765 43210"
+              placeholder="+91 98765 43210 or +1 555 123 4567"
               required
             />
           </label>
