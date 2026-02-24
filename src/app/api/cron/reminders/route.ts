@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { getErrorMessage } from "@/lib/errors";
+import { sendCheckinFormLink } from "@/lib/sendCheckinFormLink";
 
 const WINDOW_MINUTES = Number(process.env.APPOINTMENT_REMINDER_WINDOW_MIN || 30);
 const REMINDER_LANG = process.env.WHATSAPP_LANG || "en_US";
@@ -91,6 +92,7 @@ async function fetchAppointmentsForReminder(offsetMinutes: number, kind: string)
       patient: { select: { name: true, phone: true } },
       provider: { select: { name: true } },
       slot: { select: { startsAt: true } },
+      checkInForm: { select: { completedAt: true } },
     },
     take: 100,
   });
@@ -184,6 +186,29 @@ export async function GET() {
           messageId: null,
           error: getErrorMessage(err),
         });
+      }
+
+      // If the patient hasn't filled the check-in form yet, send them the link
+      // alongside the reminder. Skip if already completed.
+      if (!appt.checkInForm?.completedAt) {
+        const checkinKind = job.kind === "APPT_REMINDER_24H"
+          ? "PATIENT_CHECKIN_REMINDER_24H"
+          : "PATIENT_CHECKIN_REMINDER_10M";
+        // Only send once per job kind (reuse OutboundMessage dedup via kind)
+        const alreadySentCheckin = await prisma.outboundMessage.count({
+          where: { appointmentId: appt.id, kind: checkinKind },
+        });
+        if (alreadySentCheckin === 0) {
+          sendCheckinFormLink({
+            appointmentId: appt.id,
+            patientPhone,
+            patientName: appt.patientName || appt.patient?.name || "Patient",
+            slotStartsAt,
+            kind: checkinKind,
+          }).catch((err) =>
+            console.error(`[reminders] checkin link (${checkinKind}) failed:`, getErrorMessage(err))
+          );
+        }
       }
     }
 

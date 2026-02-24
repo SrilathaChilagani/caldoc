@@ -5,6 +5,7 @@ import { notifyProviderOfBooking } from "@/lib/sendProviderBookingNotification";
 import { sendPatientAudioConfirmation } from "@/lib/sendPatientAudioConfirmation";
 import { getErrorMessage } from "@/lib/errors";
 import { ensureVideoRoomIfNeeded } from "@/lib/videoLinkHelpers";
+import { sendCheckinFormLink } from "@/lib/sendCheckinFormLink";
 
 function appBaseUrl() {
   return (
@@ -187,6 +188,20 @@ export async function POST(req: NextRequest) {
         )
       ).catch((err) =>
         console.error("[confirm] video room setup failed after retries:", err)
+      );
+    }
+
+    // Patient check-in form link — non-blocking
+    if (appointment.patient?.phone && appointment.slot?.startsAt) {
+      withRetry(() =>
+        sendCheckinFormLink({
+          appointmentId: appointment.id,
+          patientPhone: appointment.patient!.phone,
+          patientName: appointment.patientName || appointment.patient?.name || "Patient",
+          slotStartsAt: appointment.slot!.startsAt,
+        })
+      ).catch((err) =>
+        console.error("[confirm] checkin link send failed after retries:", err)
       );
     }
 

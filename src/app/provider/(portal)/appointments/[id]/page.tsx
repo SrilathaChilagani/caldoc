@@ -10,6 +10,7 @@ import CopyRoomLinkButton from "./CopyRoomLinkButton";
 import LabOrderForm from "./LabOrderForm";
 import { formatINR } from "@/lib/format";
 import CallPatientButton from "./CallPatientButton";
+import CheckInFormViewer from "./CheckInFormViewer";
 import { normalizeDrugCategory, type Medicine } from "@/lib/medication";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +75,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
       patientDocuments: true,
       visitNote: true,
       prescription: true,
+      checkInForm: { select: { completedAt: true, chiefComplaint: true } },
       labOrders: {
         orderBy: { createdAt: "desc" },
       },
@@ -336,6 +338,46 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
               </li>
             ))}
           </ul>
+        )}
+      </section>
+
+      {/* ── Pre-visit check-in form ── */}
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="font-serif text-lg font-semibold text-slate-900">Pre-visit check-in</h2>
+            <p className="text-sm text-slate-500">
+              Medical history, allergies, current symptoms and vitals submitted by the patient.
+            </p>
+          </div>
+          {appointment.checkInForm?.completedAt ? (
+            <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              Completed
+            </span>
+          ) : (
+            <span className="shrink-0 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+              Not submitted
+            </span>
+          )}
+        </div>
+
+        {appointment.checkInForm?.completedAt ? (
+          <div className="mt-4 space-y-3">
+            {appointment.checkInForm.chiefComplaint && (
+              <div className="rounded-xl bg-amber-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                  Chief complaint
+                </p>
+                <p className="mt-1 text-sm text-slate-800">{appointment.checkInForm.chiefComplaint}</p>
+              </div>
+            )}
+            <CheckInFormViewer appointmentId={appointment.id} />
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-slate-500">
+            The patient has not yet submitted their pre-visit check-in form. They will receive a
+            reminder with the form link before the appointment.
+          </p>
         )}
       </section>
 
