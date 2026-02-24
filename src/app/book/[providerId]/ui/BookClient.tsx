@@ -53,6 +53,23 @@ function formatSlotLabel(value: string) {
   });
 }
 
+function formatSlotDate(value: string) {
+  return new Date(value).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}
+
+function formatSlotTime(value: string) {
+  return new Date(value).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function formatFeeFromPaise(paise?: number | null) {
   if (typeof paise !== "number" || Number.isNaN(paise) || paise <= 0) return null;
   return new Intl.NumberFormat("en-IN", {
@@ -262,20 +279,22 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       : `${address.contactName || patientName} · ${address.line1 || "No address"}`;
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-3 sm:px-4">
+    <div className="mx-auto w-full max-w-7xl px-6 pb-12 lg:px-12 xl:px-16">
       <Link
         href="/providers"
-        className="inline-flex items-center text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
       >
         ← Back to doctors
       </Link>
+
       {step === "slot" && (
-        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
-          <div className="space-y-2">
-            <h2 className="font-serif text-xl font-semibold text-slate-900">
-              Book {provider.name}
-              <span className="text-sm font-normal text-slate-500"> · {provider.speciality}</span>
-            </h2>
+        <>
+          {/* ── Page header — outside any card ──────────────── */}
+          <div className="mb-5 mt-4">
+            <h1 className="text-2xl font-semibold text-slate-900 lg:text-3xl">
+              Book {provider.name}{" "}
+              <span className="text-base font-normal text-slate-500">· {provider.speciality}</span>
+            </h1>
             {provider.qualification && (
               <p className="text-sm text-slate-500">{provider.qualification}</p>
             )}
@@ -285,202 +304,183 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                 {provider.councilName && <> ({provider.councilName})</>}
               </p>
             )}
-            <p className="text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500">
               Select a slot, enter patient details, and accept the telemedicine consent to continue.
             </p>
           </div>
 
-          <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(360px,1fr)]">
-            <div className="space-y-4 min-w-0">
-              <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => handlePage("prev")}
-                  disabled={!canPrev}
-                  className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-40"
-                >
-                  &lt;
-                </button>
-                <div className="grid flex-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-                  {upcomingSlots.length === 0 && (
-                    <p className="text-sm text-slate-500">No slots available right now. Please check back later.</p>
-                  )}
-                  {upcomingSlots.length > 0 &&
-                    (pagedSlots.length ? pagedSlots : upcomingSlots).map((slot) => (
+          {/* ── Two-column layout ────────────────────────────── */}
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-6">
+
+            {/* Left column */}
+            <div className="flex-1 space-y-4 min-w-0">
+
+              {/* Time slots */}
+              <div className="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePage("prev")}
+                    disabled={!canPrev}
+                    className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-600 disabled:opacity-40 hover:bg-slate-50"
+                  >
+                    ‹
+                  </button>
+                  <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-4">
+                    {upcomingSlots.length === 0 && (
+                      <p className="col-span-4 text-sm text-slate-500">No slots available right now. Please check back later.</p>
+                    )}
+                    {(pagedSlots.length ? pagedSlots : upcomingSlots).map((slot) => (
                       <button
                         key={slot.id}
                         type="button"
                         onClick={() => setSelectedSlot(slot.id)}
-                        className={`rounded-2xl px-4 py-3 text-left text-sm transition ${
+                        className={`rounded-xl border px-3 py-2.5 text-left transition-all duration-200 ${
                           selectedSlot === slot.id
-                            ? "bg-slate-800 text-white shadow"
-                            : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                            ? "border-[#2f6ea5] bg-[#2f6ea5] shadow-sm"
+                            : "border-slate-200 bg-white hover:border-[#2f6ea5]/40"
                         }`}
                       >
-                        {formatSlotLabel(slot.startsAt)}
-                        <span className="mt-2 block text-xs font-semibold">
-                          {formatFeeFromPaise(slot.feePaise ?? provider.defaultFeePaise) ?? "Fee TBD"}
-                        </span>
+                        <p className={`text-sm font-medium ${selectedSlot === slot.id ? "text-white" : "text-slate-900"}`}>
+                          {formatSlotDate(slot.startsAt)}
+                        </p>
+                        <p className={`text-xs ${selectedSlot === slot.id ? "text-white/80" : "text-slate-500"}`}>
+                          {formatSlotTime(slot.startsAt)} · {formatFeeFromPaise(slot.feePaise ?? provider.defaultFeePaise) ?? "TBD"}
+                        </p>
                       </button>
                     ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handlePage("next")}
+                    disabled={!canNext}
+                    className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-600 disabled:opacity-40 hover:bg-slate-50"
+                  >
+                    ›
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handlePage("next")}
-                  disabled={!canNext}
-                  className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-40"
-                >
-                  &gt;
-                </button>
               </div>
 
-              <div className="rounded-3xl border border-[#2f6ea5]/20 bg-[#e7edf3] p-4 shadow-inner space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Patient details</p>
+              {/* Patient Details + Connection Preference */}
+              <div className="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm space-y-4">
 
-                {/* Booking-for toggle */}
-                <div className="grid grid-cols-2 gap-2">
-                  <label className={`inline-flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-2.5 text-sm font-semibold transition ${bookingFor === "self" ? "border-[#2f6ea5] bg-white text-[#1e4d77] shadow" : "border-[#2f6ea5]/20 bg-white/60 text-slate-600"}`}>
-                    <input
-                      type="radio"
-                      name="bookingFor"
-                      value="self"
-                      checked={bookingFor === "self"}
-                      onChange={() => { setBookingFor("self"); setBookerPhone(""); }}
-                      className="accent-[#2f6ea5]"
-                    />
-                    Booking for myself
-                  </label>
-                  <label className={`inline-flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-2.5 text-sm font-semibold transition ${bookingFor === "other" ? "border-[#2f6ea5] bg-white text-[#1e4d77] shadow" : "border-[#2f6ea5]/20 bg-white/60 text-slate-600"}`}>
-                    <input
-                      type="radio"
-                      name="bookingFor"
-                      value="other"
-                      checked={bookingFor === "other"}
-                      onChange={() => setBookingFor("other")}
-                      className="accent-[#2f6ea5]"
-                    />
-                    Booking for someone else
-                  </label>
-                </div>
-
-                {/* Patient name + phone */}
-                <div className="grid gap-3 md:grid-cols-2">
-                  <label className="text-sm font-medium text-slate-700">
-                    {bookingFor === "other" ? "Patient's full name" : "Full name"}
-                    <input
-                      value={patientName}
-                      onChange={(e) => setPatientName(e.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-[#2f6ea5]/20 bg-white px-4 py-3 text-sm shadow-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
-                    />
-                  </label>
-                  <label className="text-sm font-medium text-slate-700">
-                    {bookingFor === "other" ? "Patient's mobile number" : "Mobile number"}
-                    <input
-                      value={patientPhone}
-                      onChange={(e) => setPatientPhone(e.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-[#2f6ea5]/20 bg-white px-4 py-3 text-sm shadow-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
-                      placeholder="+91 or +1 for international"
-                    />
-                  </label>
-                </div>
-
-                {/* Booker phone — only shown when booking for someone else */}
-                {bookingFor === "other" && (
-                  <div>
-                    <label className="text-sm font-medium text-slate-700">
-                      Your mobile number
-                      <span className="ml-1 text-xs font-normal text-slate-400">(optional — you'll also receive confirmation here)</span>
+                {/* Patient Details */}
+                <div>
+                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Patient Details</h3>
+                  <div className="mb-3 grid grid-cols-2 gap-2">
+                    <label className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${bookingFor === "self" ? "border-[#2f6ea5] bg-[#2f6ea5]/5 text-[#2f6ea5]" : "border-slate-200 bg-white text-slate-600"}`}>
+                      <input type="radio" name="bookingFor" value="self" checked={bookingFor === "self"} onChange={() => { setBookingFor("self"); setBookerPhone(""); }} className="accent-[#2f6ea5]" />
+                      Myself
+                    </label>
+                    <label className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${bookingFor === "other" ? "border-[#2f6ea5] bg-[#2f6ea5]/5 text-[#2f6ea5]" : "border-slate-200 bg-white text-slate-600"}`}>
+                      <input type="radio" name="bookingFor" value="other" checked={bookingFor === "other"} onChange={() => setBookingFor("other")} className="accent-[#2f6ea5]" />
+                      Someone else
+                    </label>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        {bookingFor === "other" ? "Patient full name" : "Patient full name"}
+                      </label>
+                      <input
+                        value={patientName}
+                        onChange={(e) => setPatientName(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-slate-200 bg-white/50 px-3 text-sm text-slate-800 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">Mobile number</label>
+                      <input
+                        value={patientPhone}
+                        onChange={(e) => setPatientPhone(e.target.value)}
+                        placeholder="+91 98765 43210"
+                        className="h-9 w-full rounded-xl border border-slate-200 bg-white/50 px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
+                      />
+                    </div>
+                  </div>
+                  {bookingFor === "other" && (
+                    <div className="mt-3">
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Your mobile number{" "}
+                        <span className="text-xs font-normal text-slate-400">(optional — you'll also receive confirmation here)</span>
+                      </label>
                       <input
                         value={bookerPhone}
                         onChange={(e) => setBookerPhone(e.target.value)}
-                        className="mt-1 w-full rounded-2xl border border-[#2f6ea5]/20 bg-white px-4 py-3 text-sm shadow-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
                         placeholder="+91 or +1 for international"
+                        className="h-9 w-full rounded-xl border border-slate-200 bg-white/50 px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
                       />
+                    </div>
+                  )}
+                </div>
+
+                {/* Connection Preference */}
+                <div>
+                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Connection Preference</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 ${visitMode === "VIDEO" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white hover:border-[#2f6ea5]/40"}`}>
+                      <div className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 ${visitMode === "VIDEO" ? "border-[#2f6ea5]" : "border-slate-400"}`}>
+                        {visitMode === "VIDEO" && <div className="h-1.5 w-1.5 rounded-full bg-[#2f6ea5]" />}
+                      </div>
+                      <input type="radio" name="visitMode" value="VIDEO" checked={visitMode === "VIDEO"} onChange={() => setVisitMode("VIDEO")} className="sr-only" />
+                      <svg className={`h-3.5 w-3.5 ${visitMode === "VIDEO" ? "text-[#2f6ea5]" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="m22 8-6 4 6 4V8z" /><rect x="2" y="6" width="14" height="12" rx="2" />
+                      </svg>
+                      <span className={`text-sm ${visitMode === "VIDEO" ? "font-medium text-slate-900" : "text-slate-600"}`}>Video call</span>
+                    </label>
+                    <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 ${visitMode === "AUDIO" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white hover:border-[#2f6ea5]/40"}`}>
+                      <div className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 ${visitMode === "AUDIO" ? "border-[#2f6ea5]" : "border-slate-400"}`}>
+                        {visitMode === "AUDIO" && <div className="h-1.5 w-1.5 rounded-full bg-[#2f6ea5]" />}
+                      </div>
+                      <input type="radio" name="visitMode" value="AUDIO" checked={visitMode === "AUDIO"} onChange={() => setVisitMode("AUDIO")} className="sr-only" />
+                      <svg className={`h-3.5 w-3.5 ${visitMode === "AUDIO" ? "text-[#2f6ea5]" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.7 12.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                      <span className={`text-sm ${visitMode === "AUDIO" ? "font-medium text-slate-900" : "text-slate-600"}`}>Audio-only</span>
                     </label>
                   </div>
-                )}
-              </div>
-
-              <div className="rounded-3xl border border-[#2f6ea5]/20 bg-[#e7edf3] p-4 text-sm text-slate-700 shadow-inner">
-                <p className="font-semibold text-[#2f6ea5]">Connection preference</p>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  <label
-                    className={`inline-flex w-full cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
-                      visitMode === "VIDEO"
-                        ? "border-[#2f6ea5] bg-white text-[#1e4d77] shadow"
-                        : "border-[#2f6ea5]/20 bg-white text-slate-700"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="visitMode"
-                      value="VIDEO"
-                      checked={visitMode === "VIDEO"}
-                      onChange={() => setVisitMode("VIDEO")}
-                    />
-                    Video call (default)
-                  </label>
-                  <label
-                    className={`inline-flex w-full cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
-                      visitMode === "AUDIO"
-                        ? "border-[#2f6ea5] bg-white text-[#1e4d77] shadow"
-                        : "border-[#2f6ea5]/20 bg-white text-slate-700"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="visitMode"
-                      value="AUDIO"
-                      checked={visitMode === "AUDIO"}
-                      onChange={() => setVisitMode("AUDIO")}
-                    />
-                    Audio-only call
-                  </label>
                 </div>
               </div>
-              <div className="rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow">
-                <label className="flex items-center gap-3">
+
+              {/* Consent */}
+              <div className="rounded-2xl border border-white/30 bg-white/70 px-4 py-3 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm">
+                <label className="flex cursor-pointer items-start gap-3">
                   <input
                     type="checkbox"
                     checked={consentAccepted}
                     onChange={(e) => setConsentAccepted(e.target.checked)}
-                    className="h-5 w-5 rounded border-slate-300"
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-[#2f6ea5]"
                   />
-                  <span>
+                  <span className="text-xs leading-relaxed text-slate-600">
                     {CONSENT_TEXT} Read our{" "}
-                    <button
-                      type="button"
-                      onClick={() => setPolicyModal("disclaimer")}
-                      className="text-[#2f6ea5] underline-offset-2 hover:text-[#255b8b] hover:underline"
-                    >
+                    <button type="button" onClick={() => setPolicyModal("disclaimer")} className="text-[#2f6ea5] hover:underline">
                       disclaimer
                     </button>{" "}
                     and{" "}
-                    <button
-                      type="button"
-                      onClick={() => setPolicyModal("terms")}
-                      className="text-[#2f6ea5] underline-offset-2 hover:text-[#255b8b] hover:underline"
-                    >
+                    <button type="button" onClick={() => setPolicyModal("terms")} className="text-[#2f6ea5] hover:underline">
                       terms of service
-                    </button>
-                    .
+                    </button>.
                   </span>
                 </label>
               </div>
+
               {error && <p className="text-sm text-rose-600">{error}</p>}
             </div>
 
-            <aside className="space-y-4 w-full lg:w-auto">
-              <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            {/* Right sidebar */}
+            <aside className="shrink-0 space-y-4 lg:w-80 xl:w-96">
+
+              {/* Symptoms */}
+              <div className="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm">
                 <p className="text-sm font-semibold text-slate-900">Common symptoms</p>
-                <p className="text-xs text-slate-500">Select all that apply so the doctor can prepare.</p>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <p className="mb-3 text-xs text-slate-500">Select all that apply.</p>
+                <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
                   {SYMPTOM_OPTIONS.map((symptom) => {
                     const isActive = selectedSymptoms.includes(symptom);
                     return (
                       <label
                         key={symptom}
-                        className={`inline-flex items-center rounded-2xl border px-3 py-2 text-sm font-medium transition ${
+                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-2.5 py-2 text-sm transition ${
                           isActive ? "border-[#2f6ea5] bg-[#e7edf3] text-[#1e4d77]" : "border-slate-200 text-slate-600"
                         }`}
                       >
@@ -488,25 +488,23 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                           type="checkbox"
                           checked={isActive}
                           onChange={() => toggleSymptom(symptom)}
-                          className="mr-2 rounded border-slate-300"
+                          className="rounded border-slate-300 accent-[#2f6ea5]"
                         />
                         {symptom}
                       </label>
                     );
                   })}
                   <label
-                    className={`inline-flex flex-col rounded-2xl border px-3 py-2 text-sm font-medium transition ${
-                      selectedSymptoms.includes("Other")
-                        ? "border-[#2f6ea5] bg-[#e7edf3] text-[#1e4d77]"
-                        : "border-slate-200 text-slate-600"
-                    } sm:col-span-2`}
+                    className={`flex cursor-pointer flex-col rounded-xl border px-2.5 py-2 text-sm transition col-span-2 xl:col-span-3 ${
+                      selectedSymptoms.includes("Other") ? "border-[#2f6ea5] bg-[#e7edf3] text-[#1e4d77]" : "border-slate-200 text-slate-600"
+                    }`}
                   >
-                    <span className="flex items-center">
+                    <span className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         checked={selectedSymptoms.includes("Other")}
                         onChange={() => toggleSymptom("Other")}
-                        className="mr-2 rounded border-slate-300"
+                        className="rounded border-slate-300 accent-[#2f6ea5]"
                       />
                       Other
                     </span>
@@ -515,35 +513,37 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                         value={otherSymptom}
                         onChange={(e) => setOtherSymptom(e.target.value)}
                         placeholder="Describe other symptoms"
-                        className="mt-2 w-full rounded-xl border border-[#2f6ea5]/20 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/10"
+                        className="mt-2 w-full rounded-lg border border-[#2f6ea5]/20 px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
                       />
                     )}
                   </label>
                 </div>
               </div>
-              <label className="text-sm font-medium text-slate-700 block rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-                Notes for doctor (optional)
+
+              {/* Notes */}
+              <div className="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm">
+                <p className="mb-2 text-sm font-semibold text-slate-900">Notes (optional)</p>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  rows={10}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm"
+                  rows={4}
                   placeholder="Symptoms, duration, or remarks"
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-white/50 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
                 />
-              </label>
+              </div>
+
+              {/* Continue */}
+              <button
+                type="button"
+                onClick={handleSlotContinue}
+                disabled={loading}
+                className="w-full rounded-xl bg-[#2f6ea5] py-2.5 text-sm font-medium text-white shadow-sm hover:bg-[#255b8b] disabled:opacity-60"
+              >
+                {loading ? "Locking slot..." : "Continue"}
+              </button>
             </aside>
           </div>
-          <div className="mt-6 flex items-center justify-end">
-            <button
-              type="button"
-              onClick={handleSlotContinue}
-              disabled={loading}
-              className="inline-flex items-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b] disabled:opacity-60"
-            >
-              {loading ? "Locking slot..." : "Continue"}
-            </button>
-          </div>
-        </section>
+        </>
       )}
 
       {step === "delivery" && (

@@ -4,7 +4,7 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { FiltersPanel } from "./FiltersPanel";
-import { IMAGES } from "@/lib/imagePaths";
+import { IMAGES, HERO_DOCTOR_IMAGES, getDailyHeroImage } from "@/lib/imagePaths";
 
 export const revalidate = 120;
 
@@ -133,6 +133,7 @@ type PageProps = {
 };
 
 export default async function ProvidersPage({ searchParams }: PageProps) {
+  const heroImage = getDailyHeroImage(HERO_DOCTOR_IMAGES);
   const resolvedParams =
     searchParams instanceof Promise ? await searchParams : searchParams ?? {};
   const q = (resolvedParams.q as string | undefined)?.trim() ?? "";
@@ -307,23 +308,51 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
   };
 
   return (
-    <main className="min-h-[calc(100vh-120px)] bg-[#f7f2ea] py-10">
-      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6 lg:px-10">
-        <Link
-          href="/"
-          className="inline-flex items-center text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]"
-        >
-          ← Back to home
-        </Link>
-        <div>
-          <h1 className="text-3xl font-semibold text-slate-900">Find a doctor</h1>
-          <form method="GET" className="mt-4 flex flex-col gap-3 md:flex-row">
-            <input
-              name="q"
-              defaultValue={q}
-              placeholder="Search specialties, doctor names, symptoms, or registration number"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:ring-1 focus:ring-[#2f6ea5]"
-            />
+    <div className="bg-[#f7f2ea]">
+      <section className="relative -mt-16 pb-12">
+        {/* ── Daily rotating hero image (changes once per UTC day) ── */}
+        <div className="absolute inset-x-0 top-0 h-[380px]">
+          <Image
+            src={heroImage}
+            alt="Find a doctor"
+            fill
+            className="object-cover object-top"
+            sizes="100vw"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#f7f2ea]/10 via-[#f7f2ea]/50 to-[#f7f2ea]" />
+        </div>
+
+        {/* ── All content in one unified container ────────── */}
+        <div className="relative mx-auto w-full max-w-6xl px-6 pt-24 lg:px-10">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm font-semibold text-slate-700 hover:text-slate-900"
+          >
+            ← Back to home
+          </Link>
+          <h1 className="mt-3 text-4xl font-semibold text-slate-900 md:text-5xl">Find a doctor</h1>
+
+          {/* Glass search bar — matches Lovable glass style */}
+          <form
+            method="GET"
+            className="mt-6 flex max-w-3xl gap-2 rounded-2xl border border-white/30 bg-white/70 p-2 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-xl"
+          >
+            <div className="relative flex-1">
+              <svg
+                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              <input
+                name="q"
+                defaultValue={q}
+                placeholder="Search specialties, doctor names, symptoms, or registration number"
+                className="h-12 w-full rounded-xl bg-white/50 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
+              />
+            </div>
             {patientName && <input type="hidden" name="patientName" value={patientName} />}
             {patientPhone && <input type="hidden" name="patientPhone" value={patientPhone} />}
             {embed && <input type="hidden" name="embed" value={embed} />}
@@ -347,123 +376,137 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
             ))}
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-2xl bg-[#2f6ea5] px-5 py-3 text-sm font-semibold text-white hover:bg-[#255b8b]"
+              className="h-12 rounded-xl bg-[#2f6ea5] px-8 text-sm font-medium text-white hover:bg-[#255b8b]"
             >
               Search
             </button>
           </form>
-        </div>
 
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <FiltersPanel
-            specialtyList={specialtyOptions}
-            selectedSpecialties={Array.from(selectedSpecialties)}
-            selectedAvailability={selectedAvailability}
-            selectedExperience={selectedExperience}
-            selectedGenders={genderAnySelected ? [] : Array.from(selectedGenders)}
-            genderAnySelected={genderAnySelected}
-            selectedLanguages={Array.from(selectedLanguages)}
-            selectedConsultationTypes={Array.from(selectedConsultationTypes)}
-            q={q}
-            languageLabels={languageLabels}
-            patientName={patientName}
-            patientPhone={patientPhone}
-            embed={embed}
-          />
+          {/* ── Filters + Results ──────────────────────────── */}
+          <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
+            <FiltersPanel
+              specialtyList={specialtyOptions}
+              selectedSpecialties={Array.from(selectedSpecialties)}
+              selectedAvailability={selectedAvailability}
+              selectedExperience={selectedExperience}
+              selectedGenders={genderAnySelected ? [] : Array.from(selectedGenders)}
+              genderAnySelected={genderAnySelected}
+              selectedLanguages={Array.from(selectedLanguages)}
+              selectedConsultationTypes={Array.from(selectedConsultationTypes)}
+              q={q}
+              languageLabels={languageLabels}
+              patientName={patientName}
+              patientPhone={patientPhone}
+              embed={embed}
+            />
 
-          <section className="flex-1 space-y-4">
-            <p className="text-xs text-slate-500">
-              Showing up to {pageSize} providers per page for faster loading.
-            </p>
-            {filteredProviders.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-slate-200 bg-white/80 px-6 py-12 text-center text-sm text-slate-500">
-                No providers matched this search. Try adjusting the filters.
-              </div>
-            ) : (
-              filteredProviders.map((provider) => {
-                const displayedSlots = provider.slots.slice(0, 3);
-                const feeLabel = formatFee(provider.defaultFeePaise);
-                const meta = deriveMeta(provider.slug);
-                const photoToken = provider.profilePhotoKey
-                  ? encodeURIComponent(provider.profilePhotoKey)
-                  : null;
-                const photoUrl = photoToken
-                  ? `/api/providers/${provider.slug}/photo?v=${photoToken}`
-                  : IMAGES.DOC_PLACEHOLDER;
-                return (
-                  <article
-                    key={provider.id}
-                    className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]"
-                  >
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                      <div className="flex items-start gap-4">
-                        <div className="relative h-24 w-24 overflow-hidden rounded-[32px] border border-slate-200 bg-slate-50">
-                          <Image src={photoUrl} alt={provider.name} fill className="object-cover" sizes="96px" />
+            <section className="min-w-0 flex-1 space-y-4">
+              <p className="text-xs text-slate-500">
+                Showing up to {pageSize} providers per page for faster loading.
+              </p>
+              {filteredProviders.length === 0 ? (
+                <div className="rounded-3xl border border-dashed border-[#e7e0d5] bg-white/60 px-6 py-12 text-center text-sm text-slate-500">
+                  No providers matched this search. Try adjusting the filters.
+                </div>
+              ) : (
+                filteredProviders.map((provider) => {
+                  const displayedSlots = provider.slots.slice(0, 3);
+                  const feeLabel = formatFee(provider.defaultFeePaise);
+                  const meta = deriveMeta(provider.slug);
+                  const photoToken = provider.profilePhotoKey
+                    ? encodeURIComponent(provider.profilePhotoKey)
+                    : null;
+                  const photoUrl = photoToken
+                    ? `/api/providers/${provider.slug}/photo?v=${photoToken}`
+                    : IMAGES.DOC_PLACEHOLDER;
+                  return (
+                    <article
+                      key={provider.id}
+                      className="rounded-2xl border border-[#e7e0d5]/60 bg-white p-6 hover:shadow-[0_4px_30px_-5px_rgba(88,110,132,0.12)] transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-6">
+                        {/* Avatar */}
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                          <Image src={photoUrl} alt={provider.name} fill className="object-cover" sizes="80px" />
                         </div>
-                        <div>
-                        <p className="text-lg font-semibold text-slate-900">{provider.name}</p>
-                        <p className="text-sm text-slate-600">{provider.speciality}</p>
-                        {provider.qualification && (
-                          <p className="text-xs text-slate-500">{provider.qualification}</p>
-                        )}
-                        {(meta.gender || meta.experience) && (
-                          <p className="text-xs text-slate-500">
-                            {meta.gender ? `Gender: ${genderLabels[meta.gender] || "Other"}` : ""}
-                            {meta.gender && meta.experience ? " · " : ""}
-                            {meta.experience ? `Experience: ${meta.experience}+ years` : ""}
-                          </p>
-                        )}
-                        {provider.languages.length > 0 && (
-                          <p className="text-xs text-slate-500">
-                            Languages: {provider.languages.map(formatLanguage).join(", ")}
-                          </p>
-                        )}
-                        {feeLabel && (
-                          <p className="text-xs font-semibold text-slate-600">Consultation fee: {feeLabel}</p>
-                        )}
-                        {provider.is24x7 && (
-                          <p className="text-xs font-medium text-emerald-600">Available 24x7</p>
-                        )}
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-lg font-semibold text-slate-900">{provider.name}</p>
+                          <p className="text-sm font-medium text-[#2f6ea5]">{provider.speciality}</p>
+                          {provider.qualification && (
+                            <p className="text-xs text-slate-500">{provider.qualification}</p>
+                          )}
+                          {(meta.gender || meta.experience) && (
+                            <p className="mt-0.5 text-xs text-slate-500">
+                              {meta.gender ? `Gender: ${genderLabels[meta.gender] || "Other"}` : ""}
+                              {meta.gender && meta.experience ? " · " : ""}
+                              {meta.experience ? `Experience: ${meta.experience}+ years` : ""}
+                            </p>
+                          )}
+                          {provider.languages.length > 0 && (
+                            <p className="text-xs text-slate-500">
+                              Languages: {provider.languages.map(formatLanguage).join(", ")}
+                            </p>
+                          )}
+                          {feeLabel && (
+                            <p className="mt-1 text-xs font-semibold text-slate-700">Consultation fee: {feeLabel}</p>
+                          )}
+                          {provider.is24x7 && (
+                            <p className="text-xs font-medium text-emerald-600">Available 24×7</p>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center md:justify-end">
-                        <div className="flex flex-col items-start gap-1 text-left md:items-end md:text-right">
-                          <p className="text-xs font-semibold uppercase text-slate-500">Next availability</p>
-                          <div className="flex w-full flex-col gap-2 md:w-auto">
-                            {displayedSlots.length === 0 ? (
-                              <span className="rounded-2xl border border-dashed border-slate-200 px-3 py-1 text-xs text-slate-400 md:self-end">
-                                No slots open
-                              </span>
-                            ) : (
-                              displayedSlots.map((slot) => (
-                                <Link
-                                  key={slot.id}
-                                  href={withPrefill(
-                                    `/book/${encodeURIComponent(provider.slug || provider.id)}?slot=${slot.id}`,
-                                  )}
-                                  className="inline-flex min-w-[160px] justify-center rounded-2xl border border-[#2f6ea5]/20 bg-[#e7edf3] px-3 py-1 text-xs font-semibold text-[#2f6ea5] hover:border-[#2f6ea5]/40 hover:bg-[#d9e4ee] md:self-end"
-                                >
-                                  {formatSlot(new Date(slot.startsAt))}
-                                </Link>
-                              ))
-                            )}
+
+                        {/* Right side — slots + book button */}
+                        <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
+                          <div className="text-right">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Next availability</p>
+                            <div className="mt-1 flex flex-col gap-1">
+                              {displayedSlots.length === 0 ? (
+                                <span className="rounded-xl border border-dashed border-slate-200 px-3 py-1 text-xs text-slate-400">
+                                  No slots open
+                                </span>
+                              ) : (
+                                displayedSlots.map((slot) => (
+                                  <Link
+                                    key={slot.id}
+                                    href={withPrefill(
+                                      `/book/${encodeURIComponent(provider.slug || provider.id)}?slot=${slot.id}`,
+                                    )}
+                                    className="inline-flex min-w-[160px] justify-center rounded-xl border border-[#2f6ea5]/20 bg-[#e7edf3] px-3 py-1 text-xs font-semibold text-[#2f6ea5] hover:border-[#2f6ea5]/40 hover:bg-[#d9e4ee]"
+                                  >
+                                    {formatSlot(new Date(slot.startsAt))}
+                                  </Link>
+                                ))
+                              )}
+                            </div>
                           </div>
+                          <Link
+                            href={withPrefill(`/book/${encodeURIComponent(provider.slug || provider.id)}`)}
+                            className="inline-flex items-center justify-center rounded-xl bg-[#2f6ea5] px-6 py-2 text-sm font-medium text-white hover:bg-[#255b8b]"
+                          >
+                            Book doctor
+                          </Link>
                         </div>
-                        <Link
-                          href={withPrefill(`/book/${encodeURIComponent(provider.slug || provider.id)}`)}
-                          className="inline-flex items-center justify-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]"
-                        >
-                          Book doctor
-                        </Link>
+
+                        {/* Mobile book button */}
+                        <div className="sm:hidden">
+                          <Link
+                            href={withPrefill(`/book/${encodeURIComponent(provider.slug || provider.id)}`)}
+                            className="inline-flex items-center justify-center rounded-xl bg-[#2f6ea5] px-4 py-2 text-sm font-medium text-white hover:bg-[#255b8b]"
+                          >
+                            Book
+                          </Link>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                );
-              })
-            )}
-          </section>
+                    </article>
+                  );
+                })
+              )}
+            </section>
+          </div>
         </div>
-      </div>
-    </main>
+      </section>
+    </div>
   );
 }

@@ -78,13 +78,13 @@ export function FiltersPanel({
 
   return (
     <aside
-      className={`w-full shrink-0 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm ring-1 ring-slate-100 lg:w-72 ${
+      className={`w-full shrink-0 rounded-3xl border border-white/70 bg-white/70 p-5 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm lg:sticky lg:top-4 lg:w-64 ${
         isPending ? "opacity-70" : ""
       }`}
     >
-      <div className="mb-4 flex items-center justify-between text-sm font-semibold text-slate-700">
-        <span>Filters</span>
-        <Link href="/providers" className="text-xs font-semibold text-rose-500 hover:text-rose-600">
+      <div className="mb-4 flex items-center justify-between">
+        <span className="text-sm font-semibold text-slate-800">Filters</span>
+        <Link href="/providers" className="text-xs font-semibold text-rose-400 hover:text-rose-600">
           Clear all
         </Link>
       </div>
@@ -108,7 +108,7 @@ export function FiltersPanel({
                   name="availability"
                   value={option.value}
                   defaultChecked={selectedAvailability === option.value}
-                  className="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 accent-[#2f6ea5] border-slate-300"
                 />
                 {option.label}
               </label>
@@ -119,7 +119,7 @@ export function FiltersPanel({
                 name="availability"
                 value=""
                 defaultChecked={!selectedAvailability}
-                className="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 accent-[#2f6ea5] border-slate-300"
               />
               Any time
             </label>
@@ -207,7 +207,7 @@ export function FiltersPanel({
                   name="experience"
                   value={option.value}
                   defaultChecked={selectedExperience === option.value}
-                  className="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 accent-[#2f6ea5] border-slate-300"
                 />
                 {option.label}
               </label>
@@ -218,7 +218,7 @@ export function FiltersPanel({
                 name="experience"
                 value=""
                 defaultChecked={!selectedExperience}
-                className="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 accent-[#2f6ea5] border-slate-300"
               />
               Any experience
             </label>
@@ -236,8 +236,8 @@ type FilterGroupProps = {
 
 function FilterGroup({ title, children }: FilterGroupProps) {
   return (
-    <section className="rounded-2xl border border-slate-100 bg-slate-50/60 p-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
+    <section className="rounded-2xl border border-[#e7e0d5]/60 bg-[#f7f2ea]/50 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">{title}</p>
       <div className="mt-2">{children}</div>
     </section>
   );

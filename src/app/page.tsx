@@ -3,7 +3,7 @@ import Link from "next/link";
 import DisclaimerNotice from "@/components/DisclaimerNotice";
 import OfflineRequestForm from "@/components/OfflineRequestForm";
 import { prisma } from "@/lib/db";
-import { IMAGES } from "@/lib/imagePaths";
+import { IMAGES, HERO_DOCTOR_IMAGES, getDailyHeroImage } from "@/lib/imagePaths";
 
 export const revalidate = 3600;
 
@@ -76,11 +76,7 @@ const FALLBACK_PROVIDERS: ProviderCard[] = [
 ];
 
 export default async function Home() {
-  const heroBackgrounds = [IMAGES.HOMEPAGE, IMAGES.HERO_DOCTOR];
-  const today = new Date();
-  const utcDay = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
-  const dayIndex = Math.floor(utcDay / 86_400_000);
-  const heroBackground = heroBackgrounds[dayIndex % heroBackgrounds.length];
+  const heroBackground = getDailyHeroImage(HERO_DOCTOR_IMAGES);
 
   let featuredProviders: ProviderCard[] = FALLBACK_PROVIDERS;
 

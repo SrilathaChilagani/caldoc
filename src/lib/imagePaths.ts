@@ -80,10 +80,31 @@ export const IMAGES = {
   // Other images
   HOMEPAGE: '/images/Homepage-optimized.jpg',
   HERO_DOCTOR: '/images/hero-doctor.jpg',
+  HERO_DOCTOR_2: '/images/hero-doctor-2.jpg',
+  HERO_DOCTOR_3: '/images/hero-doctor-3.jpg',
+  HERO_DOCTOR_5: '/images/hero-doctor-5.jpg',
   HERO_PHARMACY: '/images/hero-pharmacy.jpg',
   HERO_LABS: '/images/hero-labs.jpg',
   TEAM: '/images/team.png',
 } as const;
+
+export const HERO_DOCTOR_IMAGES = [
+  '/images/hero-doctor.jpg',
+  '/images/hero-doctor-2.jpg',
+  '/images/hero-doctor-3.jpg',
+  '/images/hero-doctor-5.jpg',
+] as const;
+
+/**
+ * Returns a deterministic image for today (UTC day).
+ * Cycles through the provided array — changes once every 24 hours.
+ */
+export function getDailyHeroImage(images: readonly string[]): string {
+  const today = new Date();
+  const utcDay = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const dayIndex = Math.floor(utcDay / 86_400_000);
+  return images[dayIndex % images.length];
+}
 
 /**
  * Type-safe image path helper
