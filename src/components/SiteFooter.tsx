@@ -69,18 +69,28 @@ export default function SiteFooter() {
             <ul className="mt-3 space-y-2 text-sm text-gray-600">
               <li>
                 <Link href="/terms" target="_blank" rel="noreferrer" className="hover:text-gray-900">
-                  Terms
+                  Terms of Service
                 </Link>
               </li>
               <li>
                 <Link href="/privacy" target="_blank" rel="noreferrer" className="hover:text-gray-900">
-                  Privacy
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/disclaimer" target="_blank" rel="noreferrer" className="hover:text-gray-900">
+                  Telemedicine Disclaimer
                 </Link>
               </li>
               <li>
                 <Link href="/compliance" target="_blank" rel="noreferrer" className="hover:text-gray-900">
-                  Compliance
+                  TPG 2020 &amp; DPDP Compliance
                 </Link>
+              </li>
+              <li>
+                <a href="mailto:grievance@telemed.in" className="hover:text-gray-900">
+                  Grievance Officer
+                </a>
               </li>
             </ul>
           </div>
@@ -90,8 +100,16 @@ export default function SiteFooter() {
           <DisclaimerNotice />
         </div>
 
-        <div className="mt-6 border-t border-gray-200 pt-6 text-xs text-gray-500">
-          © {new Date().getFullYear()} CalDoc India. All rights reserved.
+        <div className="mt-6 border-t border-gray-200 pt-6 text-xs text-gray-500 space-y-1">
+          <p>© {new Date().getFullYear()} CalDoc India. All rights reserved.</p>
+          <p>
+            Telemedicine services governed by the{" "}
+            <Link href="/compliance" className="underline hover:text-gray-700">
+              Telemedicine Practice Guidelines 2020
+            </Link>{" "}
+            (MoHFW, India) &amp; DPDP Act, 2023. Not for emergencies — call{" "}
+            <strong>112</strong> in India.
+          </p>
         </div>
       </div>
     </footer>

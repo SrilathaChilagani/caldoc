@@ -196,6 +196,19 @@ export default function LabsAtHomePage() {
               Select the tests you need, share your contact details, and pay securely.
             </p>
           </div>
+          {/* Lab compliance notice */}
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+            <p className="font-semibold">Lab Order Notice</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-amber-800">
+              <li>Certain diagnostic tests (e.g., specialised pathology, controlled-substance screening) require a doctor&apos;s prescription or referral letter. Please upload your doctor&apos;s request form where indicated.</li>
+              <li>All sample collections are performed by trained phlebotomists from <strong>NABL-accredited partner laboratories</strong>.</li>
+              <li>Results are confidential and shared only with you and your treating physician.</li>
+            </ul>
+            <p className="mt-2 text-xs text-amber-700">
+              Lab services comply with the Clinical Establishments (Registration and Regulation) Act, 2010, and NABL accreditation standards.{" "}
+              <a href="/compliance" className="font-semibold underline">View compliance details</a>.
+            </p>
+          </div>
           <div className="rounded-[32px] border border-white/70 bg-white/90 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
             <LabHomeForm options={LAB_TEST_OPTIONS} />
           </div>

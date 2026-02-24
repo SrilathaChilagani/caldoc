@@ -315,8 +315,8 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
         >
           ← Back to home
         </Link>
-        <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
-          <h1 className="font-serif text-3xl font-semibold text-slate-900">Find a doctor</h1>
+        <div>
+          <h1 className="text-3xl font-semibold text-slate-900">Find a doctor</h1>
           <form method="GET" className="mt-4 flex flex-col gap-3 md:flex-row">
             <input
               name="q"

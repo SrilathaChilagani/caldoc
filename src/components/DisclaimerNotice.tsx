@@ -5,7 +5,7 @@ type DisclaimerNoticeProps = {
   className?: string;
 };
 
-const baseCopy = "Not for emergencies. In an emergency, contact your local services or visit the nearest hospital.";
+const baseCopy = "Not for emergencies. In India, call 112 (National Emergency) or 102 (Ambulance). Internationally, call your local emergency number or visit the nearest hospital.";
 
 export default function DisclaimerNotice({ variant = "inline", className = "" }: DisclaimerNoticeProps) {
   if (variant === "banner") {
@@ -29,10 +29,10 @@ export default function DisclaimerNotice({ variant = "inline", className = "" }:
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-4 text-xs font-semibold text-amber-900">
         <Link href="/disclaimer" className="underline">
-          View detailed terms
+          Telemedicine disclaimer
         </Link>
         <Link href="/compliance" className="underline">
-          DPDP compliance summary
+          TPG 2020 &amp; DPDP compliance
         </Link>
       </div>
     </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 const CONSENT_TEXT =
-  "I confirm that I have read the CalDoc disclaimer and consent to receiving medical advice via telemedicine.";
+  "I confirm that I have read the disclaimer and terms, understand that this is a telemedicine consultation with limitations that may not replace in-person care, consent to a teleconsultation with a registered medical practitioner (NMC/State Medical Council registered), and acknowledge that Schedule X controlled drugs cannot be prescribed via telemedicine.";
 
 type SlotInfo = {
   id: string;

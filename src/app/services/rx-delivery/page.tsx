@@ -199,6 +199,19 @@ export default async function RxDeliveryPage({ searchParams }: RxDeliveryPagePro
               Add your medicines and delivery details. We'll confirm availability before payment.
             </p>
           </div>
+          {/* Prescription compliance notice — Drugs and Cosmetics Act 1940 / TPG 2020 */}
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+            <p className="font-semibold">Prescription &amp; Drug Schedule Notice</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-amber-800">
+              <li><strong>OTC medicines</strong> can be ordered without a prescription.</li>
+              <li><strong>Schedule H &amp; H1 drugs</strong> require a valid prescription. Please upload your prescription during checkout.</li>
+              <li><strong>Schedule X drugs</strong> (narcotic/psychotropic controlled substances) <em>cannot be dispensed online</em> under any circumstances — as per the Drugs and Cosmetics Act, 1940, and the Telemedicine Practice Guidelines 2020.</li>
+            </ul>
+            <p className="mt-2 text-xs text-amber-700">
+              We only dispense medicines through licensed partner pharmacies. Prescription verification is mandatory for scheduled drugs.{" "}
+              <a href="/compliance" className="font-semibold underline">View compliance details</a>.
+            </p>
+          </div>
           <div className="rounded-[32px] border border-white/70 bg-white/90 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
             <RxDeliveryForm options={options} initialItemName={initialItemName} />
           </div>
