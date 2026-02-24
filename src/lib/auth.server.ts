@@ -19,6 +19,10 @@ type DecodedSession = JwtPayload & {
   email?: string;
 };
 
+function hasRole(actual: string | undefined, expected: string) {
+  return (actual || "").toLowerCase() === expected.toLowerCase();
+}
+
 function normalizeDecoded(decoded: string | JwtPayload | SessionPayload | null): SessionPayload | null {
   if (!decoded || typeof decoded !== "object") return null;
   const d = decoded as DecodedSession;
@@ -66,7 +70,7 @@ export async function requireProviderSession(): Promise<{
   userId: string; providerId: string; role: string;
 } | null> {
   const sess = await readProviderSession();
-  if (!sess) return null;
+  if (!sess || !hasRole(sess.role, "provider")) return null;
   const user = await prisma.providerUser.findUnique({ where: { id: sess.uid } });
   if (!user) return null;
   return { userId: sess.uid, providerId: sess.pid, role: sess.role };

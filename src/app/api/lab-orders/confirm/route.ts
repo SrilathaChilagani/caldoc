@@ -48,24 +48,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
-    const payment = await prisma.payment.findUnique({ where: { orderId: rzpOrder }, select: { labOrderId: true } });
+    const payment = await prisma.payment.findUnique({
+      where: { orderId: rzpOrder },
+      select: { id: true, status: true, labOrderId: true },
+    });
     if (!payment?.labOrderId) {
       return NextResponse.json({ error: "Payment mapping missing" }, { status: 400 });
     }
 
-    const labOrder = await prisma.labOrder.update({
-      where: { id: payment.labOrderId },
-      data: { status: "PENDING" },
-    });
+    // Guard against payload tampering / mismatched order references.
+    if (payment.labOrderId !== orderId) {
+      return NextResponse.json({ error: "Order mismatch" }, { status: 409 });
+    }
 
-    await prisma.payment.update({
-      where: { orderId: rzpOrder },
-      data: {
-        status: "CAPTURED",
-        paymentRef: paymentId,
-        currency: "INR",
-      },
-    });
+    // Idempotency: duplicate callback should return success without replaying side-effects.
+    if (payment.status === "CAPTURED") {
+      return NextResponse.json({ ok: true, idempotent: true });
+    }
+
+    const txResult = await prisma.$transaction([
+      prisma.labOrder.updateMany({
+        where: { id: payment.labOrderId, status: "AWAITING_PAYMENT" },
+        data: { status: "PENDING" },
+      }),
+      prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: "CAPTURED",
+          paymentRef: paymentId,
+          currency: "INR",
+        },
+      }),
+      prisma.labOrder.findUniqueOrThrow({ where: { id: payment.labOrderId } }),
+    ]);
+    const labOrder = txResult[2];
 
     const testsLabel = formatTests(labOrder.tests);
     const addressLabel = formatAddress(labOrder.address);
