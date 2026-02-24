@@ -172,7 +172,15 @@ export default async function AdminRxOrdersPage({
                         </span>
                       </td>
                       <td className="py-2.5">
-                        <RxStatusAction orderId={order.id} currentStatus={order.status} />
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            href={`/admin/rx-orders/${order.id}`}
+                            className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
+                          >
+                            View
+                          </Link>
+                          <RxStatusAction orderId={order.id} currentStatus={order.status} />
+                        </div>
                       </td>
                     </tr>
                   );

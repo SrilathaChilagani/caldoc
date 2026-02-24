@@ -334,24 +334,42 @@ model PharmacyFulfillment {
 }
 
 model LabOrder {
-  id            String      @id @default(cuid())
-  appointmentId String?
-  patientId     String?
-  patientName   String?
-  patientPhone  String?
-  patientEmail  String?
-  deliveryMode  String?
-  tests         Json?
-  notes         String?
-  status        String      @default("PENDING")
-  address       Json?
-  amountPaise   Int?
-  source        String      @default("APPOINTMENT")
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  patient       Patient?    @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  payment       Payment?    @relation("LabOrderPayment")
+  id                   String          @id @default(cuid())
+  appointmentId        String?
+  patientId            String?
+  patientName          String?
+  patientPhone         String?
+  patientEmail         String?
+  deliveryMode         String?
+  tests                Json?
+  notes                String?
+  status               String          @default("PENDING")
+  address              Json?
+  amountPaise          Int?
+  source               String          @default("APPOINTMENT")
+  collectionAgentName  String?
+  collectionAgentPhone String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  appointment          Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient              Patient?        @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  payment              Payment?        @relation("LabOrderPayment")
+  events               LabOrderEvent[]
+}
+
+model LabOrderEvent {
+  id                   String   @id @default(cuid())
+  labOrderId           String
+  fromStatus           String?
+  toStatus             String
+  note                 String?
+  collectionAgentName  String?
+  collectionAgentPhone String?
+  actorEmail           String?
+  createdAt            DateTime @default(now())
+  labOrder             LabOrder @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
+
+  @@index([labOrderId, createdAt])
 }
 
 model LabUser {
@@ -384,14 +402,32 @@ model RxOrder {
   rxDocumentType       String?
   rxDocumentSize       Int?
   rxDocumentUploadedAt DateTime?
-  amountPaise  Int
-  status       String   @default("AWAITING_PAYMENT")
-  payment      Payment? @relation("RxOrderPayment")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  patient      Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  amountPaise    Int
+  status         String        @default("AWAITING_PAYMENT")
+  trackingNumber String?
+  courierName    String?
+  payment        Payment?      @relation("RxOrderPayment")
+  events         RxOrderEvent[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  patient        Patient?      @relation(fields: [patientId], references: [id], onDelete: SetNull)
 
   @@index([patientId])
+}
+
+model RxOrderEvent {
+  id             String   @id @default(cuid())
+  rxOrderId      String
+  fromStatus     String?
+  toStatus       String
+  note           String?
+  trackingNumber String?
+  courierName    String?
+  actorEmail     String?
+  createdAt      DateTime @default(now())
+  rxOrder        RxOrder  @relation(fields: [rxOrderId], references: [id], onDelete: Cascade)
+
+  @@index([rxOrderId, createdAt])
 }
 
 model OfflineRequest {

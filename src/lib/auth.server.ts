@@ -96,18 +96,26 @@ export async function requireNgoSession(): Promise<{ userId: string; ngoId: stri
 
 export async function requireLabsSession(): Promise<{ userId: string; email?: string } | null> {
   const sess = await readLabsSession();
-  if (!sess) return null;
-  const user = await prisma.labUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true } });
-  if (!user) return null;
-  return { userId: user.id, email: user.email };
+  if (sess) {
+    const user = await prisma.labUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true } });
+    if (user) return { userId: user.id, email: user.email };
+  }
+  // Fall back: allow any logged-in admin to access the labs portal
+  const adminSess = await requireAdminSession();
+  if (adminSess) return { userId: adminSess.userId, email: "admin" };
+  return null;
 }
 
 export async function requirePharmacySession(): Promise<{ userId: string; email?: string } | null> {
   const sess = await readPharmacySession();
-  if (!sess) return null;
-  const user = await prisma.pharmacyUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true } });
-  if (!user) return null;
-  return { userId: user.id, email: user.email };
+  if (sess) {
+    const user = await prisma.pharmacyUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true } });
+    if (user) return { userId: user.id, email: user.email };
+  }
+  // Fall back: allow any logged-in admin to access the pharmacy portal
+  const adminSess = await requireAdminSession();
+  if (adminSess) return { userId: adminSess.userId, email: "admin" };
+  return null;
 }
 
 export async function clearSessionCookies() {
