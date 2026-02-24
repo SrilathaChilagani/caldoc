@@ -215,6 +215,12 @@ export default async function AdminLabsPage({
                       </td>
                       <td className="py-2.5">
                         <div className="flex items-center gap-1.5">
+                          <Link
+                            href={`/admin/labs/${order.id}`}
+                            className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
+                          >
+                            View
+                          </Link>
                           {order.appointment?.id && (
                             <Link
                               href={`/provider/appointments/${order.appointment.id}?from=admin`}

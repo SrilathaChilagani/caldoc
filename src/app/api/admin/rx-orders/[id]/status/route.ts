@@ -16,14 +16,35 @@ export async function PATCH(
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
   const status = String(body.status || "").toUpperCase();
+  const note = String(body.note || "").trim().slice(0, 500) || null;
+  const trackingNumber = String(body.trackingNumber || "").trim() || null;
+  const courierName = String(body.courierName || "").trim() || null;
 
   if (!ALLOWED.includes(status)) {
     return NextResponse.json({ error: `Invalid status. Allowed: ${ALLOWED.join(", ")}` }, { status: 400 });
   }
 
-  const order = await prisma.rxOrder.findUnique({ where: { id } });
+  const order = await prisma.rxOrder.findUnique({ where: { id }, select: { id: true, status: true } });
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
-  await prisma.rxOrder.update({ where: { id }, data: { status } });
+  const updateData: Record<string, unknown> = { status };
+  if (trackingNumber) updateData.trackingNumber = trackingNumber;
+  if (courierName) updateData.courierName = courierName;
+
+  await prisma.$transaction([
+    prisma.rxOrder.update({ where: { id }, data: updateData }),
+    prisma.rxOrderEvent.create({
+      data: {
+        rxOrderId: id,
+        fromStatus: order.status,
+        toStatus: status,
+        note,
+        trackingNumber,
+        courierName,
+        actorEmail: "admin",
+      },
+    }),
+  ]);
+
   return NextResponse.json({ ok: true, status });
 }
