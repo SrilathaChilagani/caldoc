@@ -29,7 +29,6 @@ const loginLinks = [
 
 export default function SiteHeader() {
   const pathname = usePathname();
-  const isHome = pathname === "/";
   const [mobileOpen, setMobileOpen] = useState(false);
   const [specialtyOpen, setSpecialtyOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
@@ -58,8 +57,6 @@ export default function SiteHeader() {
 
   const isRxRoute = pathname?.startsWith("/services/rx-delivery") ?? false;
   const isLabsRoute = pathname?.startsWith("/services/labs-at-home") ?? false;
-  const transparentHeader = isHome || pathname === "/services/rx-delivery" || pathname === "/services/labs-at-home";
-  const themedHeader = isRxRoute || isLabsRoute;
   const cartHref = isRxRoute ? "/services/rx-delivery/review" : "/services/labs-at-home/review";
 
   const cartLabel = useMemo(() => {
@@ -99,31 +96,11 @@ export default function SiteHeader() {
       window.removeEventListener("focus", handler);
     };
   }, [isRxRoute, isLabsRoute]);
-  const headerClassName = transparentHeader
-    ? "sticky top-0 z-50 border-b border-transparent bg-transparent"
-    : themedHeader
-    ? "sticky top-0 z-50 border-b border-[#e7e0d5] bg-[#f7f2ea]"
-    : "sticky top-0 z-50 border-b border-gray-200 bg-white";
-  const navLinkClassName = transparentHeader
-    ? "text-base text-slate-800 hover:text-slate-950"
-    : themedHeader
-    ? "text-base text-slate-800 hover:text-slate-950"
-    : "text-base text-gray-700 hover:text-gray-900";
-  const dropdownTriggerClassName = transparentHeader
-    ? "inline-flex items-center gap-1 text-base text-slate-800 hover:text-slate-950"
-    : themedHeader
-    ? "inline-flex items-center gap-1 text-base text-slate-800 hover:text-slate-950"
-    : "inline-flex items-center gap-1 text-base text-gray-700 hover:text-gray-900";
-  const loginButtonClassName = transparentHeader
-    ? "inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-base font-medium text-slate-800 hover:border-slate-300 hover:text-slate-950"
-    : themedHeader
-    ? "inline-flex items-center gap-1 rounded-full border border-[#e7e0d5] bg-white px-4 py-2 text-base font-medium text-slate-800 hover:border-[#d7cfc3] hover:text-slate-950"
-    : "inline-flex items-center gap-1 rounded-full border border-slate-200 px-4 py-2 text-base font-medium text-gray-800 hover:border-blue-400 hover:text-blue-700";
-  const mobileToggleClassName = transparentHeader
-    ? "inline-flex items-center justify-center rounded-md p-2 text-slate-800 hover:bg-white/40 md:hidden"
-    : themedHeader
-    ? "inline-flex items-center justify-center rounded-md p-2 text-slate-800 hover:bg-white/60 md:hidden"
-    : "inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 md:hidden";
+  const headerClassName = "relative z-10 border-b border-transparent bg-transparent";
+  const navLinkClassName = "text-base text-slate-800 hover:text-slate-950";
+  const dropdownTriggerClassName = "inline-flex items-center gap-1 text-base text-slate-800 hover:text-slate-950";
+  const loginButtonClassName = "inline-flex items-center gap-1 rounded-full border border-slate-300/70 bg-white/70 px-4 py-2 text-base font-medium text-slate-800 hover:border-slate-400 hover:text-slate-950 backdrop-blur-sm";
+  const mobileToggleClassName = "inline-flex items-center justify-center rounded-md p-2 text-slate-800 hover:bg-white/40 md:hidden";
 
   return (
     <header className={headerClassName}>
@@ -261,11 +238,7 @@ export default function SiteHeader() {
           {(isRxRoute || isLabsRoute) && (
             <Link
               href={cartHref}
-              className={`relative inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium ${
-                themedHeader
-                  ? "border-[#e7e0d5] bg-white text-slate-800 hover:border-[#d7cfc3]"
-                  : "border-slate-200 bg-white text-slate-800 hover:border-slate-300"
-              }`}
+              className="relative inline-flex items-center gap-2 rounded-full border border-slate-300/70 bg-white/70 px-4 py-2 text-sm font-medium text-slate-800 hover:border-slate-400 backdrop-blur-sm"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
                 <path d="M3 5h2l2 10h10l2-6H7" />
