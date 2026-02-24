@@ -15,6 +15,14 @@ const categories = [
   { name: "X-Ray", slug: "x-ray", icon: "☢️" },
   { name: "Allergy Tests", slug: "allergy", icon: "🌡️" },
   { name: "COVID-19", slug: "covid-19", icon: "🦠" },
+  { name: "Hormonal Tests", slug: "hormonal", icon: "💉" },
+  { name: "Fertility Tests", slug: "fertility", icon: "🌱" },
+  { name: "Nutrition Panel", slug: "nutrition", icon: "🥗" },
+  { name: "Bone Health", slug: "bone-health", icon: "🦴" },
+  { name: "Cancer Markers", slug: "cancer-markers", icon: "🧬" },
+  { name: "Diabetes Panel", slug: "diabetes-panel", icon: "📊" },
+  { name: "Cardiac Markers", slug: "cardiac-markers", icon: "🫀" },
+  { name: "Urine Tests", slug: "urine-tests", icon: "🧪" },
 ];
 
 const features = [
@@ -65,10 +73,22 @@ const features = [
 const popularTests = [
   { name: "Complete Blood Count", category: "Blood Tests", price: "₹299", discount: "20% off" },
   { name: "Lipid Profile", category: "Blood Tests", price: "₹399", discount: "15% off" },
-  { name: "Thyroid Panel", category: "Blood Tests", price: "₹599", discount: "18% off" },
-  { name: "COVID-19 RT-PCR", category: "COVID-19", price: "₹499", discount: "10% off" },
+  { name: "Thyroid Panel (T3/T4/TSH)", category: "Hormonal Tests", price: "₹599", discount: "18% off" },
+  { name: "HbA1c", category: "Diabetes Panel", price: "₹399", discount: "15% off" },
+  { name: "Blood Sugar Fasting", category: "Diabetes Panel", price: "₹99", discount: "15% off" },
   { name: "Liver Function Test", category: "Blood Tests", price: "₹349", discount: "15% off" },
   { name: "Kidney Function Test", category: "Blood Tests", price: "₹349", discount: "15% off" },
+  { name: "Vitamin D3", category: "Nutrition Panel", price: "₹599", discount: "20% off" },
+  { name: "Vitamin B12", category: "Nutrition Panel", price: "₹499", discount: "20% off" },
+  { name: "Iron Studies", category: "Blood Tests", price: "₹399", discount: "18% off" },
+  { name: "Urine Routine & Microscopy", category: "Urine Tests", price: "₹149", discount: "10% off" },
+  { name: "Dengue NS1 Antigen", category: "Blood Tests", price: "₹599", discount: "15% off" },
+  { name: "COVID-19 RT-PCR", category: "COVID-19", price: "₹499", discount: "10% off" },
+  { name: "ECG (12-Lead)", category: "ECG", price: "₹249", discount: "12% off" },
+  { name: "Chest X-Ray", category: "X-Ray", price: "₹349", discount: "10% off" },
+  { name: "CRP (C-Reactive Protein)", category: "Blood Tests", price: "₹299", discount: "15% off" },
+  { name: "Beta HCG (Pregnancy)", category: "Hormonal Tests", price: "₹499", discount: "15% off" },
+  { name: "PSA (Prostate Specific Antigen)", category: "Cancer Markers", price: "₹699", discount: "12% off" },
 ];
 
 export const metadata = {
@@ -158,7 +178,7 @@ export default function LabsAtHomePage() {
             <h2 className="font-serif text-3xl lg:text-4xl text-slate-900 mb-3">Browse by Test Type</h2>
             <p className="text-slate-600 max-w-md mx-auto">Find the test you need</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 max-w-3xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
             {categories.map((cat) => (
               <Link
                 key={cat.slug}

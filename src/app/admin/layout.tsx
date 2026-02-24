@@ -19,19 +19,28 @@ const nav: NavSection[] = [
     ],
   },
   {
-    group: "Services",
-    links: [
-      { href: "/admin/rx-orders", label: "Rx delivery" },
-      { href: "/admin/labs", label: "Labs" },
-    ],
-  },
-  {
     group: "Providers",
     links: [
       { href: "/admin/providers", label: "All providers" },
       { href: "/admin/providers/onboard", label: "Onboard" },
       { href: "/admin/providers/offboard", label: "Off-board" },
       { href: "/admin/slots", label: "Schedule slots" },
+    ],
+  },
+  {
+    group: "Pharmacy",
+    links: [
+      { href: "/admin/pharmacy-partners", label: "All pharmacies" },
+      { href: "/admin/pharmacy-partners/onboard", label: "Onboard" },
+      { href: "/admin/rx-orders", label: "Rx orders" },
+    ],
+  },
+  {
+    group: "Labs",
+    links: [
+      { href: "/admin/lab-partners", label: "All labs" },
+      { href: "/admin/lab-partners/onboard", label: "Onboard" },
+      { href: "/admin/labs", label: "Lab orders" },
     ],
   },
   {

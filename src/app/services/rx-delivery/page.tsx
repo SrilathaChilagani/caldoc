@@ -16,8 +16,16 @@ const categories = [
   { name: "Diabetes", slug: "diabetes", icon: "🩸" },
   { name: "Heart Health", slug: "heart-health", icon: "❤️" },
   { name: "Immunity", slug: "immunity", icon: "🛡️" },
-  { name: "Digestive", slug: "digestive", icon: "🫁" },
+  { name: "Digestive", slug: "digestive", icon: "🍽️" },
   { name: "Women's Health", slug: "womens-health", icon: "🌸" },
+  { name: "Antibiotics", slug: "antibiotics", icon: "🦠" },
+  { name: "Respiratory", slug: "respiratory", icon: "🫁" },
+  { name: "Eye & Ear", slug: "eye-ear", icon: "👁️" },
+  { name: "Men's Health", slug: "mens-health", icon: "💪" },
+  { name: "Baby Care", slug: "baby-care", icon: "👶" },
+  { name: "Bone & Joint", slug: "bone-joint", icon: "🦴" },
+  { name: "Mental Health", slug: "mental-health", icon: "🧠" },
+  { name: "Dental Care", slug: "dental-care", icon: "🦷" },
 ];
 
 const features = [
@@ -52,10 +60,22 @@ const features = [
 const popularMeds = [
   { name: "Dolo 650mg", category: "Pain Relief", price: "₹30", discount: "15% off" },
   { name: "Crocin Advance", category: "Fever", price: "₹25", discount: "10% off" },
+  { name: "Combiflam Tab", category: "Pain Relief", price: "₹35", discount: "12% off" },
+  { name: "Ibuprofen 400mg", category: "Pain Relief", price: "₹22", discount: "10% off" },
   { name: "Shelcal 500mg", category: "Calcium", price: "₹180", discount: "20% off" },
   { name: "Becosules Capsules", category: "Vitamins", price: "₹120", discount: "12% off" },
+  { name: "Vitamin D3 60000 IU", category: "Vitamins", price: "₹210", discount: "15% off" },
+  { name: "B-Complex Plus", category: "Vitamins", price: "₹95", discount: "10% off" },
   { name: "Pan-D Capsule", category: "Digestive", price: "₹95", discount: "18% off" },
+  { name: "Pantoprazole 40mg", category: "Digestive", price: "₹55", discount: "20% off" },
   { name: "Cetirizine 10mg", category: "Allergy", price: "₹15", discount: "10% off" },
+  { name: "Allegra 180mg", category: "Allergy", price: "₹180", discount: "12% off" },
+  { name: "Metformin 500mg", category: "Diabetes", price: "₹45", discount: "20% off" },
+  { name: "Glimepiride 2mg", category: "Diabetes", price: "₹85", discount: "18% off" },
+  { name: "Amlodipine 5mg", category: "Heart Health", price: "₹40", discount: "22% off" },
+  { name: "Atorvastatin 10mg", category: "Cholesterol", price: "₹120", discount: "18% off" },
+  { name: "Folic Acid 5mg", category: "Women's Health", price: "₹30", discount: "15% off" },
+  { name: "Terbinafine 1% Cream", category: "Skin Care", price: "₹145", discount: "15% off" },
 ];
 
 type RxDeliveryPageProps = {
@@ -161,7 +181,7 @@ export default async function RxDeliveryPage({ searchParams }: RxDeliveryPagePro
             <h2 className="font-serif text-3xl lg:text-4xl text-slate-900 mb-3">Shop by Category</h2>
             <p className="text-slate-600 max-w-md mx-auto">Find what you need, fast</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 max-w-3xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
             {categories.map((cat) => (
               <Link
                 key={cat.slug}

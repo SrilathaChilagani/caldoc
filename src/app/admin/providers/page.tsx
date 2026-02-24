@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
 import ProviderStatusToggle from "./ProviderStatusToggle";
+import ProviderFilters from "./ProviderFilters";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ active?: string; q?: string }>;
+type SearchParams = Promise<{ active?: string; q?: string; specialty?: string }>;
 
 export default async function AdminProvidersPage({
   searchParams,
@@ -17,12 +18,14 @@ export default async function AdminProvidersPage({
   if (!sess) redirect("/admin/login?next=/admin/providers");
 
   const sp = await searchParams;
-  const activeFilter = sp.active; // "true" | "false" | undefined
+  const activeFilter = sp.active ?? ""; // "true" | "false" | ""
   const query = sp.q?.trim() || "";
+  const specialtyFilter = sp.specialty?.trim() || "";
 
   const where: Record<string, unknown> = {};
   if (activeFilter === "true") where.isActive = true;
   if (activeFilter === "false") where.isActive = false;
+  if (specialtyFilter) where.speciality = { equals: specialtyFilter, mode: "insensitive" };
   if (query) {
     where.OR = [
       { name: { contains: query, mode: "insensitive" } },
@@ -30,7 +33,7 @@ export default async function AdminProvidersPage({
     ];
   }
 
-  const [providers, totalActive, totalInactive] = await Promise.all([
+  const [providers, totalActive, totalInactive, specialtyRows] = await Promise.all([
     prisma.provider.findMany({
       where,
       orderBy: [{ isActive: "desc" }, { name: "asc" }],
@@ -46,18 +49,14 @@ export default async function AdminProvidersPage({
     }),
     prisma.provider.count({ where: { isActive: true } }),
     prisma.provider.count({ where: { isActive: false } }),
+    prisma.provider.findMany({
+      select: { speciality: true },
+      distinct: ["speciality"],
+      orderBy: { speciality: "asc" },
+    }),
   ]);
 
-  const buildHref = (overrides: Record<string, string>) => {
-    const params = new URLSearchParams();
-    if (activeFilter !== undefined) params.set("active", activeFilter);
-    if (query) params.set("q", query);
-    Object.entries(overrides).forEach(([k, v]) => {
-      if (v) params.set(k, v); else params.delete(k);
-    });
-    const qs = params.toString();
-    return `/admin/providers${qs ? `?${qs}` : ""}`;
-  };
+  const specialties = specialtyRows.map((r) => r.speciality).filter(Boolean) as string[];
 
   return (
     <>
@@ -96,47 +95,12 @@ export default async function AdminProvidersPage({
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
-        <div className="flex gap-1.5">
-          {[
-            { label: "All", value: "" },
-            { label: "Active", value: "true" },
-            { label: "Inactive", value: "false" },
-          ].map((opt) => (
-            <Link
-              key={opt.label}
-              href={buildHref({ active: opt.value, q: query })}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                (activeFilter ?? "") === opt.value
-                  ? "bg-[#2f6ea5] text-white"
-                  : "border border-slate-200 text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-              }`}
-            >
-              {opt.label}
-            </Link>
-          ))}
-        </div>
-        <form className="ml-auto flex items-center gap-2">
-          <input
-            name="q"
-            defaultValue={query}
-            placeholder="Search name / speciality…"
-            className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
-          />
-          {activeFilter && <input type="hidden" name="active" value={activeFilter} />}
-          <button
-            type="submit"
-            className="rounded-full bg-[#2f6ea5] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#255b8b]"
-          >
-            Search
-          </button>
-          {query && (
-            <Link href={buildHref({ q: "" })} className="text-xs text-slate-400 hover:text-slate-700">
-              Clear
-            </Link>
-          )}
-        </form>
-      </div>
+      <ProviderFilters
+        specialties={specialties}
+        currentQ={query}
+        currentSpecialty={specialtyFilter}
+        currentActive={activeFilter}
+      />
 
       {/* Provider grid */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

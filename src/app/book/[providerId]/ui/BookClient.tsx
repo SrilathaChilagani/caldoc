@@ -279,7 +279,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       : `${address.contactName || patientName} · ${address.line1 || "No address"}`;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-6 pb-12 lg:px-12 xl:px-16">
+    <div className="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6 lg:px-10 xl:px-16 2xl:px-20">
       <Link
         href="/providers"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
@@ -290,8 +290,8 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
       {step === "slot" && (
         <>
           {/* ── Page header — outside any card ──────────────── */}
-          <div className="mb-5 mt-4">
-            <h1 className="text-2xl font-semibold text-slate-900 lg:text-3xl">
+          <div className="mb-4 mt-3 sm:mb-5 sm:mt-4">
+            <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl lg:text-3xl">
               Book {provider.name}{" "}
               <span className="text-base font-normal text-slate-500">· {provider.speciality}</span>
             </h1>
@@ -310,13 +310,13 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
           </div>
 
           {/* ── Two-column layout ────────────────────────────── */}
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-5 lg:gap-6">
 
             {/* Left column */}
             <div className="flex-1 space-y-4 min-w-0">
 
               {/* Time slots */}
-              <div className="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm">
+              <div className="rounded-2xl border border-white/30 bg-white/70 p-3 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm sm:p-4">
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -326,7 +326,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                   >
                     ‹
                   </button>
-                  <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-4">
+                  <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {upcomingSlots.length === 0 && (
                       <p className="col-span-4 text-sm text-slate-500">No slots available right now. Please check back later.</p>
                     )}
@@ -362,7 +362,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
               </div>
 
               {/* Patient Details + Connection Preference */}
-              <div className="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm space-y-4">
+              <div className="rounded-2xl border border-white/30 bg-white/70 p-3 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm space-y-4 sm:p-4">
 
                 {/* Patient Details */}
                 <div>
@@ -443,7 +443,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
               </div>
 
               {/* Consent */}
-              <div className="rounded-2xl border border-white/30 bg-white/70 px-4 py-3 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm">
+              <div className="rounded-2xl border border-white/30 bg-white/70 px-3 py-3 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm sm:px-4">
                 <label className="flex cursor-pointer items-start gap-3">
                   <input
                     type="checkbox"
@@ -468,13 +468,13 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
             </div>
 
             {/* Right sidebar */}
-            <aside className="shrink-0 space-y-4 lg:w-80 xl:w-96">
+            <aside className="shrink-0 space-y-4 md:w-56 lg:w-72 xl:w-84 2xl:w-96">
 
               {/* Symptoms */}
               <div className="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm">
                 <p className="text-sm font-semibold text-slate-900">Common symptoms</p>
                 <p className="mb-3 text-xs text-slate-500">Select all that apply.</p>
-                <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
+                <div className="grid grid-cols-2 gap-2">
                   {SYMPTOM_OPTIONS.map((symptom) => {
                     const isActive = selectedSymptoms.includes(symptom);
                     return (
@@ -495,7 +495,7 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                     );
                   })}
                   <label
-                    className={`flex cursor-pointer flex-col rounded-xl border px-2.5 py-2 text-sm transition col-span-2 xl:col-span-3 ${
+                    className={`flex cursor-pointer flex-col rounded-xl border px-2.5 py-2 text-sm transition col-span-2 ${
                       selectedSymptoms.includes("Other") ? "border-[#2f6ea5] bg-[#e7edf3] text-[#1e4d77]" : "border-slate-200 text-slate-600"
                     }`}
                   >
