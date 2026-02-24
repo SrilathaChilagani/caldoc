@@ -99,7 +99,7 @@ export default function EditReservationButton({
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+              className="rounded-full bg-[#2f6ea5] px-3 py-1 text-xs font-semibold text-white hover:bg-[#255b8b] disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isPending ? "Saving…" : "Save"}
             </button>
