@@ -6,7 +6,7 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 type Props = {
-  params: Promise<{ id: string }>; // Next 16 app router uses async params
+  params: Promise<{ id: string }>;
   searchParams?: Promise<{ from?: string }>;
 };
 
@@ -36,7 +36,6 @@ export default async function VisitPage({ params, searchParams }: Props) {
   const fromParam = sp.from === "provider" ? "provider" : null;
   const backHref = fromParam ? "/provider/appointments" : "/";
 
-  // Get appointment with relationships that are guaranteed to exist
   const appt = await prisma.appointment.findUnique({
     where: { id },
     include: {
@@ -49,9 +48,13 @@ export default async function VisitPage({ params, searchParams }: Props) {
 
   if (!appt) {
     return (
-      <main className="p-8">
-        <h1 className="text-xl font-semibold">Appointment not found</h1>
-        <Link className="text-blue-600 underline" href={backHref}>Go home</Link>
+      <main className="flex min-h-[calc(100vh-140px)] items-center justify-center bg-[#f7f2ea] px-4">
+        <div className="rounded-3xl border border-white/70 bg-white/80 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-sm">
+          <h1 className="font-serif text-xl font-semibold text-slate-900">Appointment not found</h1>
+          <Link className="mt-3 inline-flex text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]" href={backHref}>
+            ← Go home
+          </Link>
+        </div>
       </main>
     );
   }
@@ -88,32 +91,34 @@ export default async function VisitPage({ params, searchParams }: Props) {
 
   const patientPortalHref =
     appt.patient?.phone
-      ? `/patient/login?next=${encodeURIComponent("/patient/appointments")}&phone=${encodeURIComponent(
-          appt.patient.phone,
-        )}`
+      ? `/patient/login?next=${encodeURIComponent("/patient/appointments")}&phone=${encodeURIComponent(appt.patient.phone)}`
       : "/patient/login";
   const isAudioVisit = appt.visitMode === "AUDIO";
   const patientPhoneDisplay = appt.patient?.phone ? appt.patient.phone.replace(/\s+/g, "") : null;
 
   return (
-    <main className="min-h-[calc(100vh-140px)] bg-gradient-to-b from-[#eef4ff] via-white to-white py-12">
-      <div className="mx-auto w-full max-w-6xl space-y-8 px-4 sm:px-6 lg:px-10">
-        <div className="rounded-[32px] bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-8">
-          <div className="mb-4">
-            <Link
-              href={backHref}
-              className="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800"
-            >
-              ← Back home
-            </Link>
-          </div>
-          <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-12">
+      <div className="mx-auto w-full max-w-4xl space-y-6 px-4 sm:px-6 lg:px-10">
+
+        {/* Main card */}
+        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-sm md:p-8">
+          <Link
+            href={backHref}
+            className="inline-flex items-center text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]"
+          >
+            ← Back home
+          </Link>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold text-slate-900">Your visit details</h1>
-              <p className="text-sm text-slate-500">Appointment ID: <span className="font-mono text-slate-700">{appt.id}</span></p>
+              <h1 className="font-serif text-3xl font-semibold text-slate-900">Your visit details</h1>
+              <p className="mt-1 text-sm text-slate-500">
+                Appointment ID:{" "}
+                <span className="font-mono text-slate-700">{appt.id}</span>
+              </p>
             </div>
             <span
-              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+              className={`self-start rounded-full px-3 py-1 text-xs font-semibold uppercase ${
                 appt.status === "CONFIRMED"
                   ? "bg-emerald-50 text-emerald-700"
                   : appt.status === "CANCELLED"
@@ -125,79 +130,80 @@ export default async function VisitPage({ params, searchParams }: Props) {
             </span>
           </div>
 
+          {/* Provider + When cards */}
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-500">Provider</p>
-              <p className="text-lg font-semibold text-slate-900">{appt.provider?.name ?? "—"}</p>
-              <p className="text-xs text-slate-500">
+            <div className="rounded-2xl border border-white/60 bg-white/60 p-5 backdrop-blur-sm">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Provider</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{appt.provider?.name ?? "—"}</p>
+              <p className="text-sm text-slate-500">
                 Patient: {appt.patientName || appt.patient?.name || "—"}
               </p>
-              <dl className="mt-3 text-xs text-slate-500 space-y-1">
+              <dl className="mt-3 space-y-1.5 text-xs">
                 <div>
                   <dt className="font-semibold text-slate-600">Qualification</dt>
-                  <dd>{rmpInfo.qualification}</dd>
+                  <dd className="text-slate-500">{rmpInfo.qualification}</dd>
                 </div>
                 <div>
                   <dt className="font-semibold text-slate-600">RMP registration</dt>
-                  <dd>{rmpInfo.registrationNumber}</dd>
+                  <dd className="text-slate-500">{rmpInfo.registrationNumber}</dd>
                 </div>
                 <div>
                   <dt className="font-semibold text-slate-600">Council</dt>
-                  <dd>{rmpInfo.councilName}</dd>
+                  <dd className="text-slate-500">{rmpInfo.councilName}</dd>
                 </div>
               </dl>
             </div>
-            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-              <p className="text-xs uppercase tracking-wide text-slate-500">When</p>
-              <p className="text-lg font-semibold text-slate-900">{whenIST} IST</p>
-              <p className="text-xs text-slate-500">
-                Delivery option: {appt.deliveryOpt ? appt.deliveryOpt : "Prescription will be sent to your phone"}
+
+            <div className="rounded-2xl border border-white/60 bg-white/60 p-5 backdrop-blur-sm">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">When</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{whenIST} IST</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Delivery option:{" "}
+                {appt.deliveryOpt ? appt.deliveryOpt : "Prescription will be sent to your phone"}
               </p>
             </div>
           </div>
 
+          {/* Action buttons */}
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {isAudioVisit ? (
-              <span className="text-sm text-slate-500">
+              <p className="text-sm text-slate-600">
                 This is an audio consultation. Your doctor will call{" "}
-                {patientPhoneDisplay ? <strong>{patientPhoneDisplay}</strong> : "the phone number you provided"} around
-                the scheduled time. We&apos;ll remind you shortly before the appointment.
-              </span>
+                {patientPhoneDisplay ? <strong>{patientPhoneDisplay}</strong> : "the phone number you provided"}{" "}
+                around the scheduled time. We&apos;ll remind you shortly before the appointment.
+              </p>
             ) : videoRoom ? (
               <a
-                href={
-                  fromParam
-                    ? `${videoRoom}${videoRoom.includes("?") ? "&" : "?"}from=provider`
-                    : videoRoom
-                }
+                href={fromParam ? `${videoRoom}${videoRoom.includes("?") ? "&" : "?"}from=provider` : videoRoom}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                className="inline-flex items-center rounded-full bg-[#2f6ea5] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#255b8b]"
               >
                 Join visit
               </a>
             ) : (
-              <span className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500">
                 Preparing your video room… you&apos;ll receive the link as soon as payment is confirmed.
-              </span>
+              </p>
             )}
             <Link
               href={patientPortalHref}
-              className="inline-flex min-w-[140px] items-center justify-center rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              className="inline-flex min-w-[160px] items-center justify-center rounded-full border border-[#2f6ea5] px-6 py-2.5 text-sm font-semibold text-[#2f6ea5] hover:bg-[#2f6ea5] hover:text-white transition-colors"
             >
               Go to patient portal
             </Link>
           </div>
 
-          <div className="mt-8 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-xs text-amber-800">
-            <p className="font-semibold">TELEMEDICINE compliance</p>
-            <p className="mt-1">
-              This visit summary follows the TELEMEDICINE Practice Guidelines (India, 2020). Emergency care is not
+          {/* Telemedicine compliance notice */}
+          <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-800">
+            <p className="font-semibold uppercase tracking-wide">Telemedicine compliance</p>
+            <p className="mt-1 leading-relaxed">
+              This visit summary follows the Telemedicine Practice Guidelines (India, 2020). Emergency care is not
               provided on this platform. If your symptoms worsen, please visit the nearest hospital or call local
               emergency services immediately.
             </p>
           </div>
-        </div>
+        </section>
       </div>
     </main>
   );

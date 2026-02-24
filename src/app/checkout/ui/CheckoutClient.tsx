@@ -135,18 +135,18 @@ export default function CheckoutClient({ appointmentId, amount }: Props) {
   }, [appointmentId, amount, runKey]);
 
   return (
-    <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-      <p className="font-medium text-slate-800">Status: {status}</p>
+    <div className="mt-6 rounded-2xl border border-white/60 bg-white/50 px-4 py-4 text-sm text-slate-600 backdrop-blur-sm">
+      <p className="font-medium text-slate-700">Status: {status}</p>
       {error ? (
         <p className="mt-2 text-rose-600">{error}</p>
       ) : (
-        <p className="mt-2">A secure Razorpay window should open shortly. Please do not refresh the page.</p>
+        <p className="mt-2 text-slate-500">A secure Razorpay window should open shortly. Please do not refresh the page.</p>
       )}
       {(status === "error" || status === "cancelled") && (
         <button
           type="button"
           onClick={() => setRunKey((k) => k + 1)}
-          className="mt-3 inline-flex items-center rounded-full border border-blue-200 px-4 py-1 text-xs font-semibold text-blue-700 hover:border-blue-300 hover:text-blue-800"
+          className="mt-3 inline-flex items-center rounded-full border border-[#2f6ea5]/30 px-4 py-1 text-xs font-semibold text-[#2f6ea5] hover:border-[#2f6ea5] hover:bg-[#2f6ea5]/5"
         >
           Try again
         </button>

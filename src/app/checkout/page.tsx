@@ -12,20 +12,22 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
 
   if (!appointmentId) {
     return (
-    <main className="mx-auto w-full max-w-5xl min-h-[calc(100vh-120px)] bg-white px-4 py-16 text-center">
-        <h1 className="text-2xl font-semibold text-rose-600">Missing appointment</h1>
-        <p className="mt-2 text-sm text-slate-500">We need an appointmentId to start checkout.</p>
-        <Link href="/" className="mt-4 inline-flex items-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-          Go home
-        </Link>
+      <main className="flex min-h-[calc(100vh-120px)] items-center justify-center bg-[#f7f2ea] px-4 py-16 text-center">
+        <div className="rounded-3xl border border-white/70 bg-white/80 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-sm">
+          <h1 className="font-serif text-2xl font-semibold text-rose-600">Missing appointment</h1>
+          <p className="mt-2 text-sm text-slate-500">We need an appointmentId to start checkout.</p>
+          <Link href="/" className="mt-4 inline-flex items-center rounded-full bg-[#2f6ea5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]">
+            Go home
+          </Link>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl min-h-[calc(100vh-120px)] bg-white px-4 sm:px-6 lg:px-10 py-16">
-      <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-900">Processing payment</h1>
+    <main className="flex min-h-[calc(100vh-120px)] items-center justify-center bg-[#f7f2ea] px-4 py-16">
+      <div className="w-full max-w-xl rounded-3xl border border-white/70 bg-white/80 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-sm">
+        <h1 className="font-serif text-2xl font-semibold text-slate-900">Processing payment</h1>
         <p className="mt-1 text-sm text-slate-500">
           We&apos;re preparing Razorpay checkout for your appointment. Please wait, you&apos;ll see the secure payment popup shortly.
         </p>
