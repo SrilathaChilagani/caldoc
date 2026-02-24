@@ -26,7 +26,11 @@ export const metadata: Metadata = {
     title: "CalDoc",
   },
   icons: {
-    apple: "/pwa-icon.png",
+    icon: [
+      { url: "/images/logo-mark.png", type: "image/png" },
+    ],
+    apple: "/images/logo-mark.png",
+    shortcut: "/images/logo-mark.png",
   },
   other: {
     "mobile-web-app-capable": "yes",
