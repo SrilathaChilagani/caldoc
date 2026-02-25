@@ -11,12 +11,6 @@ const REMINDER_24_TEMPLATE =
   process.env.WHATSAPP_TMPL_APPT_REMINDER_24H ||
   process.env.WHATSAPP_APPOINTMENT_REMINDER_24H ||
   "appointment_reminder_24hr";
-const REMINDER_10_TEMPLATE =
-  process.env.WHATSAPP_TMPL_PATIENT_VIDEO_10 ||
-  process.env.WHATSAPP_TMPL_APPT_REMINDER_10M ||
-  process.env.WHATSAPP_APPOINTMENT_REMINDER_10M ||
-  "appointment_reminder_10m";
-
 const JOBS = [
   {
     kind: "APPT_REMINDER_24H",
@@ -27,17 +21,6 @@ const JOBS = [
       opts.joinLink,
       opts.visitTimeLabel,
       opts.rescheduleLink,
-      opts.providerName,
-    ],
-  },
-  {
-    kind: "APPT_REMINDER_10M",
-    template: REMINDER_10_TEMPLATE,
-    offsetMinutes: 10,
-    buildVars: (opts: ReminderTemplateOptions) => [
-      opts.patientFirstName,
-      opts.joinLink,
-      opts.visitTimeLabel,
       opts.providerName,
     ],
   },
@@ -191,9 +174,7 @@ export async function GET() {
       // If the patient hasn't filled the check-in form yet, send them the link
       // alongside the reminder. Skip if already completed.
       if (!appt.checkInForm?.completedAt) {
-        const checkinKind = job.kind === "APPT_REMINDER_24H"
-          ? "PATIENT_CHECKIN_REMINDER_24H"
-          : "PATIENT_CHECKIN_REMINDER_10M";
+        const checkinKind = "PATIENT_CHECKIN_REMINDER_24H";
         // Only send once per job kind (reuse OutboundMessage dedup via kind)
         const alreadySentCheckin = await prisma.outboundMessage.count({
           where: { appointmentId: appt.id, kind: checkinKind },
