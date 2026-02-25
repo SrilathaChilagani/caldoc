@@ -1,8 +1,10 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getErrorMessage } from "@/lib/errors";
 
 const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN;
+const APP_SECRET = process.env.META_APP_SECRET;
 
 type MetaStatus = {
   id?: string;
@@ -60,7 +62,25 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    // Always read as text so we can verify the HMAC over the raw body
+    const rawBody = await req.text();
+
+    // ── Signature verification ──────────────────────────────────────────
+    // Meta signs the raw body with the app secret: X-Hub-Signature-256: sha256=<hmac>
+    // Set META_APP_SECRET in your environment from Meta App Dashboard → App Secret.
+    if (APP_SECRET) {
+      const sigHeader = req.headers.get("x-hub-signature-256") ?? "";
+      const expected =
+        "sha256=" + crypto.createHmac("sha256", APP_SECRET).update(rawBody).digest("hex");
+      if (
+        sigHeader.length !== expected.length ||
+        !crypto.timingSafeEqual(Buffer.from(sigHeader), Buffer.from(expected))
+      ) {
+        return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+      }
+    }
+
+    const body = JSON.parse(rawBody);
     const statuses = extractStatuses(body);
     if (!statuses.length) {
       return NextResponse.json({ ok: true, processed: 0 });
@@ -71,7 +91,8 @@ export async function POST(req: NextRequest) {
         const messageId = status.id;
         if (!messageId) return null;
         const normalized = normalizeStatus(status.status);
-        const errorPayload = status.errors && status.errors.length ? JSON.stringify(status.errors[0]) : null;
+        const errorPayload =
+          status.errors && status.errors.length ? JSON.stringify(status.errors[0]) : null;
         return prisma.outboundMessage.updateMany({
           where: { messageId },
           data: { status: normalized, error: errorPayload || undefined },
@@ -85,14 +106,16 @@ export async function POST(req: NextRequest) {
 
     const baseId = body?.entry?.[0]?.id ? String(body.entry[0].id) : "meta";
     const eventId = `${baseId}-${Date.now()}`;
-    await prisma.webhookEvent.create({
-      data: {
-        source: "META_WHATSAPP",
-        eventId,
-        type: "WHATSAPP_STATUS",
-        payload: body,
-      },
-    }).catch(() => {});
+    await prisma.webhookEvent
+      .create({
+        data: {
+          source: "META_WHATSAPP",
+          eventId,
+          type: "WHATSAPP_STATUS",
+          payload: body,
+        },
+      })
+      .catch(() => {});
 
     return NextResponse.json({ ok: true, processed: updates.length });
   } catch (err) {

@@ -154,7 +154,7 @@ export async function POST(
         providerId: provider.id,
         email: enrollment.email,
         passwordHash,
-        role: "admin",
+        role: "provider",
       },
     });
 
