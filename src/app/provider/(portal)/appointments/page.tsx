@@ -292,10 +292,10 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
                     : "border-slate-100 bg-white hover:border-[#2f6ea5]/40"
                 }`}
               >
-                <p className={`text-xs uppercase tracking-wide ${isActive ? "text-[#2f6ea5]" : "text-slate-500"}`}>
+                <span className={`block text-xs uppercase tracking-wide ${isActive ? "text-[#2f6ea5]" : "text-slate-500"}`}>
                   {item.label}
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">{item.value}</p>
+                </span>
+                <span className="mt-1 block text-2xl font-semibold text-slate-900">{item.value}</span>
               </Link>
             );
           })}

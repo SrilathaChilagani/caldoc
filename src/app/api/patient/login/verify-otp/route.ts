@@ -8,7 +8,8 @@ import { getErrorMessage } from "@/lib/errors";
 
 const OTP_MAX_ATTEMPTS = Number(process.env.PATIENT_OTP_MAX_ATTEMPTS || 5);
 const PATIENT_REDIRECT = "/patient/appointments";
-const SKIP_OTP = process.env.SKIP_PATIENT_OTP !== "false";
+// Set SKIP_PATIENT_OTP=true in dev/staging to bypass WhatsApp. Default: false (OTP enabled).
+const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true";
 
 export async function POST(req: Request) {
   try {

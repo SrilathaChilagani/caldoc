@@ -10,7 +10,8 @@ import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS } from "@/lib/patientAuth.server";
 const OTP_TEMPLATE = process.env.WHATSAPP_TEMPLATE_PATIENT_LOGIN || "patient_login_otp";
 const OTP_TTL_MINUTES = Number(process.env.PATIENT_OTP_TTL_MINUTES || 5);
 const RESEND_WINDOW_SECONDS = Number(process.env.PATIENT_OTP_RESEND_SECONDS || 60);
-const SKIP_OTP = process.env.SKIP_PATIENT_OTP !== "false";
+// Set SKIP_PATIENT_OTP=true in dev/staging to bypass WhatsApp. Default: false (OTP enabled).
+const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true";
 
 function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));

@@ -27,6 +27,7 @@ const portalCards = [
   { label: "Pharmacy Team", desc: "Add or remove pharmacy users", href: "/admin/pharmacy-users", bar: "bg-teal-600" },
   { label: "Lab Team", desc: "Add or remove lab users", href: "/admin/lab-users", bar: "bg-rose-600" },
   { label: "Schedule Slots", desc: "Generate availability for providers", href: "/admin/slots", bar: "bg-indigo-600" },
+  { label: "WhatsApp", desc: "Diagnostics, message log & test sends", href: "/admin/whatsapp", bar: "bg-green-600" },
 ];
 
 export default async function AdminDashboard() {

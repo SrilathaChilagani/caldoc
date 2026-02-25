@@ -3,10 +3,11 @@ import { sendWhatsAppTemplate, sendWhatsAppText } from "@/lib/whatsapp";
 import { getErrorMessage } from "@/lib/errors";
 import { createProviderConfirmToken } from "@/lib/providerConfirmToken";
 
+// Set WHATSAPP_PROVIDER_TEMPLATE to the approved template name in your Meta WABA.
 const PROVIDER_TEMPLATE =
   process.env.WHATSAPP_PROVIDER_TEMPLATE ||
   process.env.WHATSAPP_TMPL_PROVIDER_ALERT ||
-  "WHATSAPP_PROVIDER_TEMPLATE";
+  "provider_booking_alert";
 const PROVIDER_TEMPLATE_LANG =
   process.env.WHATSAPP_PROVIDER_TEMPLATE_LANG ||
   process.env.WHATSAPP_LANG ||
