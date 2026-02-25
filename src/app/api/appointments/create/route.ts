@@ -3,6 +3,80 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { buildPatientPhoneMeta } from "@/lib/phone";
 import { getErrorMessage } from "@/lib/errors";
+import { sendWhatsAppTemplate } from "@/lib/whatsapp";
+import { createCheckinToken } from "@/lib/checkinToken";
+
+const BOOKING_ALERT_TMPL =
+  process.env.WHATSAPP_TMPL_PATIENT_BOOKING_ALERT || "patient_booking_alert";
+
+function appBaseUrl() {
+  return process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://caldoc.in";
+}
+
+function formatIST(date: Date) {
+  return date.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+async function sendBookingAlert(opts: {
+  appointmentId: string;
+  patientName: string;
+  patientPhone: string;
+  providerName: string;
+  slotStartsAt: Date;
+}) {
+  const { appointmentId, patientName, patientPhone, providerName, slotStartsAt } = opts;
+  const firstName = (patientName || "there").split(" ")[0];
+  const baseUrl = appBaseUrl();
+  const uploadLink = `${baseUrl}/patient/appointments/${appointmentId}`;
+  const checkinToken = createCheckinToken(appointmentId, slotStartsAt);
+  const checkinLink = `${baseUrl}/checkin/${checkinToken}`;
+  const visitTimeLabel = formatIST(slotStartsAt);
+
+  // Template vars match the approved template:
+  // {{1}} patient first name  {{2}} upload link  {{3}} visit time
+  // {{4}} doctor name         {{5}} check-in link
+  const vars = [firstName, uploadLink, visitTimeLabel, providerName, checkinLink];
+
+  try {
+    const result = await sendWhatsAppTemplate({
+      to: patientPhone,
+      template: BOOKING_ALERT_TMPL,
+      vars,
+    });
+    await prisma.outboundMessage.create({
+      data: {
+        appointmentId,
+        channel: "WHATSAPP",
+        toPhone: patientPhone,
+        template: BOOKING_ALERT_TMPL,
+        body: `Booking confirmation → ${visitTimeLabel}`,
+        messageId: result?.messageId ?? undefined,
+        status: "SENT",
+        kind: "PATIENT_BOOKING_ALERT",
+      },
+    });
+  } catch (err) {
+    await prisma.outboundMessage.create({
+      data: {
+        appointmentId,
+        channel: "WHATSAPP",
+        toPhone: patientPhone,
+        template: BOOKING_ALERT_TMPL,
+        body: `Booking confirmation → ${visitTimeLabel}`,
+        status: "FAILED",
+        kind: "PATIENT_BOOKING_ALERT",
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
+  }
+}
 
 // Server-side canonical consent text — never trust the client-submitted string for legal records.
 // Compliant with Telemedicine Practice Guidelines 2020 (MoHFW, GSR 226(E)) — Section 3.7 (Patient Consent).
@@ -164,12 +238,32 @@ export async function POST(req: Request) {
             ...(bookerPhone ? { bookerPhone } : {}),
             ...consentPayload,
           },
-          select: { id: true },
+          select: {
+            id: true,
+            provider: { select: { name: true } },
+          },
         });
 
-        return { appointmentId: appointment.id, feePaise: slotFeePaise };
+        return {
+          appointmentId: appointment.id,
+          feePaise: slotFeePaise,
+          providerName: appointment.provider?.name ?? "your doctor",
+          slotStartsAt: slotRecord.startsAt,
+          patientPhone: patient.phone,
+        };
       },
       { maxWait: 10_000, timeout: 15_000 }
+    );
+
+    // ── Send booking confirmation WhatsApp (fire-and-forget) ──
+    sendBookingAlert({
+      appointmentId: result.appointmentId,
+      patientName: name,
+      patientPhone: result.patientPhone,
+      providerName: result.providerName,
+      slotStartsAt: result.slotStartsAt,
+    }).catch((err) =>
+      console.error("[booking] patient_booking_alert failed:", getErrorMessage(err))
     );
 
     return NextResponse.json({ appointmentId: result.appointmentId, amount: result.feePaise });
