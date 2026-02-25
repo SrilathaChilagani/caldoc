@@ -764,3 +764,4 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
     </div>
   );
 }
+
