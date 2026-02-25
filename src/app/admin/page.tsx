@@ -24,6 +24,7 @@ const portalCards = [
   { label: "Labs", desc: "Lab orders and status updates", href: "/admin/labs", bar: "bg-violet-600" },
   { label: "NGO Bookings", desc: "Confirm or release NGO reservations", href: "/admin/ngo", bar: "bg-amber-600" },
   { label: "Providers", desc: "Onboard, off-board, manage doctors", href: "/admin/providers", bar: "bg-slate-700" },
+  { label: "Enrollments", desc: "Review & approve provider applications", href: "/admin/enrollments", bar: "bg-orange-500" },
   { label: "Pharmacy Team", desc: "Add or remove pharmacy users", href: "/admin/pharmacy-users", bar: "bg-teal-600" },
   { label: "Lab Team", desc: "Add or remove lab users", href: "/admin/lab-users", bar: "bg-rose-600" },
   { label: "Schedule Slots", desc: "Generate availability for providers", href: "/admin/slots", bar: "bg-indigo-600" },

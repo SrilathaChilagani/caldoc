@@ -531,3 +531,42 @@ model LabPartner {
 
   @@index([isActive])
 }
+
+model ProviderEnrollment {
+  id                  String    @id @default(cuid())
+  fullName            String
+  email               String
+  phone               String
+  dob                 DateTime?
+  gender              String?
+  qualification       String
+  university          String?
+  qualificationYear   Int?
+  registrationNumber  String
+  registrationCouncil String
+  registrationYear    Int?
+  speciality          String
+  subSpeciality       String?
+  experienceYears     Int?
+  currentHospital     String?
+  city                String
+  state               String
+  languages           String[]
+  visitModes          String[]
+  feePaise            Int?
+  bio                 String?
+  consentTelemedicine Boolean   @default(false)
+  profilePhotoKey     String?
+  qualificationDocKey String?
+  registrationDocKey  String?
+  status              String    @default("PENDING")
+  createdAt           DateTime  @default(now())
+  reviewedAt          DateTime?
+  reviewedByEmail     String?
+  rejectionReason     String?
+  providerId          String?
+  adminNotifiedAt     DateTime?
+
+  @@index([status, createdAt])
+  @@index([email])
+}

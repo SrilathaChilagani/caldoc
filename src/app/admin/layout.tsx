@@ -23,6 +23,7 @@ const nav: NavSection[] = [
     group: "Providers",
     links: [
       { href: "/admin/providers", label: "All providers" },
+      { href: "/admin/enrollments", label: "Enrollments" },
       { href: "/admin/providers/onboard", label: "Onboard" },
       { href: "/admin/providers/offboard", label: "Off-board" },
       { href: "/admin/slots", label: "Schedule slots" },
