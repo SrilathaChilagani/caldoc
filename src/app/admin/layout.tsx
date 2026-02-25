@@ -15,6 +15,7 @@ const nav: NavSection[] = [
     group: "Appointments",
     links: [
       { href: "/admin/appointments", label: "All appointments" },
+      { href: "/admin/checkin-preview", label: "Check-in form" },
       { href: "/admin/ngo", label: "NGO bookings" },
     ],
   },

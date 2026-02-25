@@ -201,9 +201,11 @@ const labelCls = "block text-xs font-medium text-slate-600";
 export default function CheckInFormClient({
   appointmentId,
   token,
+  previewMode = false,
 }: {
   appointmentId: string;
   token: string;
+  previewMode?: boolean;
 }) {
   const [form, setForm] = useState<CheckInData>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
@@ -218,6 +220,10 @@ export default function CheckInFormClient({
     e.preventDefault();
     if (!form.chiefComplaint.trim()) {
       setError("Please describe your main reason for the visit.");
+      return;
+    }
+    if (previewMode) {
+      setSubmitted(true);
       return;
     }
     setSubmitting(true);
