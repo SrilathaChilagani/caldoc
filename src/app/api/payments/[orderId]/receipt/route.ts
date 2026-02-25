@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { readPatientPhone } from "@/lib/patientAuth.server";
+import { readProviderSession, readAdminSession } from "@/lib/auth.server";
 
 type RouteCtx = {
   params: Promise<{ orderId: string }>;
@@ -34,6 +36,25 @@ export async function GET(req: NextRequest, { params }: RouteCtx) {
 
     if (!payment || !payment.appointment) {
       return NextResponse.json({ error: "Receipt not found" }, { status: 404 });
+    }
+
+    // ── Auth check ───────────────────────────────────────────────────────
+    // Allow: admin, the provider for this appointment, or the patient who paid.
+    const [patientPhone, providerSess, adminSess] = await Promise.all([
+      readPatientPhone(),
+      readProviderSession(),
+      readAdminSession(),
+    ]);
+
+    const apptPatientPhone = payment.appointment.patient?.phone;
+    const apptProviderId = payment.appointment.providerId;
+
+    const isPatient = !!patientPhone && patientPhone === apptPatientPhone;
+    const isProvider = !!providerSess && providerSess.providerId === apptProviderId;
+    const isAdmin = !!adminSess;
+
+    if (!isPatient && !isProvider && !isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const appt = payment.appointment;

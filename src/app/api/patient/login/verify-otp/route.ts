@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { buildPatientPhoneMeta } from "@/lib/phone";
-import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS } from "@/lib/patientAuth.server";
+import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS, signPatientSession } from "@/lib/patientAuth.server";
 import { getErrorMessage } from "@/lib/errors";
 
 const OTP_MAX_ATTEMPTS = Number(process.env.PATIENT_OTP_MAX_ATTEMPTS || 5);
@@ -76,8 +76,9 @@ export async function POST(req: Request) {
       });
     }
 
+    const token = signPatientSession(patient.phone, patient.id);
     const jar = await cookies();
-    jar.set(PATIENT_COOKIE, patient.phone, {
+    jar.set(PATIENT_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
       maxAge: PATIENT_MAX_AGE_DAYS * 24 * 60 * 60,
