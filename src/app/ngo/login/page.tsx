@@ -23,7 +23,7 @@ export default async function NgoLoginPage({
   }
 
   return (
-    <main className="bg-gradient-to-b from-[#f0f7ff] via-white to-white py-14">
+    <main className="min-h-screen bg-[#f7f2ea] py-14">
       <div className="mx-auto grid max-w-5xl items-center gap-10 px-6 md:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6 text-slate-800">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">NGO portal</p>
