@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { fetchWithBackoff } from "@/lib/fetchWithBackoff";
 
 function basicAuthHeader(key: string, secret: string) {
   const token = Buffer.from(`${key}:${secret}`).toString("base64");
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing RZP_KEY/RZP_SECRET" }, { status: 500 });
     }
 
-    const rzpRes = await fetch("https://api.razorpay.com/v1/orders", {
+    const rzpRes = await fetchWithBackoff("https://api.razorpay.com/v1/orders", {
       method: "POST",
       headers: {
         Authorization: basicAuthHeader(key, secret),
