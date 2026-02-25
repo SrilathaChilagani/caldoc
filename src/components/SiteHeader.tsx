@@ -189,8 +189,8 @@ export default function SiteHeader() {
                       className="rounded-xl px-3 py-2 hover:bg-slate-50"
                       onClick={() => setServicesOpen(false)}
                     >
-                      <p className="font-semibold text-slate-900">{service.label}</p>
-                      <p className="text-xs text-slate-500">{service.description}</p>
+                      <span className="block font-semibold text-slate-900">{service.label}</span>
+                      <span className="block text-xs text-slate-500">{service.description}</span>
                     </Link>
                   ))}
                 </div>
@@ -227,8 +227,8 @@ export default function SiteHeader() {
                       className="rounded-xl px-3 py-2 hover:bg-slate-50"
                       onClick={() => setLoginOpen(false)}
                     >
-                      <p className="font-semibold text-slate-900">{link.label}</p>
-                      <p className="text-xs text-slate-500">{link.helper}</p>
+                      <span className="block font-semibold text-slate-900">{link.label}</span>
+                      <span className="block text-xs text-slate-500">{link.helper}</span>
                     </Link>
                   ))}
                 </div>
