@@ -231,7 +231,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
 
   return (
     <div className="space-y-8">
-      <section className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] lg:p-8">
+      <div className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] lg:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <div className="relative h-12 w-12 overflow-hidden rounded-full border border-white/70 bg-white shadow-sm">
@@ -300,10 +300,10 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
             );
           })}
         </div>
-      </section>
+      </div>
 
 
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+      <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
             {timeframeTabs.map((tab) => (
@@ -414,7 +414,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
           </table>
         </div>
         <p className="mt-4 text-xs text-slate-500">Showing up to 100 recent appointments.</p>
-      </section>
+      </div>
     </div>
   );
 }
