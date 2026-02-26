@@ -31,8 +31,24 @@ export async function POST(req: Request) {
       where: { phone: meta.canonical },
     });
 
+    // Auto-register: create a patient record on first login
     if (!patient) {
-      return NextResponse.json({ error: "Patient not found" }, { status: 404 });
+      try {
+        patient = await prisma.patient.create({
+          data: {
+            phone: meta.canonical,
+            name: meta.canonical, // patient can update name in profile
+            consentAt: new Date(),
+          },
+        });
+      } catch {
+        // Race condition — another request may have created the record
+        patient = await prisma.patient.findUnique({ where: { phone: meta.canonical } });
+      }
+    }
+
+    if (!patient) {
+      return NextResponse.json({ error: "Unable to create account. Please try again." }, { status: 500 });
     }
 
     if (!SKIP_OTP) {

@@ -52,6 +52,18 @@ const nav: NavSection[] = [
       { href: "/admin/lab-users", label: "Lab team" },
     ],
   },
+  {
+    group: "Patients",
+    links: [
+      { href: "/admin/patients", label: "All patients" },
+    ],
+  },
+  {
+    group: "System",
+    links: [
+      { href: "/admin/audit-logs", label: "Audit log" },
+    ],
+  },
 ];
 
 function NavSidebar({ path }: { path: string }) {

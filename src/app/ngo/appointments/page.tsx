@@ -181,6 +181,14 @@ export default async function NgoAppointmentsPage({ searchParams }: PageProps) {
           >
             + New booking
           </Link>
+          <a
+            href={`/api/ngo/invoice?start=${startInputValue}&end=${endInputValue}`}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-[#2f6ea5]/40 px-4 py-2 text-sm font-semibold text-[#2f6ea5] transition hover:bg-[#2f6ea5]/5"
+          >
+            Download invoice
+          </a>
           <ChangeNgoPasswordButton />
           <form action="/api/ngo/logout" method="POST">
             <button

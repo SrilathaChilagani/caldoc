@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { readPatientSession } from "@/lib/patientAuth.server";
 import UploadDocumentsForm from "./UploadDocumentsForm";
+import CancelAppointmentButton from "./CancelAppointmentButton";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -74,9 +75,14 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
               Patient: {appointment.patientName || patient.name || "Patient"}
             </p>
           </div>
-          <Link href="/patient/appointments" className="text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]">
-            ← Back to appointments
-          </Link>
+          <div className="flex flex-col items-end gap-3">
+            <Link href="/patient/appointments" className="text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]">
+              ← Back to appointments
+            </Link>
+            {["PENDING", "CONFIRMED"].includes(appointment.status) && (
+              <CancelAppointmentButton appointmentId={appointment.id} />
+            )}
+          </div>
         </div>
 
         <section className="grid gap-4 md:grid-cols-3">

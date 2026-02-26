@@ -98,27 +98,27 @@ export async function requireNgoSession(): Promise<{ userId: string; ngoId: stri
   return { userId: user.id, ngoId: user.ngoId, role: sess.role, email: sess.email ?? user.email };
 }
 
-export async function requireLabsSession(): Promise<{ userId: string; email?: string } | null> {
+export async function requireLabsSession(): Promise<{ userId: string; email?: string; labPartnerId?: string | null } | null> {
   const sess = await readLabsSession();
   if (sess) {
-    const user = await prisma.labUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true } });
-    if (user) return { userId: user.id, email: user.email };
+    const user = await prisma.labUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true, labPartnerId: true } });
+    if (user) return { userId: user.id, email: user.email, labPartnerId: user.labPartnerId };
   }
-  // Fall back: allow any logged-in admin to access the labs portal
+  // Fall back: allow any logged-in admin to access the labs portal (no partner restriction)
   const adminSess = await requireAdminSession();
-  if (adminSess) return { userId: adminSess.userId, email: "admin" };
+  if (adminSess) return { userId: adminSess.userId, email: "admin", labPartnerId: null };
   return null;
 }
 
-export async function requirePharmacySession(): Promise<{ userId: string; email?: string } | null> {
+export async function requirePharmacySession(): Promise<{ userId: string; email?: string; pharmacyPartnerId?: string | null } | null> {
   const sess = await readPharmacySession();
   if (sess) {
-    const user = await prisma.pharmacyUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true } });
-    if (user) return { userId: user.id, email: user.email };
+    const user = await prisma.pharmacyUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true, pharmacyPartnerId: true } });
+    if (user) return { userId: user.id, email: user.email, pharmacyPartnerId: user.pharmacyPartnerId };
   }
-  // Fall back: allow any logged-in admin to access the pharmacy portal
+  // Fall back: allow any logged-in admin to access the pharmacy portal (no partner restriction)
   const adminSess = await requireAdminSession();
-  if (adminSess) return { userId: adminSess.userId, email: "admin" };
+  if (adminSess) return { userId: adminSess.userId, email: "admin", pharmacyPartnerId: null };
   return null;
 }
 

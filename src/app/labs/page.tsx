@@ -5,6 +5,7 @@ import { requireLabsSession } from "@/lib/auth.server";
 import { formatINR } from "@/lib/format";
 import { validateAddress } from "@/lib/validateAddress";
 import LabOrderActions from "./LabOrderActions";
+import UploadResultsButton from "./UploadResultsButton";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +62,9 @@ export default async function LabsDashboardPage() {
   const sess = await requireLabsSession();
   if (!sess) redirect("/labs/login?next=/labs");
 
+  const partnerFilter = sess.labPartnerId ? { labPartnerId: sess.labPartnerId } : {};
   const orders = await prisma.labOrder.findMany({
+    where: partnerFilter,
     orderBy: { createdAt: "desc" },
     include: {
       appointment: {
@@ -262,6 +265,9 @@ export default async function LabsDashboardPage() {
                           collectionAgentName={order.collectionAgentName}
                           collectionAgentPhone={order.collectionAgentPhone}
                         />
+                        {["PROCESSING", "SAMPLE_COLLECTED"].includes(order.status) && (
+                          <UploadResultsButton orderId={order.id} />
+                        )}
                         <Link
                           href={`/admin/labs/${order.id}`}
                           className="block text-[11px] font-semibold text-[#2f6ea5] hover:text-[#255b8b]"

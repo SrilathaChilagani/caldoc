@@ -335,7 +335,7 @@ model PharmacyFulfillment {
 }
 
 model LabOrder {
-  id                   String          @id @default(cuid())
+  id                   String      @id @default(cuid())
   appointmentId        String?
   patientId            String?
   patientName          String?
@@ -344,14 +344,16 @@ model LabOrder {
   deliveryMode         String?
   tests                Json?
   notes                String?
-  status               String          @default("PENDING")
+  status               String      @default("PENDING")
   address              Json?
   amountPaise          Int?
-  source               String          @default("APPOINTMENT")
+  source               String      @default("APPOINTMENT")
   collectionAgentName  String?
   collectionAgentPhone String?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
+  labPartnerId         String?
+  labPartner           LabPartner? @relation(fields: [labPartnerId], references: [id])
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
   appointment          Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   patient              Patient?        @relation(fields: [patientId], references: [id], onDelete: Cascade)
   payment              Payment?        @relation("LabOrderPayment")
@@ -374,19 +376,23 @@ model LabOrderEvent {
 }
 
 model LabUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  role         String   @default("LAB_ADMIN")
-  createdAt    DateTime @default(now())
+  id            String      @id @default(cuid())
+  email         String      @unique
+  passwordHash  String
+  role          String      @default("LAB_ADMIN")
+  labPartnerId  String?
+  labPartner    LabPartner? @relation(fields: [labPartnerId], references: [id])
+  createdAt     DateTime    @default(now())
 }
 
 model PharmacyUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  role         String   @default("PHARMACY")
-  createdAt    DateTime @default(now())
+  id               String          @id @default(cuid())
+  email            String          @unique
+  passwordHash     String
+  role             String          @default("PHARMACY")
+  pharmacyPartnerId String?
+  pharmacyPartner   PharmacyPartner? @relation(fields: [pharmacyPartnerId], references: [id])
+  createdAt        DateTime        @default(now())
 }
 
 model RxOrder {
@@ -475,10 +481,10 @@ model Medication {
 }
 
 model PharmacyPartner {
-  id                String   @id @default(cuid())
+  id                String         @id @default(cuid())
   name              String
   contactName       String
-  email             String   @unique
+  email             String         @unique
   phone             String
   addressLine1      String
   addressLine2      String?
@@ -488,8 +494,9 @@ model PharmacyPartner {
   drugLicenseNumber String
   gstNumber         String?
   serviceAreas      String[]
-  isActive          Boolean  @default(true)
+  isActive          Boolean        @default(true)
   notes             String?
+  users             PharmacyUser[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -523,11 +530,13 @@ model LabPartner {
   nablCertified   Boolean  @default(false)
   nablCertNumber  String?
   testCategories  String[]
-  homeCollection  Boolean  @default(true)
-  isActive        Boolean  @default(true)
+  homeCollection  Boolean    @default(true)
+  isActive        Boolean    @default(true)
   notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  users           LabUser[]
+  orders          LabOrder[]
 
   @@index([isActive])
 }

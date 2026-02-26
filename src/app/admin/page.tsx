@@ -30,6 +30,8 @@ const portalCards = [
   { label: "Schedule Slots", desc: "Generate availability for providers", href: "/admin/slots", bar: "bg-indigo-600" },
   { label: "WhatsApp", desc: "Diagnostics, message log & test sends", href: "/admin/whatsapp", bar: "bg-green-600" },
   { label: "Check-in Form", desc: "Preview the patient pre-visit form", href: "/admin/checkin-preview", bar: "bg-cyan-600" },
+  { label: "Patients", desc: "Search and review registered patients", href: "/admin/patients", bar: "bg-pink-600" },
+  { label: "Audit log", desc: "System-wide action trail", href: "/admin/audit-logs", bar: "bg-slate-500" },
 ];
 
 export default async function AdminDashboard() {
