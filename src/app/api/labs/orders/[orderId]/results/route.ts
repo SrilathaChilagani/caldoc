@@ -48,9 +48,10 @@ export async function POST(
       await tx.labOrderEvent.create({
         data: {
           labOrderId: orderId,
-          status: "REPORTS_READY",
+          fromStatus: order.status,
+          toStatus: "REPORTS_READY",
           note: `Results uploaded: ${key}`,
-          actorType: "LAB",
+          actorEmail: sess.email,
         },
       });
     });

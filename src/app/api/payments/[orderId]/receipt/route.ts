@@ -50,7 +50,7 @@ export async function GET(req: NextRequest, { params }: RouteCtx) {
     const apptProviderId = payment.appointment.providerId;
 
     const isPatient = !!patientPhone && patientPhone === apptPatientPhone;
-    const isProvider = !!providerSess && providerSess.providerId === apptProviderId;
+    const isProvider = !!providerSess && providerSess.pid === apptProviderId;
     const isAdmin = !!adminSess;
 
     if (!isPatient && !isProvider && !isAdmin) {
