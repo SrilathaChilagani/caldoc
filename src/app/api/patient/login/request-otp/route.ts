@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { buildPatientPhoneMeta } from "@/lib/phone";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { getErrorMessage } from "@/lib/errors";
-import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS } from "@/lib/patientAuth.server";
+import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS, signPatientSession } from "@/lib/patientAuth.server";
 
 const OTP_TEMPLATE = process.env.WHATSAPP_TEMPLATE_PATIENT_LOGIN || "patient_login_otp";
 const OTP_TTL_MINUTES = Number(process.env.PATIENT_OTP_TTL_MINUTES || 5);
@@ -42,8 +42,9 @@ export async function POST(req: Request) {
     }
 
     if (SKIP_OTP) {
+      const token = signPatientSession(patient.phone, patient.id);
       const jar = await cookies();
-      jar.set(PATIENT_COOKIE, patient.phone, {
+      jar.set(PATIENT_COOKIE, token, {
         httpOnly: true,
         sameSite: "lax",
         maxAge: PATIENT_MAX_AGE_DAYS * 24 * 60 * 60,
@@ -85,11 +86,23 @@ export async function POST(req: Request) {
       },
     });
 
-    await sendWhatsAppTemplate({
+    const waResult = await sendWhatsAppTemplate({
       to: patient.phone,
       template: OTP_TEMPLATE,
       vars: [otp, String(OTP_TTL_MINUTES)],
     });
+
+    // Log to OutboundMessage so the admin WhatsApp dashboard shows OTP sends
+    await prisma.outboundMessage.create({
+      data: {
+        channel: "WHATSAPP",
+        kind: "OTP",
+        toPhone: patient.phone,
+        template: OTP_TEMPLATE,
+        status: "SENT",
+        messageId: waResult?.messageId ?? null,
+      },
+    }).catch(() => {});
 
     return NextResponse.json({
       ok: true,
