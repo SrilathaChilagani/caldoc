@@ -6,8 +6,6 @@ import { loadLabCart, saveLabCart, type LabCartItem } from "./labCart";
 type PopularTest = {
   name: string;
   category: string;
-  price: string;
-  discount: string;
 };
 
 type Props = {
@@ -70,10 +68,7 @@ export default function LabsPopularTests({ tests }: Props) {
             <div>
               <h3 className="font-medium text-slate-900">{test.name}</h3>
               <p className="text-xs text-slate-600">{test.category}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="font-semibold text-slate-900">{test.price}</span>
-                <span className="text-xs text-[#2f6ea5] font-medium">{test.discount}</span>
-              </div>
+              <p className="text-sm font-semibold text-slate-700 mt-1">₹799 / test</p>
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3">

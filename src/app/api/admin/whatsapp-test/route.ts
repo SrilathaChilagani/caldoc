@@ -23,7 +23,6 @@ export async function GET() {
     WHATSAPP_PROVIDER_TEMPLATE: process.env.WHATSAPP_PROVIDER_TEMPLATE || "(default: provider_booking_alert)",
     WHATSAPP_TMPL_CHECKIN: process.env.WHATSAPP_TMPL_CHECKIN || "(default: appointment_checkin)",
     WHATSAPP_TMPL_APPT_REMINDER_24H: process.env.WHATSAPP_TMPL_APPT_REMINDER_24H || "(default: appointment_reminder_24hr)",
-    WHATSAPP_TMPL_APPT_REMINDER_10M: process.env.WHATSAPP_TMPL_APPT_REMINDER_10M || "(default: appointment_reminder_10m)",
   };
 
   const recentMessages = await prisma.outboundMessage.findMany({

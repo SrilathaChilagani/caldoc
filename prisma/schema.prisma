@@ -20,7 +20,6 @@ model Patient {
   appointments    Appointment[]
   addresses       PatientAddress[]
   documents       PatientDocument[]
-  PatientLoginOtp PatientLoginOtp[]
   otps            PatientOtp[]
   labOrders       LabOrder[]
   rxOrders        RxOrder[]
@@ -446,19 +445,6 @@ model OfflineRequest {
   status     String    @default("RECEIVED")
   createdAt  DateTime  @default(now()) @db.Timestamptz(6)
   resolvedAt DateTime? @db.Timestamptz(6)
-}
-
-model PatientLoginOtp {
-  phoneKey   String   @id
-  patientId  String
-  codeHash   String
-  expiresAt  DateTime
-  attempts   Int      @default(0)
-  lastSentAt DateTime @default(now())
-  sendCount  Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime
-  Patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }
 
 model PaymentReceipt {

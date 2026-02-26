@@ -6,8 +6,6 @@ import { loadRxCart, saveRxCart, type RxCartItem } from "./rxCart";
 type PopularMed = {
   name: string;
   category: string;
-  price: string;
-  discount: string;
 };
 
 type Props = {
@@ -70,10 +68,7 @@ export default function RxPopularMeds({ meds }: Props) {
             <div>
               <h3 className="font-medium text-slate-900">{med.name}</h3>
               <p className="text-xs text-slate-600">{med.category}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="font-semibold text-slate-900">{med.price}</span>
-                <span className="text-xs text-[#2f6ea5] font-medium">{med.discount}</span>
-              </div>
+              <p className="text-sm font-semibold text-slate-700 mt-1">₹199 / item</p>
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3">

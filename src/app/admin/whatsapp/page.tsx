@@ -27,7 +27,6 @@ const envVars: VarRow[] = [
   { label: "WHATSAPP_PROVIDER_TEMPLATE", value: process.env.WHATSAPP_PROVIDER_TEMPLATE, defaultVal: "provider_booking_alert" },
   { label: "WHATSAPP_TMPL_CHECKIN", value: process.env.WHATSAPP_TMPL_CHECKIN, defaultVal: "appointment_checkin" },
   { label: "WHATSAPP_TMPL_APPT_REMINDER_24H", value: process.env.WHATSAPP_TMPL_APPT_REMINDER_24H, defaultVal: "appointment_reminder_24hr" },
-  { label: "WHATSAPP_TMPL_APPT_REMINDER_10M", value: process.env.WHATSAPP_TMPL_APPT_REMINDER_10M, defaultVal: "appointment_reminder_10m" },
 ];
 
 function fmtIST(d: Date) {
