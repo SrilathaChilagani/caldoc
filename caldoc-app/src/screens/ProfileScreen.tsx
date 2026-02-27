@@ -119,7 +119,7 @@ export default function ProfileScreen() {
           <Text style={styles.signOutText}>Sign out</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>CalDoc · Development build</Text>
+        <Text style={styles.version}>CalDoc v1.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
