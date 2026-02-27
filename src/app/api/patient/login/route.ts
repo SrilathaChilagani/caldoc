@@ -6,7 +6,7 @@ import { getErrorMessage } from "@/lib/errors";
 import { signPatientMobileToken } from "@/lib/patientMobileToken";
 
 const OTP_MAX_ATTEMPTS = Number(process.env.PATIENT_OTP_MAX_ATTEMPTS || 5);
-const SKIP_OTP = process.env.SKIP_PATIENT_OTP !== "false";
+const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true";
 
 export async function POST(req: Request) {
   try {

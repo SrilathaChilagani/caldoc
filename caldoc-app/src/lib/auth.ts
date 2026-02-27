@@ -23,6 +23,13 @@ async function request<T>(path: string, body: Record<string, unknown>) {
   return res.json() as Promise<T>;
 }
 
+export async function requestOtp(phone: string): Promise<{ masked: string; cooldown: number }> {
+  return request<{ masked: string; cooldown: number }>(
+    '/api/patient/login/request-otp',
+    { phone },
+  );
+}
+
 export async function login(phone: string, otp: string) {
   const payload = await request<{ token: string }>('/api/patient/login', { phone, otp });
   await SecureStore.setItemAsync(TOKEN_KEY, payload.token);

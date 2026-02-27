@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { login } from '../lib/auth';
+import { requestOtp, login } from '../lib/auth';
 import type { RootStackParamList } from '../types/navigation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
@@ -21,23 +21,77 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 export default function LoginScreen({ navigation }: Props) {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phone, setPhone] = useState('');
+  const [maskedPhone, setMaskedPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const otpRef = useRef<TextInput>(null);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  function handlePhoneNext() {
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, []);
+
+  function startCooldown(seconds: number) {
+    setCooldown(seconds);
+    if (cooldownRef.current) clearInterval(cooldownRef.current);
+    cooldownRef.current = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownRef.current!);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  async function handlePhoneNext() {
     const trimmed = phone.trim();
     if (!trimmed || trimmed.replace(/\D/g, '').length < 10) {
-      Alert.alert('Invalid number', 'Enter a valid 10-digit mobile number.');
+      Alert.alert('Invalid number', 'Enter a valid mobile number with country code (e.g. +91 98765 43210).');
       return;
     }
-    setStep('otp');
-    setTimeout(() => otpRef.current?.focus(), 100);
+    setLoading(true);
+    try {
+      const result = await requestOtp(trimmed);
+      setMaskedPhone(result.masked || trimmed);
+      startCooldown(result.cooldown || 60);
+      setStep('otp');
+      setTimeout(() => otpRef.current?.focus(), 100);
+    } catch (err) {
+      Alert.alert(
+        'Could not send OTP',
+        err instanceof Error ? err.message : 'Please try again.',
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    if (cooldown > 0 || loading) return;
+    setOtp('');
+    setLoading(true);
+    try {
+      const result = await requestOtp(phone.trim());
+      setMaskedPhone(result.masked || phone.trim());
+      startCooldown(result.cooldown || 60);
+    } catch (err) {
+      Alert.alert(
+        'Could not resend OTP',
+        err instanceof Error ? err.message : 'Please try again.',
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleVerify() {
     if (!otp.trim() || otp.trim().length < 4) {
-      Alert.alert('Invalid OTP', 'Enter the OTP sent to your phone.');
+      Alert.alert('Invalid OTP', 'Enter the 6-digit code sent to your WhatsApp.');
       return;
     }
     setLoading(true);
@@ -47,7 +101,7 @@ export default function LoginScreen({ navigation }: Props) {
     } catch (err) {
       Alert.alert(
         'Verification failed',
-        err instanceof Error ? err.message : 'Check your OTP and try again.'
+        err instanceof Error ? err.message : 'Check your OTP and try again.',
       );
     } finally {
       setLoading(false);
@@ -64,7 +118,12 @@ export default function LoginScreen({ navigation }: Props) {
           {step === 'otp' && (
             <TouchableOpacity
               style={styles.backBtn}
-              onPress={() => { setStep('phone'); setOtp(''); }}
+              onPress={() => {
+                if (cooldownRef.current) clearInterval(cooldownRef.current);
+                setStep('phone');
+                setOtp('');
+                setCooldown(0);
+              }}
             >
               <Ionicons name="chevron-back" size={20} color="#0F62FE" />
               <Text style={styles.backText}>Back</Text>
@@ -92,28 +151,31 @@ export default function LoginScreen({ navigation }: Props) {
                   onChangeText={setPhone}
                   onSubmitEditing={handlePhoneNext}
                   autoFocus
+                  editable={!loading}
                 />
               </View>
 
               <TouchableOpacity
-                style={[styles.primaryBtn, !phone.trim() && styles.btnDisabled]}
+                style={[styles.primaryBtn, (!phone.trim() || loading) && styles.btnDisabled]}
                 onPress={handlePhoneNext}
-                disabled={!phone.trim()}
+                disabled={!phone.trim() || loading}
               >
-                <Text style={styles.primaryBtnText}>Continue</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
+                <Text style={styles.primaryBtnText}>
+                  {loading ? 'Sending OTP…' : 'Continue'}
+                </Text>
+                {!loading && <Ionicons name="arrow-forward" size={18} color="#fff" />}
               </TouchableOpacity>
             </>
           ) : (
             <>
               <Text style={styles.title}>Enter OTP</Text>
               <Text style={styles.subtitle}>
-                A one-time password was sent to{'\n'}
-                <Text style={styles.phoneHighlight}>{phone}</Text>
+                We sent a 6-digit code to your WhatsApp{'\n'}
+                <Text style={styles.phoneHighlight}>{maskedPhone}</Text>
               </Text>
 
               <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed-outline" size={18} color="#9CA3AF" style={styles.inputIcon} />
+                <Ionicons name="logo-whatsapp" size={18} color="#25D366" style={styles.inputIcon} />
                 <TextInput
                   ref={otpRef}
                   style={[styles.input, styles.otpInput]}
@@ -121,10 +183,11 @@ export default function LoginScreen({ navigation }: Props) {
                   placeholderTextColor="#9CA3AF"
                   keyboardType="number-pad"
                   returnKeyType="done"
-                  maxLength={8}
+                  maxLength={6}
                   value={otp}
                   onChangeText={setOtp}
                   onSubmitEditing={handleVerify}
+                  editable={!loading}
                 />
               </View>
 
@@ -137,6 +200,18 @@ export default function LoginScreen({ navigation }: Props) {
                   {loading ? 'Verifying…' : 'Verify & Sign in'}
                 </Text>
                 {!loading && <Ionicons name="checkmark" size={18} color="#fff" />}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleResend}
+                disabled={cooldown > 0 || loading}
+                style={styles.resendBtn}
+              >
+                <Text style={[styles.resendText, cooldown > 0 && styles.resendDisabled]}>
+                  {cooldown > 0
+                    ? `Resend code in ${cooldown}s`
+                    : "Didn't receive it? Resend OTP"}
+                </Text>
               </TouchableOpacity>
             </>
           )}
@@ -185,5 +260,8 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  resendBtn: { alignItems: 'center', paddingVertical: 4 },
+  resendText: { color: '#0F62FE', fontSize: 14, fontWeight: '500' },
+  resendDisabled: { color: '#9CA3AF' },
   hint: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', lineHeight: 18, marginTop: 8 },
 });
