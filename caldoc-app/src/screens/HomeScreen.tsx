@@ -66,10 +66,15 @@ export default function HomeScreen() {
           <Text style={styles.tagline}>Healthcare at your doorstep</Text>
         </View>
 
-        {/* Feature cards */}
+        {/* Feature cards — tap any to sign in */}
         <View style={styles.featureList}>
           {FEATURES.map((f) => (
-            <View key={f.title} style={styles.featureCard}>
+            <TouchableOpacity
+              key={f.title}
+              style={styles.featureCard}
+              onPress={() => navigation.navigate('Login')}
+              activeOpacity={0.75}
+            >
               <View style={[styles.featureIconWrap, { backgroundColor: f.bg }]}>
                 <Ionicons name={f.icon} size={24} color={f.color} />
               </View>
@@ -77,7 +82,8 @@ export default function HomeScreen() {
                 <Text style={styles.featureTitle}>{f.title}</Text>
                 <Text style={styles.featureDesc}>{f.desc}</Text>
               </View>
-            </View>
+              <Ionicons name="lock-closed-outline" size={14} color="#CBD5E1" />
+            </TouchableOpacity>
           ))}
         </View>
 
