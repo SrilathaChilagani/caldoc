@@ -2,8 +2,9 @@ import Link from "next/link";
 
 const NAV = [
   { href: "/provider/appointments", label: "Appointments" },
-  { href: "/provider/schedule", label: "Manage slots" },
-  { href: "/provider/settings", label: "Settings" },
+  { href: "/provider/calendar",     label: "Calendar", icon: true },
+  { href: "/provider/schedule",     label: "Manage slots" },
+  { href: "/provider/settings",     label: "Settings" },
 ];
 
 export default async function ProviderLayout({ children }: { children: React.ReactNode }) {
@@ -16,8 +17,16 @@ export default async function ProviderLayout({ children }: { children: React.Rea
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
             >
+              {item.icon && (
+                <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              )}
               {item.label}
             </Link>
           ))}
