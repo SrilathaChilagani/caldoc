@@ -230,6 +230,14 @@ model AdminUser {
   createdAt    DateTime @default(now())
 }
 
+model FrontDeskUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+}
+
 model Ngo {
   id           String           @id @default(cuid())
   name         String
@@ -408,17 +416,20 @@ model RxOrder {
   rxDocumentType       String?
   rxDocumentSize       Int?
   rxDocumentUploadedAt DateTime?
-  amountPaise    Int
-  status         String        @default("AWAITING_PAYMENT")
-  trackingNumber String?
-  courierName    String?
-  payment        Payment?      @relation("RxOrderPayment")
-  events         RxOrderEvent[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  patient        Patient?      @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  amountPaise           Int
+  status                String           @default("AWAITING_PAYMENT")
+  trackingNumber        String?
+  courierName           String?
+  pharmacyPartnerId     String?
+  payment               Payment?         @relation("RxOrderPayment")
+  events                RxOrderEvent[]
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  patient               Patient?         @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  pharmacyPartner       PharmacyPartner? @relation(fields: [pharmacyPartnerId], references: [id], onDelete: SetNull)
 
   @@index([patientId])
+  @@index([pharmacyPartnerId])
 }
 
 model RxOrderEvent {
@@ -483,6 +494,7 @@ model PharmacyPartner {
   isActive          Boolean        @default(true)
   notes             String?
   users             PharmacyUser[]
+  rxOrders          RxOrder[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

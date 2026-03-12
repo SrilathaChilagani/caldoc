@@ -2,7 +2,7 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
-import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, NGO_JWT_NAME, LABS_JWT_NAME, PHARMACY_JWT_NAME, SESSION_COOKIE_DOMAIN, SessionPayload } from "./auth";
+import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, NGO_JWT_NAME, LABS_JWT_NAME, PHARMACY_JWT_NAME, FRONTDESK_JWT_NAME, SESSION_COOKIE_DOMAIN, SessionPayload } from "./auth";
 
 function requireSecret(): string {
   const s = process.env.JWT_SECRET;
@@ -122,6 +122,21 @@ export async function requirePharmacySession(): Promise<{ userId: string; email?
   return null;
 }
 
+export async function readFrontDeskSession(): Promise<SessionPayload | null> {
+  return readSessionFromCookie(FRONTDESK_JWT_NAME);
+}
+
+export async function requireFrontDeskSession(): Promise<{ userId: string; role: string; email?: string } | null> {
+  const sess = await readFrontDeskSession();
+  if (!sess || sess.role !== "frontdesk") return null;
+  const user = await prisma.frontDeskUser.findUnique({
+    where: { id: sess.uid },
+    select: { id: true, email: true },
+  });
+  if (!user) return null;
+  return { userId: user.id, role: "frontdesk", email: user.email };
+}
+
 export async function clearSessionCookies() {
   const jar = await cookies();
   const domainOption = SESSION_COOKIE_DOMAIN ? { domain: SESSION_COOKIE_DOMAIN } : {};
@@ -130,4 +145,5 @@ export async function clearSessionCookies() {
   jar.set(NGO_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
   jar.set(LABS_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
   jar.set(PHARMACY_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
+  jar.set(FRONTDESK_JWT_NAME, "", { path: "/", maxAge: 0, ...domainOption });
 }

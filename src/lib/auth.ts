@@ -6,6 +6,7 @@ export const ADMIN_JWT_NAME = "admin_sess";
 export const NGO_JWT_NAME = "ngo_sess";
 export const LABS_JWT_NAME = "labs_sess";
 export const PHARMACY_JWT_NAME = "pharmacy_sess";
+export const FRONTDESK_JWT_NAME = "fd_sess";
 export const MAX_AGE_DAYS = 7;
 
 function isIpOrLocalhost(host?: string) {
