@@ -128,13 +128,17 @@ export async function readFrontDeskSession(): Promise<SessionPayload | null> {
 
 export async function requireFrontDeskSession(): Promise<{ userId: string; role: string; email?: string } | null> {
   const sess = await readFrontDeskSession();
-  if (!sess || sess.role !== "frontdesk") return null;
-  const user = await prisma.frontDeskUser.findUnique({
-    where: { id: sess.uid },
-    select: { id: true, email: true },
-  });
-  if (!user) return null;
-  return { userId: user.id, role: "frontdesk", email: user.email };
+  if (sess && sess.role === "frontdesk") {
+    const user = await prisma.frontDeskUser.findUnique({
+      where: { id: sess.uid },
+      select: { id: true, email: true },
+    });
+    if (user) return { userId: user.id, role: "frontdesk", email: user.email };
+  }
+  // Fall back: allow any logged-in admin to access the front desk portal
+  const adminSess = await requireAdminSession();
+  if (adminSess) return { userId: adminSess.userId, role: "frontdesk", email: "admin" };
+  return null;
 }
 
 export async function clearSessionCookies() {

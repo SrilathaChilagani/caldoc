@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { readFrontDeskSession } from "@/lib/auth.server";
+import { requireFrontDeskSession } from "@/lib/auth.server";
 import { redirect } from "next/navigation";
 
 const NAV = [
@@ -24,7 +24,7 @@ const NAV = [
 ];
 
 export default async function FrontDeskLayout({ children }: { children: React.ReactNode }) {
-  const sess = await readFrontDeskSession();
+  const sess = await requireFrontDeskSession();
   if (!sess) redirect("/frontdesk/login");
 
   return (

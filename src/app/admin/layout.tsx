@@ -59,6 +59,16 @@ const nav: NavSection[] = [
     ],
   },
   {
+    group: "Front Desk",
+    links: [
+      { href: "/frontdesk", label: "Dashboard", exact: true },
+      { href: "/frontdesk/calendar", label: "Calendar" },
+      { href: "/frontdesk/appointments", label: "Appointments" },
+      { href: "/frontdesk/labs", label: "Lab orders" },
+      { href: "/frontdesk/rx-orders", label: "Pharmacy / Rx" },
+    ],
+  },
+  {
     group: "System",
     links: [
       { href: "/admin/audit-logs", label: "Audit log" },
