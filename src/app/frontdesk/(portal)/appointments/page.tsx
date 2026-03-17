@@ -3,6 +3,7 @@ import { requireFrontDeskSession } from "@/lib/auth.server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import RescheduleModal from "./RescheduleModal";
+import ProviderFilter from "./ProviderFilter";
 
 export const dynamic = "force-dynamic";
 
@@ -73,14 +74,11 @@ export default async function FrontDeskAppointments({ searchParams }: PageProps)
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/70 bg-white/90 px-5 py-4 shadow-sm">
-        <select
-          value={providerFilter}
-          onChange={() => {}}
-          className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm text-slate-700 focus:border-[#2f6ea5] focus:outline-none"
-        >
-          <option value="">All providers</option>
-          {providers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
+        <ProviderFilter
+          providers={providers}
+          current={providerFilter}
+          statusFilter={statusFilter}
+        />
         <div className="flex flex-wrap gap-1.5 text-xs font-semibold uppercase tracking-wide">
           {STATUSES.map(s => (
             <Link
