@@ -577,3 +577,54 @@ model ProviderEnrollment {
   @@index([status, createdAt])
   @@index([email])
 }
+
+model PharmacyEnrollment {
+  id                String    @id @default(cuid())
+  pharmacyName      String
+  contactName       String
+  email             String
+  phone             String
+  addressLine1      String
+  addressLine2      String?
+  city              String
+  state             String
+  pincode           String
+  drugLicenseNumber String
+  gstNumber         String?
+  serviceAreas      String[]
+  notes             String?
+  status            String    @default("PENDING")
+  adminNotifiedAt   DateTime?
+  reviewedAt        DateTime?
+  reviewedByEmail   String?
+  rejectionReason   String?
+  pharmacyPartnerId String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model LabEnrollment {
+  id              String    @id @default(cuid())
+  labName         String
+  contactName     String
+  email           String
+  phone           String
+  addressLine1    String
+  addressLine2    String?
+  city            String
+  state           String
+  pincode         String
+  nablCertified   Boolean   @default(false)
+  nablCertNumber  String?
+  testCategories  String[]
+  homeCollection  Boolean   @default(true)
+  notes           String?
+  status          String    @default("PENDING")
+  adminNotifiedAt DateTime?
+  reviewedAt      DateTime?
+  reviewedByEmail String?
+  rejectionReason String?
+  labPartnerId    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}

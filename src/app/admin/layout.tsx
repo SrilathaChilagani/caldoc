@@ -35,6 +35,7 @@ const nav: NavSection[] = [
       { href: "/admin/pharmacy-partners", label: "All pharmacies" },
       { href: "/admin/pharmacy-partners/onboard", label: "Onboard" },
       { href: "/admin/rx-orders", label: "Rx orders" },
+      { href: "/admin/enrollments/pharmacy", label: "Pharmacy enrollments" },
     ],
   },
   {
@@ -43,6 +44,7 @@ const nav: NavSection[] = [
       { href: "/admin/lab-partners", label: "All labs" },
       { href: "/admin/lab-partners/onboard", label: "Onboard" },
       { href: "/admin/labs", label: "Lab orders" },
+      { href: "/admin/enrollments/labs", label: "Lab enrollments" },
     ],
   },
   {
