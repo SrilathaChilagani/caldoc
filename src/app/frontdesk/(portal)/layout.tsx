@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireFrontDeskSession } from "@/lib/auth.server";
+import { requireFrontDeskSession, readAdminSession } from "@/lib/auth.server";
 import { redirect } from "next/navigation";
 
 const NAV = [
@@ -26,6 +26,9 @@ const NAV = [
 export default async function FrontDeskLayout({ children }: { children: React.ReactNode }) {
   const sess = await requireFrontDeskSession();
   if (!sess) redirect("/frontdesk/login");
+
+  const adminSess = await readAdminSession();
+  const isAdmin = !!adminSess;
 
   return (
     <div className="flex min-h-screen bg-[#f7f2ea] text-slate-900">
@@ -55,7 +58,15 @@ export default async function FrontDeskLayout({ children }: { children: React.Re
             </div>
           ))}
         </nav>
-        <div className="border-t border-slate-100 p-4">
+        <div className="border-t border-slate-100 p-4 space-y-2">
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="flex w-full items-center justify-center rounded-full border border-[#2f6ea5]/40 py-1.5 text-sm font-medium text-[#2f6ea5] hover:bg-[#e7edf3]"
+            >
+              ← Back to Admin
+            </Link>
+          )}
           <form action="/api/frontdesk/logout" method="POST">
             <button
               type="submit"
@@ -80,11 +91,21 @@ export default async function FrontDeskLayout({ children }: { children: React.Re
               {item.label}
             </Link>
           ))}
-          <form action="/api/frontdesk/logout" method="POST" className="ml-auto shrink-0">
-            <button type="submit" className="rounded-full px-3 py-1 text-sm text-slate-500">
-              Sign out
-            </button>
-          </form>
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="rounded-full border border-[#2f6ea5]/40 px-3 py-1 text-xs font-medium text-[#2f6ea5] hover:bg-[#e7edf3]"
+              >
+                ← Admin
+              </Link>
+            )}
+            <form action="/api/frontdesk/logout" method="POST">
+              <button type="submit" className="rounded-full px-3 py-1 text-sm text-slate-500">
+                Sign out
+              </button>
+            </form>
+          </div>
         </nav>
       </div>
 
