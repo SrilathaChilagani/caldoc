@@ -6,7 +6,13 @@ export const linking: LinkingOptions<RootStackParamList> = {
   prefixes: [Linking.createURL('/'), 'caldoc://', 'https://www.caldoc.in/app'],
   config: {
     screens: {
-      Web:   'web',
+      UnauthHome: {
+        screens: {
+          Home: 'home',
+          FindDoctor: 'find-doctor',
+          Specialties: 'specialties',
+        },
+      },
       Login: 'login',
       Main: {
         screens: {
@@ -17,6 +23,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
         },
       },
       Visit: 'visit/:appointmentId',
+      BookVisit: 'book/:slug',
     },
   },
 };
