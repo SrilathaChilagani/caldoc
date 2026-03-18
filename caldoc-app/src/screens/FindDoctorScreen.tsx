@@ -34,10 +34,8 @@ type Provider = {
   speciality: string | null;
   qualification: string | null;
   languages: string[] | null;
-  experienceYears: number | null;
-  feePaise: number | null;
-  gender: string | null;
-  profilePhotoUrl: string | null;
+  defaultFeePaise: number | null;
+  profilePhotoKey: string | null;
 };
 
 const SPECIALTY_PILLS = [
@@ -57,7 +55,7 @@ const SPECIALTY_PILLS = [
 ];
 
 function formatFee(feePaise: number | null): string {
-  if (feePaise == null) return '';
+  if (feePaise == null || feePaise === 0) return '';
   return `₹${Math.round(feePaise / 100).toLocaleString('en-IN')} per consult`;
 }
 
@@ -76,22 +74,16 @@ function DoctorCard({ provider, onBook }: { provider: Provider; onBook: () => vo
           <Text style={styles.doctorQual}>{provider.qualification}</Text>
         ) : null}
         <View style={styles.doctorMeta}>
-          {provider.experienceYears ? (
-            <View style={styles.metaPill}>
-              <Ionicons name="briefcase-outline" size={11} color="#2f6ea5" />
-              <Text style={styles.metaText}>{provider.experienceYears} yrs exp.</Text>
-            </View>
-          ) : null}
           {provider.languages && provider.languages.length > 0 ? (
             <View style={styles.metaPill}>
               <Ionicons name="language-outline" size={11} color="#2f6ea5" />
               <Text style={styles.metaText}>{provider.languages.join(', ')}</Text>
             </View>
           ) : null}
-          {provider.feePaise != null ? (
+          {provider.defaultFeePaise ? (
             <View style={styles.metaPill}>
               <Ionicons name="cash-outline" size={11} color="#059669" />
-              <Text style={[styles.metaText, { color: '#059669' }]}>{formatFee(provider.feePaise)}</Text>
+              <Text style={[styles.metaText, { color: '#059669' }]}>{formatFee(provider.defaultFeePaise)}</Text>
             </View>
           ) : null}
         </View>
