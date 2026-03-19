@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, SafeAreaView, Text, View } from 'react-native';
+import { Button, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 

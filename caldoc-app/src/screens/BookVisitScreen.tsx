@@ -1,4 +1,5 @@
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import WebView from 'react-native-webview';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types/navigation';
