@@ -5,7 +5,7 @@ const MOBILE_SECRET =
   process.env.JWT_SECRET ||
   "change-me";
 
-const TOKEN_TTL_DAYS = Number(process.env.PATIENT_MOBILE_JWT_MAX_AGE_DAYS || 7);
+const TOKEN_TTL_DAYS = Number(process.env.PATIENT_MOBILE_JWT_MAX_AGE_DAYS || 365);
 
 type PatientMobileClaims = {
   sub: string;

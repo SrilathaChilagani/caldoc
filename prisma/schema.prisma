@@ -9,13 +9,14 @@ datasource db {
 }
 
 model Patient {
-  id              String            @id @default(cuid())
+  id              String                  @id @default(cuid())
   name            String
-  phone           String            @unique
-  email           String?           @unique
+  phone           String                  @unique
+  email           String?                 @unique
+  passwordHash    String?
   dob             DateTime?
   consentAt       DateTime?
-  createdAt       DateTime          @default(now())
+  createdAt       DateTime                @default(now())
   profilePhotoKey String?
   appointments    Appointment[]
   addresses       PatientAddress[]
@@ -23,6 +24,7 @@ model Patient {
   otps            PatientOtp[]
   labOrders       LabOrder[]
   rxOrders        RxOrder[]
+  passwordResets  PatientPasswordReset[]
 }
 
 model Provider {
@@ -627,4 +629,13 @@ model LabEnrollment {
   labPartnerId    String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+model PatientPasswordReset {
+  id        String    @id @default(cuid())
+  patientId String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  patient   Patient   @relation(fields: [patientId], references: [id])
 }

@@ -56,16 +56,16 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.logoRow}>
-          <View style={styles.logoCircle}>
-            <Image
-              source={require('../../assets/images/icon.png')}
-              style={styles.logoImg}
-              resizeMode="contain"
-            />
-          </View>
-          <View>
-            <Text style={styles.brandName}>CalDoc</Text>
-            <Text style={styles.brandSub}>TELEMEDICINE</Text>
+          <Image
+            source={require('../../assets/images/logo-mark.png')}
+            style={styles.logoImg}
+            resizeMode="contain"
+          />
+          <View style={styles.brandTextRow}>
+            <Text style={styles.brandCal}>CAL</Text>
+            <Text style={styles.brandDoc}>D</Text>
+            <View style={styles.brandOCircle}><Text style={styles.brandOPlus}>+</Text></View>
+            <Text style={styles.brandDoc}>C</Text>
           </View>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.menuBtn}>
@@ -156,10 +156,10 @@ export default function HomeScreen() {
 
           {/* Quick links */}
           <View style={styles.quickRow}>
-            <TouchableOpacity style={styles.quickBtn} onPress={() => navigation.navigate('Login')} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.quickBtn} onPress={() => navigation.navigate('Login', { returnTab: 'Pharmacy' })} activeOpacity={0.8}>
               <Text style={styles.quickBtnText}>Pharmacy</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.quickBtn} onPress={() => navigation.navigate('Login')} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.quickBtn} onPress={() => navigation.navigate('Login', { returnTab: 'Labs' })} activeOpacity={0.8}>
               <Text style={styles.quickBtnText}>Labs</Text>
             </TouchableOpacity>
           </View>
@@ -218,21 +218,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8,
     backgroundColor: '#f7f2ea',
   },
-  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logoCircle: {
-    width: 42, height: 42, borderRadius: 21,
-    backgroundColor: '#2f6ea5', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  logoImg: { width: 44, height: 44 },
+  brandTextRow: { flexDirection: 'row', alignItems: 'center' },
+  brandCal: { fontSize: 22, fontWeight: '800', color: '#22a045', letterSpacing: 0.5 },
+  brandDoc: { fontSize: 22, fontWeight: '800', color: '#1a5bcc', letterSpacing: 0.5 },
+  brandOCircle: {
+    width: 20, height: 20, borderRadius: 10,
+    borderWidth: 2.5, borderColor: '#1a5bcc',
+    alignItems: 'center', justifyContent: 'center', marginHorizontal: 0,
   },
-  logoImg: { width: 30, height: 30 },
-  brandName: { fontSize: 18, fontWeight: '800', color: '#1e3a52', letterSpacing: -0.2 },
-  brandSub: { fontSize: 9, color: '#7a9ab8', fontWeight: '700', letterSpacing: 1.5 },
+  brandOPlus: { fontSize: 11, fontWeight: '900', color: '#1a5bcc', lineHeight: 14 },
   menuBtn: { padding: 4 },
 
   // Hero
   heroBg: { width: '100%' },
-  heroBgImg: { opacity: 0.18, resizeMode: 'cover' },
-  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: '#f7f2ea', opacity: 0.55 },
-  hero: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 8 },
+  heroBgImg: { opacity: 0.55, resizeMode: 'cover' },
+  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: '#f7f2ea', opacity: 0.25 },
+  hero: { paddingHorizontal: 20, paddingTop: 144, paddingBottom: 8 },
   heroTitle: { fontSize: 38, fontWeight: '800', color: '#1e3a52', lineHeight: 46, marginBottom: 14, letterSpacing: -0.5 },
   heroAccent: { color: '#2f6ea5' },
   heroSub: { fontSize: 15, color: '#475569', lineHeight: 23, marginBottom: 24 },

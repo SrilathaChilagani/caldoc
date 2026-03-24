@@ -2,6 +2,8 @@ const EXOTEL_API_KEY = process.env.EXOTEL_API_KEY;
 const EXOTEL_API_TOKEN = process.env.EXOTEL_API_TOKEN;
 const EXOTEL_ACCOUNT_SID = process.env.EXOTEL_ACCOUNT_SID;
 const EXOTEL_CALLER_ID = process.env.EXOTEL_CALLER_ID;
+// SMS sender ID — register a 6-char DLT sender ID in your Exotel dashboard, e.g. "CALDOC"
+const EXOTEL_SMS_FROM = process.env.EXOTEL_SMS_FROM || EXOTEL_CALLER_ID;
 
 export type ClickToCallResult = {
   slice?: string;
@@ -20,6 +22,44 @@ function normalizeIndianNumber(raw: string, label: string) {
     throw new Error("International (ISD) calling is disabled for Exotel. Use an Indian number or enable ISD.");
   }
   return digits;
+}
+
+/**
+ * Send an SMS via Exotel.
+ * Requires EXOTEL_SMS_FROM to be set — a DLT-registered sender ID (e.g. "CALDOC")
+ * or your ExoPhone number registered for SMS in the Exotel dashboard.
+ */
+export async function sendSms(to: string, body: string) {
+  if (!EXOTEL_API_KEY || !EXOTEL_API_TOKEN || !EXOTEL_ACCOUNT_SID || !EXOTEL_SMS_FROM) {
+    throw new Error("Missing Exotel SMS credentials (EXOTEL_API_KEY, EXOTEL_API_TOKEN, EXOTEL_ACCOUNT_SID, EXOTEL_SMS_FROM)");
+  }
+
+  const toNorm = normalizeIndianNumber(to, "recipient");
+  const endpoint = `https://api.exotel.com/v1/Accounts/${EXOTEL_ACCOUNT_SID}/Sms/send`;
+  const authHeader = `Basic ${Buffer.from(`${EXOTEL_API_KEY}:${EXOTEL_API_TOKEN}`).toString("base64")}`;
+  const payload = new URLSearchParams({
+    From: EXOTEL_SMS_FROM,
+    To: toNorm,
+    Body: body,
+  });
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: authHeader,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: payload.toString(),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Exotel SMS failed (${res.status}): ${text || res.statusText}`);
+  }
+
+  const json = await res.json().catch(() => ({}));
+  console.info("[Exotel SMS] sent", JSON.stringify({ to: toNorm, sid: json?.SMSMessage?.Sid }));
+  return json;
 }
 
 export async function initiateAudioBridge(opts: { from: string; to: string; context?: string }) {

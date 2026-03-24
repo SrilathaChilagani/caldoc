@@ -5,13 +5,16 @@
  * - Supports per-message language override (defaults from env)
  *
  * Required env:
- *   WABA_ID=xxxxxxxxxxxxxxxx
+ *   WA_PHONE_NUMBER_ID=xxxxxxxxxxxxxxxx  ← Phone Number ID from Meta Business Manager
+ *                                          (NOT the WABA/Business Account ID)
  *   WHATSAPP_TOKEN=EAAG...
  * Optional:
  *   WHATSAPP_LANG=en_US
  */
 
-const WABA_ID = process.env.WABA_ID!;
+// Meta Cloud API uses Phone Number ID in the endpoint path, NOT the WABA ID.
+// Find it in Meta Business Manager → WhatsApp → API Setup → Phone Number ID.
+const WABA_ID = process.env.WA_PHONE_NUMBER_ID || process.env.WABA_ID!;
 const WA_TOKEN = process.env.WHATSAPP_TOKEN!;
 const WA_DEFAULT_LANG = process.env.WHATSAPP_LANG || "en_US";
 

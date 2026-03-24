@@ -34,15 +34,18 @@ export async function POST(req: Request) {
       where: { phone: meta.canonical },
     });
 
-    if (!patient) {
-      return NextResponse.json(
-        { error: "We couldn't find an account for that number." },
-        { status: 404 },
-      );
-    }
-
     if (SKIP_OTP) {
-      const token = signPatientSession(patient.phone, patient.id);
+      // Auto-register if first time
+      let p = patient;
+      if (!p) {
+        p = await prisma.patient.create({
+          data: { phone: meta.canonical, name: meta.canonical, consentAt: new Date() },
+        }).catch(async () =>
+          prisma.patient.findUnique({ where: { phone: meta.canonical } })
+        ) as typeof patient;
+      }
+      if (!p) return NextResponse.json({ error: "Unable to create account" }, { status: 500 });
+      const token = signPatientSession(p.phone, p.id);
       const jar = await cookies();
       jar.set(PATIENT_COOKIE, token, {
         httpOnly: true,
@@ -55,7 +58,7 @@ export async function POST(req: Request) {
 
     const now = new Date();
     const existing = await prisma.patientOtp.findFirst({
-      where: { phoneCanonical: patient.phone },
+      where: { phoneCanonical: meta.canonical },
       orderBy: { createdAt: "desc" },
     });
 
@@ -76,9 +79,9 @@ export async function POST(req: Request) {
 
     await prisma.patientOtp.create({
       data: {
-        patientId: patient.id,
+        ...(patient ? { patientId: patient.id } : {}),
         phoneRaw: phoneInput,
-        phoneCanonical: patient.phone,
+        phoneCanonical: meta.canonical,
         last10: meta.last10,
         otpHash,
         expiresAt,
@@ -86,21 +89,42 @@ export async function POST(req: Request) {
       },
     });
 
-    const waResult = await sendWhatsAppTemplate({
-      to: patient.phone,
-      template: OTP_TEMPLATE,
-      vars: [otp, String(OTP_TTL_MINUTES)],
-    });
+    let sentMessageId: string | null = null;
 
-    // Log to OutboundMessage so the admin WhatsApp dashboard shows OTP sends
+    try {
+      const waResult = await sendWhatsAppTemplate({
+        to: meta.canonical,
+        template: OTP_TEMPLATE,
+        vars: [otp, String(OTP_TTL_MINUTES)],
+      });
+      sentMessageId = waResult?.messageId ?? null;
+    } catch (waErr) {
+      const errMsg = waErr instanceof Error ? waErr.message : String(waErr);
+      console.warn("[OTP] WhatsApp send failed:", errMsg);
+      await prisma.outboundMessage.create({
+        data: {
+          channel: "WHATSAPP",
+          kind: "OTP",
+          toPhone: meta.canonical,
+          template: OTP_TEMPLATE,
+          status: "FAILED",
+          error: errMsg,
+        },
+      }).catch(() => {});
+      return NextResponse.json(
+        { error: "Could not send WhatsApp OTP. Please use the Email tab to sign in instead." },
+        { status: 503 }
+      );
+    }
+
     await prisma.outboundMessage.create({
       data: {
         channel: "WHATSAPP",
         kind: "OTP",
-        toPhone: patient.phone,
+        toPhone: meta.canonical,
         template: OTP_TEMPLATE,
         status: "SENT",
-        messageId: waResult?.messageId ?? null,
+        messageId: sentMessageId,
       },
     }).catch(() => {});
 

@@ -3,7 +3,8 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { buildPatientPhoneMeta } from "@/lib/phone";
 import { getErrorMessage } from "@/lib/errors";
-import { sendWhatsAppTemplate } from "@/lib/whatsapp";
+import { sendWhatsAppTemplate, sendWhatsAppText } from "@/lib/whatsapp";
+import { sendSms } from "@/lib/exotel";
 import { createCheckinToken } from "@/lib/checkinToken";
 
 const BOOKING_ALERT_TMPL =
@@ -44,37 +45,77 @@ async function sendBookingAlert(opts: {
   // {{4}} doctor name         {{5}} check-in link
   const vars = [firstName, uploadLink, visitTimeLabel, providerName, checkinLink];
 
+  const fallbackBody =
+    `✅ Booking confirmed!\n\n` +
+    `Hi ${firstName}, your appointment with Dr. ${providerName} is confirmed.\n\n` +
+    `📅 ${visitTimeLabel} (IST)\n\n` +
+    `Track your visit:\n${uploadLink}\n\n` +
+    `Check in before your visit:\n${checkinLink}\n\n` +
+    `— CalDoc Team`;
+
+  const logMsg = async (status: "SENT" | "FAILED", extra: { template?: string | null; kind: string; messageId?: string | null; error?: string }) =>
+    prisma.outboundMessage.create({
+      data: {
+        appointmentId,
+        channel: "WHATSAPP",
+        toPhone: patientPhone,
+        template: extra.template ?? undefined,
+        body: `Booking confirmation → ${visitTimeLabel}`,
+        messageId: extra.messageId ?? undefined,
+        status,
+        kind: extra.kind,
+        error: extra.error,
+      },
+    }).catch(() => {});
+
+  // Try the approved template first
   try {
     const result = await sendWhatsAppTemplate({
       to: patientPhone,
       template: BOOKING_ALERT_TMPL,
       vars,
     });
-    await prisma.outboundMessage.create({
-      data: {
-        appointmentId,
-        channel: "WHATSAPP",
-        toPhone: patientPhone,
-        template: BOOKING_ALERT_TMPL,
-        body: `Booking confirmation → ${visitTimeLabel}`,
-        messageId: result?.messageId ?? undefined,
-        status: "SENT",
-        kind: "PATIENT_BOOKING_ALERT",
-      },
-    });
+    await logMsg("SENT", { template: BOOKING_ALERT_TMPL, kind: "PATIENT_BOOKING_ALERT", messageId: result?.messageId });
+    return;
   } catch (err) {
+    await logMsg("FAILED", {
+      template: BOOKING_ALERT_TMPL,
+      kind: "PATIENT_BOOKING_ALERT",
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+
+  // Fallback 2: WhatsApp plain text (works within 24-hour customer-service window)
+  try {
+    const result = await sendWhatsAppText(patientPhone, fallbackBody);
+    await logMsg("SENT", { template: null, kind: "PATIENT_BOOKING_ALERT_TEXT", messageId: result?.messageId });
+    return;
+  } catch (fallbackErr) {
+    await logMsg("FAILED", {
+      template: null,
+      kind: "PATIENT_BOOKING_ALERT_TEXT",
+      error: fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr),
+    });
+  }
+
+  // Fallback 3: SMS via Exotel (always works, no WhatsApp needed)
+  const smsBody =
+    `Booking confirmed! Hi ${firstName}, Dr. ${providerName} on ${visitTimeLabel} (IST). ` +
+    `Track: ${uploadLink}`;
+  try {
+    await sendSms(patientPhone, smsBody);
     await prisma.outboundMessage.create({
       data: {
         appointmentId,
-        channel: "WHATSAPP",
+        channel: "SMS",
         toPhone: patientPhone,
-        template: BOOKING_ALERT_TMPL,
-        body: `Booking confirmation → ${visitTimeLabel}`,
-        status: "FAILED",
-        kind: "PATIENT_BOOKING_ALERT",
-        error: err instanceof Error ? err.message : String(err),
+        body: smsBody,
+        status: "SENT",
+        kind: "PATIENT_BOOKING_ALERT_SMS",
       },
-    });
+    }).catch(() => {});
+  } catch (smsErr) {
+    console.error("[booking] all channels failed:", smsErr instanceof Error ? smsErr.message : smsErr);
   }
 }
 

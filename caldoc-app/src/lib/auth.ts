@@ -36,6 +36,22 @@ export async function login(phone: string, otp: string) {
   return payload;
 }
 
+export async function emailLogin(email: string, password: string) {
+  const payload = await request<{ token: string }>('/api/patient/login/email', { email, password });
+  await SecureStore.setItemAsync(TOKEN_KEY, payload.token);
+  return payload;
+}
+
+export async function emailRegister(name: string, phone: string, email: string, password: string) {
+  const payload = await request<{ token: string }>('/api/patient/register', { name, phone, email, password });
+  await SecureStore.setItemAsync(TOKEN_KEY, payload.token);
+  return payload;
+}
+
+export async function requestPasswordReset(email: string): Promise<{ ok: boolean }> {
+  return request<{ ok: boolean }>('/api/patient/password/reset-request', { email });
+}
+
 export function getToken() {
   return SecureStore.getItemAsync(TOKEN_KEY);
 }

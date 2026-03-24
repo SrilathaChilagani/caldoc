@@ -5,7 +5,7 @@ import type { CompositeScreenProps } from '@react-navigation/native';
 // Root stack — screens outside the tabs
 export type RootStackParamList = {
   UnauthHome: undefined;   // unauthenticated tab navigator
-  Login: undefined;
+  Login: { returnTab?: keyof MainTabParamList } | undefined;
   Main: undefined;
   Visit: { appointmentId: string; role?: 'patient' | 'provider'; name?: string };
   BookVisit: { providerId: string; providerName: string; slug: string };
