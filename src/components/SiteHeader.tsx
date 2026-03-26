@@ -27,25 +27,13 @@ const loginGroups = [
   {
     section: "Patients",
     links: [
-      { label: "Log in", href: "/patient/login", helper: "Appointments, prescriptions & more" },
+      { label: "Log in", href: "/patient/login" },
     ],
   },
   {
     section: "Providers",
     links: [
-      { label: "Log in", href: "/provider/login", helper: "Manage schedule & consultations" },
-    ],
-  },
-  {
-    section: "Pharmacy",
-    links: [
-      { label: "Log in", href: "/pharmacy/login", helper: "Rx orders & fulfilment" },
-    ],
-  },
-  {
-    section: "Labs",
-    links: [
-      { label: "Log in", href: "/labs/login", helper: "Lab orders & results" },
+      { label: "Log in", href: "/provider/login" },
     ],
   },
 ];
@@ -247,11 +235,10 @@ export default function SiteHeader() {
                       <Link
                         key={link.href}
                         href={link.href}
-                        className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 text-sm"
+                        className="block px-5 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
                         onClick={() => setLoginOpen(false)}
                       >
-                        <span className="font-medium text-slate-800">{link.label}</span>
-                        <span className="text-xs text-slate-400">{link.helper}</span>
+                        {link.label}
                       </Link>
                     ))}
                   </div>
