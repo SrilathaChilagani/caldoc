@@ -23,8 +23,31 @@ const serviceLinks = [
   { label: "Labs at home", href: "/services/labs-at-home", description: "Book doorstep sample collection" },
 ];
 
-const loginLinks = [
-  { label: "Patient portal", href: "/patient/login", helper: "View appointments & prescriptions" },
+const loginGroups = [
+  {
+    section: "Patients",
+    links: [
+      { label: "Log in", href: "/patient/login", helper: "Appointments, prescriptions & more" },
+    ],
+  },
+  {
+    section: "Providers",
+    links: [
+      { label: "Log in", href: "/provider/login", helper: "Manage schedule & consultations" },
+    ],
+  },
+  {
+    section: "Pharmacy",
+    links: [
+      { label: "Log in", href: "/pharmacy/login", helper: "Rx orders & fulfilment" },
+    ],
+  },
+  {
+    section: "Labs",
+    links: [
+      { label: "Log in", href: "/labs/login", helper: "Lab orders & results" },
+    ],
+  },
 ];
 
 export default function SiteHeader() {
@@ -216,22 +239,23 @@ export default function SiteHeader() {
               </svg>
             </button>
             {loginOpen && (
-              <div className="absolute right-0 mt-3 w-80 rounded-2xl border border-slate-100 bg-white p-4 shadow-xl">
-                <div className="flex flex-col gap-3 text-sm">
-                  {loginLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-xl px-3 py-2 hover:bg-slate-50"
-                      onClick={() => setLoginOpen(false)}
-                    >
-                      <span className="block font-semibold text-slate-900">{link.label}</span>
-                      <span className="block text-xs text-slate-500">{link.helper}</span>
-                    </Link>
-                  ))}
-                </div>
+              <div className="absolute right-0 mt-3 w-72 rounded-2xl border border-slate-100 bg-white shadow-xl overflow-hidden">
+                {loginGroups.map((group, i) => (
+                  <div key={group.section} className={i > 0 ? "border-t border-slate-100" : ""}>
+                    <p className="px-5 pt-4 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">{group.section}</p>
+                    {group.links.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 text-sm"
+                        onClick={() => setLoginOpen(false)}
+                      >
+                        <span className="font-medium text-slate-800">{link.label}</span>
+                        <span className="text-xs text-slate-400">{link.helper}</span>
+                      </Link>
+                    ))}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -291,22 +315,22 @@ export default function SiteHeader() {
                 ))}
               </div>
             </div>
-            <div className="mt-2 rounded-2xl border border-slate-200 p-3">
-              <p className="text-xs font-semibold uppercase text-slate-500">Logins</p>
-              <div className="mt-3 flex flex-col gap-2 text-sm">
-                {loginLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-md px-2 py-2 text-gray-700 hover:bg-gray-100"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
+            <div className="mt-2 rounded-2xl border border-slate-200 overflow-hidden">
+              {loginGroups.map((group, i) => (
+                <div key={group.section} className={i > 0 ? "border-t border-slate-100" : ""}>
+                  <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">{group.section}</p>
+                  {group.links.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              ))}
             </div>
             {(isRxRoute || isLabsRoute) && (
               <Link
