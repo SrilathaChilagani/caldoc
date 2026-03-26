@@ -15,6 +15,7 @@ model Patient {
   email           String?                 @unique
   passwordHash    String?
   dob             DateTime?
+  sex             String?
   consentAt       DateTime?
   createdAt       DateTime                @default(now())
   profilePhotoKey String?

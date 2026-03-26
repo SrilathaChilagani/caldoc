@@ -259,6 +259,14 @@ export default function SiteHeader() {
               </div>
             )}
           </div>
+
+          <Link
+            href="/patient/signup"
+            className="inline-flex items-center rounded-full bg-[#2f6ea5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255b8b] transition-colors"
+          >
+            Sign up
+          </Link>
+
           {(isRxRoute || isLabsRoute) && (
             <Link
               href={cartHref}
@@ -332,6 +340,13 @@ export default function SiteHeader() {
                 </div>
               ))}
             </div>
+            <Link
+              href="/patient/signup"
+              className="mt-1 flex items-center justify-center rounded-xl bg-[#2f6ea5] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#255b8b]"
+              onClick={() => setMobileOpen(false)}
+            >
+              Sign up as a patient
+            </Link>
             {(isRxRoute || isLabsRoute) && (
               <Link
                 href={cartHref}

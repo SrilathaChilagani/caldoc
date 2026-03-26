@@ -16,7 +16,10 @@ export async function POST(req: NextRequest) {
     const phone = String(body?.phone || "").trim();
     const email = String(body?.email || "").trim().toLowerCase();
     const password = String(body?.password || "");
+    const dobRaw = String(body?.dob || "").trim();
+    const sex = String(body?.sex || "").trim() || null;
     const next = String(body?.next || "/patient/appointments");
+    const dob = dobRaw ? new Date(dobRaw) : null;
 
     if (!name || name.length < 2) {
       return NextResponse.json({ error: "Full name is required" }, { status: 400 });
@@ -46,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
     const patient = await prisma.patient.create({
-      data: { name, phone: phoneMeta.canonical, email, passwordHash, consentAt: new Date() },
+      data: { name, phone: phoneMeta.canonical, email, passwordHash, dob, sex, consentAt: new Date() },
       select: { id: true, phone: true },
     });
 
