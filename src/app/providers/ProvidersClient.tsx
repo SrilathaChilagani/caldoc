@@ -327,7 +327,7 @@ export default function ProvidersClient({
   return (
     <div className="bg-[#f7f2ea] min-h-screen">
       {/* ── Search bar ── */}
-      <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-sm shadow-sm">
+      <div className="sticky top-0 z-30 border-b border-[#e7e0d5] bg-[#f7f2ea]/95 backdrop-blur-sm shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-3">
           <form onSubmit={handleSearch} className="flex flex-wrap gap-2 items-center">
             {/* Condition / doctor search */}
