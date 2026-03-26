@@ -53,7 +53,8 @@ export default async function ProvidersPage({ searchParams }: { searchParams?: S
   const clinicWhere = city
     ? { isActive: true, city: { contains: city, mode: "insensitive" as const } }
     : { isActive: true };
-  if (city) andClauses.push({ clinics: { some: clinicWhere } });
+  // Only restrict providers by city when explicitly filtering IN_PERSON
+  if (city && mode === "IN_PERSON") andClauses.push({ clinics: { some: clinicWhere } });
 
   const whereClause = { AND: andClauses };
 

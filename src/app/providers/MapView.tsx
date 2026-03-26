@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import "leaflet/dist/leaflet.css";
 
 export type MapPin = {
   id: string;
@@ -125,16 +126,5 @@ export default function MapView({ pins, activeId, onPinClick, city }: Props) {
     }
   }, [activeId]);
 
-  return (
-    <>
-      {/* Leaflet CSS */}
-      {/* eslint-disable-next-line @next/next/no-css-tags */}
-      <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        crossOrigin=""
-      />
-      <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
-    </>
-  );
+  return <div ref={containerRef} style={{ width: "100%", height: "100%" }} />;
 }

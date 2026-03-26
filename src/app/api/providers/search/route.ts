@@ -56,12 +56,15 @@ export async function GET(req: NextRequest) {
       andClauses.push({ visitModes: { has: mode } });
     }
 
-    // City filter: providers whose clinics are in the given city
+    // Clinic sub-query: only filter by city for the clinic addresses we show on cards/map
+    // For IN_PERSON mode the city filter is already applied above; for other modes
+    // we still want to show the provider but only show clinics in that city.
     const clinicWhere = city
       ? { isActive: true, city: { contains: city, mode: "insensitive" as const } }
       : { isActive: true };
 
-    if (city) {
+    // Only restrict *which providers appear* by city when explicitly filtering IN_PERSON
+    if (city && mode === "IN_PERSON") {
       andClauses.push({ clinics: { some: clinicWhere } });
     }
 
