@@ -72,10 +72,10 @@ export default function SignupClient() {
   const displayError = error || (oauthError ? (OAUTH_ERRORS[oauthError] ?? "Sign-in failed. Please try again.") : null);
 
   return (
-    <div className="rounded-2xl bg-white px-8 py-10 shadow-sm border border-white/70">
+    <div>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Create an account</h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-900">Create an account</h1>
         <p className="mt-1 text-sm text-slate-500">
           Already have an account?{" "}
           <Link href="/patient/login" className="font-medium text-[#2f6ea5] hover:underline">
@@ -278,4 +278,4 @@ export default function SignupClient() {
 }
 
 const inputCls =
-  "w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5] disabled:bg-slate-50";
+  "w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-base text-slate-900 placeholder-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5] disabled:bg-slate-50";
