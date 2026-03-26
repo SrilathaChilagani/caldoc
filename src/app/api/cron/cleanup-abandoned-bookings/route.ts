@@ -55,7 +55,29 @@ export async function POST(req: NextRequest) {
       `[cleanup-abandoned-bookings] Released ${slotIds.length} slot(s), expired ${appointmentIds.length} appointment(s)`
     );
 
-    return NextResponse.json({ released: slotIds.length, expired: appointmentIds.length });
+    // Purge expired OTP records (older than 24 hours past expiry to be safe)
+    const otpCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const { count: otpDeleted } = await prisma.patientOtp.deleteMany({
+      where: { expiresAt: { lt: otpCutoff } },
+    });
+
+    // Purge expired password reset tokens (older than 24 hours past expiry)
+    const { count: resetDeleted } = await prisma.patientPasswordReset.deleteMany({
+      where: { expiresAt: { lt: otpCutoff } },
+    });
+
+    if (otpDeleted > 0 || resetDeleted > 0) {
+      console.log(
+        `[cleanup-abandoned-bookings] Purged ${otpDeleted} expired OTP(s), ${resetDeleted} expired reset token(s)`
+      );
+    }
+
+    return NextResponse.json({
+      released: slotIds.length,
+      expired: appointmentIds.length,
+      otpPurged: otpDeleted,
+      resetsPurged: resetDeleted,
+    });
   } catch (err) {
     console.error("[cleanup-abandoned-bookings] Error:", err);
     return NextResponse.json({ error: "Cleanup failed" }, { status: 500 });

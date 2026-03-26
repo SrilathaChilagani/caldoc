@@ -32,6 +32,16 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
       select: { id: true, isActive: true },
     });
 
+    // Audit trail: log every admin isActive change for compliance
+    prisma.auditLog.create({
+      data: {
+        actorId: session.userId,
+        actorType: "ADMIN",
+        action: parsed.data.isActive ? "PROVIDER_ACTIVATED" : "PROVIDER_DEACTIVATED",
+        meta: { providerId, isActive: parsed.data.isActive },
+      },
+    }).catch(() => {}); // non-blocking
+
     return NextResponse.json({ ok: true, provider });
   } catch (err) {
     return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 });

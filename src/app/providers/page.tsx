@@ -1,18 +1,15 @@
-import Link from "next/link";
-import Image from "next/image";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
-import { Prisma } from "@prisma/client";
-import { FiltersPanel } from "./FiltersPanel";
-import { IMAGES, HERO_DOCTOR_IMAGES, getDailyHeroImage } from "@/lib/imagePaths";
+import ProvidersClient from "./ProvidersClient";
 
-export const revalidate = 120;
+export const dynamic = "force-dynamic";
 
-// Specialty list changes rarely — cache it for 5 minutes to avoid a DB round-trip on every request.
+// Cache specialty list (changes rarely)
 const getCachedSpecialties = unstable_cache(
   () =>
     prisma.provider.findMany({
       select: { speciality: true },
+      where: { isActive: true },
       distinct: ["speciality"],
       orderBy: { speciality: "asc" },
     }),
@@ -20,493 +17,98 @@ const getCachedSpecialties = unstable_cache(
   { revalidate: 300 }
 );
 
-const languageLabels: Record<string, string> = {
-  en: "English",
-  hi: "Hindi",
-  te: "Telugu",
-  ta: "Tamil",
-  ur: "Urdu",
-  bn: "Bengali",
-  mr: "Marathi",
-};
-
-function formatLanguage(code: string) {
-  const key = code.toLowerCase();
-  return languageLabels[key] || code;
+// IST offset
+const IST_MS = 5.5 * 60 * 60 * 1000;
+function toISTDate(date: Date) {
+  return new Date(date.getTime() + IST_MS).toISOString().slice(0, 10);
 }
 
-function formatSlot(date: Date) {
-  return date.toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
+type SearchParamsInput = Promise<Record<string, string | string[] | undefined>>;
 
-function formatFee(paise?: number | null) {
-  if (typeof paise !== "number" || Number.isNaN(paise) || paise <= 0) return null;
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    minimumFractionDigits: 2,
-  }).format(paise / 100);
-}
+export default async function ProvidersPage({ searchParams }: { searchParams?: SearchParamsInput }) {
+  const sp = searchParams ? await searchParams : {};
+  const city = (sp.city as string | undefined)?.trim() || "Hyderabad";
+  const specialty = (sp.specialty as string | undefined)?.trim() || "";
+  const mode = (sp.mode as string | undefined)?.trim().toUpperCase() || "";
+  const q = (sp.q as string | undefined)?.trim() || "";
+  const patientName = (sp.patientName as string | undefined)?.trim() || "";
+  const patientPhone = (sp.patientPhone as string | undefined)?.trim() || "";
+  const embed = (sp.embed as string | undefined)?.trim() || "";
 
-const availabilityOptions = [
-  { value: "next30", label: "Available in next 30 mins" },
-  { value: "today", label: "Available today" },
-  { value: "week", label: "Available this week" },
-];
-
-const genderOptions = [
-  { value: "female", label: "Female doctors" },
-  { value: "male", label: "Male doctors" },
-  { value: "any", label: "Any" },
-];
-
-const experienceOptions = [
-  { value: "lt5", label: "0 – 5 years" },
-  { value: "btw5and10", label: "5 – 10 years" },
-  { value: "gt10", label: "10+ years" },
-];
-
-const genderLabels: Record<string, string> = {
-  female: "Female",
-  male: "Male",
-  other: "Other / undisclosed",
-};
-
-type SearchParamValue = string | string[] | undefined;
-type SearchParamsInput =
-  | Promise<Record<string, SearchParamValue>>
-  | Record<string, SearchParamValue>
-  | undefined;
-
-const providerMeta: Record<
-  string,
-  {
-    gender: "male" | "female" | "other";
-    experience: number | null;
-  }
-> = {
-  "dr-asha-menon": { gender: "female", experience: 12 },
-  "dr-rohan-iyer": { gender: "male", experience: 8 },
-  "dr-saira-khan": { gender: "female", experience: 10 },
-};
-
-function toArray(value: SearchParamValue): string[] {
-  if (Array.isArray(value)) {
-    return value
-      .flatMap((item) => String(item).split(","))
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-  if (typeof value === "string" && value.trim().length > 0) {
-    return value
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-  return [];
-}
-
-function deriveMeta(slug: string | null | undefined) {
-  if (slug && providerMeta[slug]) {
-    return providerMeta[slug];
-  }
-  return { gender: "other" as const, experience: null };
-}
-
-function computeExperienceMatch(range: string | null, experience: number | null) {
-  if (!range || !experience || Number.isNaN(experience)) return true;
-  if (range === "lt5") return experience < 5;
-  if (range === "btw5and10") return experience >= 5 && experience <= 10;
-  if (range === "gt10") return experience > 10;
-  return true;
-}
-
-type PageProps = {
-  searchParams?: SearchParamsInput;
-};
-
-export default async function ProvidersPage({ searchParams }: PageProps) {
-  const heroImage = getDailyHeroImage(HERO_DOCTOR_IMAGES);
-  const resolvedParams =
-    searchParams instanceof Promise ? await searchParams : searchParams ?? {};
-  const q = (resolvedParams.q as string | undefined)?.trim() ?? "";
-  const patientName =
-    typeof resolvedParams.patientName === "string"
-      ? resolvedParams.patientName.trim()
-      : Array.isArray(resolvedParams.patientName)
-      ? resolvedParams.patientName[0]?.trim() ?? ""
-      : "";
-  const patientPhone =
-    typeof resolvedParams.patientPhone === "string"
-      ? resolvedParams.patientPhone.trim()
-      : Array.isArray(resolvedParams.patientPhone)
-      ? resolvedParams.patientPhone[0]?.trim() ?? ""
-      : "";
-  const embed =
-    typeof resolvedParams.embed === "string"
-      ? resolvedParams.embed.trim()
-      : Array.isArray(resolvedParams.embed)
-      ? resolvedParams.embed[0]?.trim() ?? ""
-      : "";
-  const selectedSpecialties = new Set(toArray(resolvedParams.specialty));
-  const selectedAvailability =
-    typeof resolvedParams.availability === "string"
-      ? resolvedParams.availability
-      : Array.isArray(resolvedParams.availability)
-      ? resolvedParams.availability[0] ?? ""
-      : "";
-  const selectedLanguages = new Set(toArray(resolvedParams.languages));
-  const selectedGenderValues = toArray(resolvedParams.gender);
-  const genderAnySelected =
-    selectedGenderValues.length === 0 || selectedGenderValues.includes("any");
-  const selectedGenders = genderAnySelected
-    ? new Set<string>()
-    : new Set(selectedGenderValues);
-  const selectedExperience =
-    typeof resolvedParams.experience === "string"
-      ? resolvedParams.experience
-      : Array.isArray(resolvedParams.experience)
-      ? resolvedParams.experience[0] ?? ""
-      : "";
-  const selectedConsultationTypes = new Set(toArray(resolvedParams.consultationType));
-  const pageRaw =
-    typeof resolvedParams.page === "string"
-      ? resolvedParams.page
-      : Array.isArray(resolvedParams.page)
-      ? resolvedParams.page[0]
-      : "1";
-  const pageNumber = Math.max(1, Number.parseInt(pageRaw || "1", 10) || 1);
-  const pageSize = 24;
-
-  const INSENSITIVE: Prisma.QueryMode = "insensitive";
-
-  const filters: Prisma.ProviderWhereInput[] = [];
-  if (selectedSpecialties.size) {
-    filters.push({
-      OR: Array.from(selectedSpecialties).map((spec) => ({
-        speciality: { contains: spec, mode: INSENSITIVE },
-      })),
-    });
-  }
-  if (q) {
-    const terms = q.split(/\s+/).filter(Boolean);
-    const termClauses = terms.map((term) => ({
-      OR: [
-        { name: { contains: term, mode: INSENSITIVE } },
-        { speciality: { contains: term, mode: INSENSITIVE } },
-        { languages: { has: term.toUpperCase() } },
-        { slug: { contains: term, mode: INSENSITIVE } },
-        { licenseNo: { contains: term, mode: INSENSITIVE } },
-      ],
-    }));
-    filters.push(...termClauses);
-  }
-
-  if (selectedLanguages.size) {
-    filters.push({
-      languages: {
-        hasSome: Array.from(selectedLanguages).map((lang) => lang.toLowerCase()),
-      },
-    });
-  }
-
+  // 7-day slot window
   const now = new Date();
-  const availabilityFilter = (() => {
-    if (selectedAvailability === "next30") {
-      const end = new Date(now.getTime() + 30 * 60000);
-      return { gte: now, lte: end };
-    }
-    if (selectedAvailability === "today") {
-      const end = new Date(now);
-      end.setHours(23, 59, 59, 999);
-      return { gte: now, lte: end };
-    }
-    if (selectedAvailability === "week") {
-      const end = new Date(now.getTime() + 7 * 24 * 60 * 60000);
-      return { gte: now, lte: end };
-    }
-    return null;
-  })();
-
-  if (availabilityFilter) {
-    filters.push({
-      slots: {
-        some: {
-          isBooked: false,
-          startsAt: { gte: availabilityFilter.gte, lte: availabilityFilter.lte },
-        },
-      },
-    });
+  const windowEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const days: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    days.push(toISTDate(new Date(now.getTime() + i * 24 * 60 * 60 * 1000)));
   }
 
-  const whereClause: Prisma.ProviderWhereInput | undefined = filters.length
-    ? { AND: filters }
-    : undefined;
+  // Build initial where clause
+  const andClauses: object[] = [{ isActive: true }];
+  if (specialty) andClauses.push({ speciality: { contains: specialty, mode: "insensitive" } });
+  if (q) andClauses.push({ OR: [{ name: { contains: q, mode: "insensitive" } }, { speciality: { contains: q, mode: "insensitive" } }] });
+  if (mode === "IN_PERSON") andClauses.push({ clinics: { some: { isActive: true } } });
+  if (mode && mode !== "IN_PERSON") andClauses.push({ visitModes: { has: mode } });
 
-  const [providers, specialtyList] = await Promise.all([
+  const clinicWhere = city
+    ? { isActive: true, city: { contains: city, mode: "insensitive" as const } }
+    : { isActive: true };
+  if (city) andClauses.push({ clinics: { some: clinicWhere } });
+
+  const whereClause = { AND: andClauses };
+
+  const [rawProviders, specialtyList, total] = await Promise.all([
     prisma.provider.findMany({
       where: whereClause,
       orderBy: { name: "asc" },
-      take: pageSize,
-      skip: (pageNumber - 1) * pageSize,
+      take: 12,
       select: {
-        id: true,
-        slug: true,
-        name: true,
-        speciality: true,
-        qualification: true,
-        languages: true,
-        is24x7: true,
-        defaultFeePaise: true,
-        profilePhotoKey: true,
-        slots: {
-          where: {
-            isBooked: false,
-            startsAt: { gte: new Date() },
-          },
-          orderBy: { startsAt: "asc" },
+        id: true, slug: true, name: true, speciality: true, qualification: true,
+        languages: true, is24x7: true, defaultFeePaise: true, profilePhotoKey: true, visitModes: true,
+        clinics: {
+          where: clinicWhere,
+          select: { id: true, clinicName: true, addressLine1: true, addressLine2: true, city: true, state: true, pincode: true, lat: true, lng: true, phone: true },
           take: 3,
+        },
+        slots: {
+          where: { isBooked: false, startsAt: { gte: now, lt: windowEnd } },
+          orderBy: { startsAt: "asc" },
           select: { id: true, startsAt: true },
+          take: 100,
         },
       },
     }),
     getCachedSpecialties(),
+    prisma.provider.count({ where: whereClause }),
   ]);
 
-  const filteredProviders = providers.filter((provider) => {
-    const meta = deriveMeta(provider.slug);
-    if (selectedGenders.size && !selectedGenders.has(meta.gender)) {
-      return false;
+  // Build slotsByDay buckets for each provider
+  const providers = rawProviders.map((p) => {
+    const slotsByDay: Record<string, { id: string; startsAt: string }[]> = {};
+    for (const day of days) slotsByDay[day] = [];
+    for (const slot of p.slots) {
+      const day = toISTDate(slot.startsAt);
+      if (slotsByDay[day]) slotsByDay[day].push({ id: slot.id, startsAt: slot.startsAt.toISOString() });
     }
-    if (
-      selectedExperience &&
-      !computeExperienceMatch(selectedExperience, meta.experience)
-    ) {
-      return false;
-    }
-    return true;
+    return { ...p, slotsByDay, days };
   });
 
   const specialtyOptions = specialtyList
-    .map((item) => item.speciality)
-    .filter((spec): spec is string => Boolean(spec));
-
-  const withPrefill = (href: string) => {
-    if (!patientName && !patientPhone && !embed) return href;
-    const url = new URL(href, "https://caldoc.in");
-    if (patientName) url.searchParams.set("patientName", patientName);
-    if (patientPhone) url.searchParams.set("patientPhone", patientPhone);
-    if (embed) url.searchParams.set("embed", embed);
-    return `${url.pathname}${url.search}${url.hash}`;
-  };
+    .map((s) => s.speciality)
+    .filter((s): s is string => Boolean(s));
 
   return (
-    <div className="bg-[#f7f2ea]">
-      <section className="relative -mt-16 pb-12">
-        {/* ── Daily rotating hero image (changes once per UTC day) ── */}
-        <div className="absolute inset-x-0 top-0 h-[380px]">
-          <Image
-            src={heroImage}
-            alt="Find a doctor"
-            fill
-            className="object-cover object-top"
-            sizes="100vw"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#f7f2ea]/10 via-[#f7f2ea]/50 to-[#f7f2ea]" />
-        </div>
-
-        {/* ── All content in one unified container ────────── */}
-        <div className="relative mx-auto w-full max-w-6xl px-6 pt-24 lg:px-10">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm font-semibold text-slate-700 hover:text-slate-900"
-          >
-            ← Back to home
-          </Link>
-          <h1 className="mt-3 text-4xl font-semibold text-slate-900 md:text-5xl">Find a doctor</h1>
-
-          {/* Glass search bar — matches Lovable glass style */}
-          <form
-            method="GET"
-            className="mt-6 flex max-w-3xl gap-2 rounded-2xl border border-white/30 bg-white/70 p-2 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-xl"
-          >
-            <div className="relative flex-1">
-              <svg
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-              <input
-                name="q"
-                defaultValue={q}
-                placeholder="Search specialties, doctor names, symptoms, or registration number"
-                className="h-12 w-full rounded-xl bg-white/50 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
-              />
-            </div>
-            {patientName && <input type="hidden" name="patientName" value={patientName} />}
-            {patientPhone && <input type="hidden" name="patientPhone" value={patientPhone} />}
-            {embed && <input type="hidden" name="embed" value={embed} />}
-            {Array.from(selectedSpecialties).map((spec) => (
-              <input key={`search-specialty-${spec}`} type="hidden" name="specialty" value={spec} />
-            ))}
-            {selectedAvailability && (
-              <input type="hidden" name="availability" value={selectedAvailability} />
-            )}
-            {selectedExperience && (
-              <input type="hidden" name="experience" value={selectedExperience} />
-            )}
-            {Array.from(selectedLanguages).map((lang) => (
-              <input key={`search-language-${lang}`} type="hidden" name="languages" value={lang} />
-            ))}
-            {Array.from(selectedGenders).map((gender) => (
-              <input key={`search-gender-${gender}`} type="hidden" name="gender" value={gender} />
-            ))}
-            {Array.from(selectedConsultationTypes).map((type) => (
-              <input key={`search-consultationType-${type}`} type="hidden" name="consultationType" value={type} />
-            ))}
-            <button
-              type="submit"
-              className="h-12 rounded-xl bg-[#2f6ea5] px-8 text-sm font-medium text-white hover:bg-[#255b8b]"
-            >
-              Search
-            </button>
-          </form>
-
-          {/* ── Filters + Results ──────────────────────────── */}
-          <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
-            <FiltersPanel
-              specialtyList={specialtyOptions}
-              selectedSpecialties={Array.from(selectedSpecialties)}
-              selectedAvailability={selectedAvailability}
-              selectedExperience={selectedExperience}
-              selectedGenders={genderAnySelected ? [] : Array.from(selectedGenders)}
-              genderAnySelected={genderAnySelected}
-              selectedLanguages={Array.from(selectedLanguages)}
-              selectedConsultationTypes={Array.from(selectedConsultationTypes)}
-              q={q}
-              languageLabels={languageLabels}
-              patientName={patientName}
-              patientPhone={patientPhone}
-              embed={embed}
-            />
-
-            <section className="min-w-0 flex-1 space-y-4">
-              <p className="text-xs text-slate-500">
-                Showing up to {pageSize} providers per page for faster loading.
-              </p>
-              {filteredProviders.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-[#e7e0d5] bg-white/60 px-6 py-12 text-center text-sm text-slate-500">
-                  No providers matched this search. Try adjusting the filters.
-                </div>
-              ) : (
-                filteredProviders.map((provider) => {
-                  const displayedSlots = provider.slots.slice(0, 3);
-                  const feeLabel = formatFee(provider.defaultFeePaise);
-                  const meta = deriveMeta(provider.slug);
-                  const photoToken = provider.profilePhotoKey
-                    ? encodeURIComponent(provider.profilePhotoKey)
-                    : null;
-                  const photoUrl = photoToken
-                    ? `/api/providers/${provider.slug}/photo?v=${photoToken}`
-                    : IMAGES.DOC_PLACEHOLDER;
-                  return (
-                    <article
-                      key={provider.id}
-                      className="rounded-2xl border border-[#e7e0d5]/60 bg-white p-6 hover:shadow-[0_4px_30px_-5px_rgba(88,110,132,0.12)] transition-all duration-300"
-                    >
-                      <div className="flex items-center gap-6">
-                        {/* Avatar */}
-                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-                          <Image src={photoUrl} alt={provider.name} fill className="object-cover" sizes="80px" />
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-lg font-semibold text-slate-900">{provider.name}</p>
-                          <p className="text-sm font-medium text-[#2f6ea5]">{provider.speciality}</p>
-                          {provider.qualification && (
-                            <p className="text-xs text-slate-500">{provider.qualification}</p>
-                          )}
-                          {(meta.gender || meta.experience) && (
-                            <p className="mt-0.5 text-xs text-slate-500">
-                              {meta.gender ? `Gender: ${genderLabels[meta.gender] || "Other"}` : ""}
-                              {meta.gender && meta.experience ? " · " : ""}
-                              {meta.experience ? `Experience: ${meta.experience}+ years` : ""}
-                            </p>
-                          )}
-                          {provider.languages.length > 0 && (
-                            <p className="text-xs text-slate-500">
-                              Languages: {provider.languages.map(formatLanguage).join(", ")}
-                            </p>
-                          )}
-                          {feeLabel && (
-                            <p className="mt-1 text-xs font-semibold text-slate-700">Consultation fee: {feeLabel}</p>
-                          )}
-                          {provider.is24x7 && (
-                            <p className="text-xs font-medium text-emerald-600">Available 24×7</p>
-                          )}
-                        </div>
-
-                        {/* Right side — slots + book button */}
-                        <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
-                          <div className="text-right">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Next availability</p>
-                            <div className="mt-1 flex flex-col gap-1">
-                              {displayedSlots.length === 0 ? (
-                                <span className="rounded-xl border border-dashed border-slate-200 px-3 py-1 text-xs text-slate-400">
-                                  No slots open
-                                </span>
-                              ) : (
-                                displayedSlots.map((slot) => (
-                                  <Link
-                                    key={slot.id}
-                                    href={withPrefill(
-                                      `/book/${encodeURIComponent(provider.slug || provider.id)}?slot=${slot.id}`,
-                                    )}
-                                    className="inline-flex min-w-[160px] justify-center rounded-xl border border-[#2f6ea5]/20 bg-[#e7edf3] px-3 py-1 text-xs font-semibold text-[#2f6ea5] hover:border-[#2f6ea5]/40 hover:bg-[#d9e4ee]"
-                                  >
-                                    {formatSlot(new Date(slot.startsAt))}
-                                  </Link>
-                                ))
-                              )}
-                            </div>
-                          </div>
-                          <Link
-                            href={withPrefill(`/book/${encodeURIComponent(provider.slug || provider.id)}`)}
-                            className="inline-flex items-center justify-center rounded-xl bg-[#2f6ea5] px-6 py-2 text-sm font-medium text-white hover:bg-[#255b8b]"
-                          >
-                            Book doctor
-                          </Link>
-                        </div>
-
-                        {/* Mobile book button */}
-                        <div className="sm:hidden">
-                          <Link
-                            href={withPrefill(`/book/${encodeURIComponent(provider.slug || provider.id)}`)}
-                            className="inline-flex items-center justify-center rounded-xl bg-[#2f6ea5] px-4 py-2 text-sm font-medium text-white hover:bg-[#255b8b]"
-                          >
-                            Book
-                          </Link>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })
-              )}
-            </section>
-          </div>
-        </div>
-      </section>
-    </div>
+    <ProvidersClient
+      initialProviders={providers}
+      initialTotal={total}
+      initialCity={city}
+      initialSpecialty={specialty}
+      initialMode={mode}
+      initialQ={q}
+      specialtyOptions={specialtyOptions}
+      patientName={patientName}
+      patientPhone={patientPhone}
+      embed={embed}
+    />
   );
 }

@@ -44,9 +44,19 @@ export default async function BookPage({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  const initialSlotId = getInitialSlotId(await searchParams);
+  const resolvedSp = await searchParams;
+  const initialSlotId = getInitialSlotId(resolvedSp);
 
-  // Single query: fetch provider + available slots together to avoid two round-trips.
+  // Read initial mode from query string (?mode=IN_PERSON)
+  const initialMode = (() => {
+    if (!resolvedSp) return undefined;
+    const raw = isReadonlyURLSearchParams(resolvedSp) ? resolvedSp.get("mode") : (resolvedSp.mode as string | undefined);
+    const v = (Array.isArray(raw) ? raw[0] : raw)?.toUpperCase();
+    if (v === "IN_PERSON" || v === "VIDEO" || v === "AUDIO") return v as "IN_PERSON" | "VIDEO" | "AUDIO";
+    return undefined;
+  })();
+
+  // Single query: fetch provider + available slots + clinics together.
   const now = new Date();
   const provider = await prisma.provider.findFirst({
     where: { OR: [{ id: providerId }, { slug: providerId }] },
@@ -59,6 +69,12 @@ export default async function BookPage({ params, searchParams }: PageProps) {
       registrationNumber: true,
       councilName: true,
       defaultFeePaise: true,
+      visitModes: true,
+      clinics: {
+        where: { isActive: true },
+        select: { id: true, clinicName: true, addressLine1: true, addressLine2: true, city: true, state: true, pincode: true, phone: true },
+        take: 3,
+      },
       slots: {
         where: { isBooked: false, startsAt: { gte: now } },
         orderBy: { startsAt: "asc" },
@@ -91,6 +107,8 @@ export default async function BookPage({ params, searchParams }: PageProps) {
             registrationNumber: provider.registrationNumber,
             councilName: provider.councilName,
             defaultFeePaise: provider.defaultFeePaise,
+            visitModes: provider.visitModes,
+            clinics: provider.clinics,
           }}
           slots={provider.slots.map((s) => ({
             id: s.id,
@@ -98,6 +116,7 @@ export default async function BookPage({ params, searchParams }: PageProps) {
             feePaise: s.feePaise ?? undefined,
           }))}
           initialSlotId={initialSlotId}
+          initialMode={initialMode}
         />
       </div>
     </main>

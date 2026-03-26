@@ -15,6 +15,17 @@ type SlotInfo = {
 
 const SYMPTOM_OPTIONS = ["Fever", "Headache", "Dizziness", "Chest pain", "Sore throat", "Cough", "Cold"];
 
+type ClinicInfo = {
+  id: string;
+  clinicName: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  phone?: string | null;
+};
+
 type Props = {
   provider: {
     id: string;
@@ -24,9 +35,12 @@ type Props = {
     registrationNumber?: string | null;
     councilName?: string | null;
     defaultFeePaise?: number | null;
+    visitModes?: string[];
+    clinics?: ClinicInfo[];
   };
   slots: SlotInfo[];
   initialSlotId?: string;
+  initialMode?: "VIDEO" | "AUDIO" | "IN_PERSON";
 };
 
 type Step = "slot" | "delivery" | "pay";
@@ -79,7 +93,7 @@ function formatFeeFromPaise(paise?: number | null) {
   }).format(paise / 100);
 }
 
-export default function BookClient({ provider, slots, initialSlotId }: Props) {
+export default function BookClient({ provider, slots, initialSlotId, initialMode }: Props) {
   const searchParams = useSearchParams();
   const prefillName = (searchParams.get("patientName") || "").trim();
   const prefillPhone = (searchParams.get("patientPhone") || "").trim();
@@ -92,7 +106,10 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
   const [patientPhone, setPatientPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [consentAccepted, setConsentAccepted] = useState(false);
-  const [visitMode, setVisitMode] = useState<"VIDEO" | "AUDIO">("VIDEO");
+  const hasInPerson = (provider.clinics?.length ?? 0) > 0;
+  const [visitMode, setVisitMode] = useState<"VIDEO" | "AUDIO" | "IN_PERSON">(
+    initialMode ?? (hasInPerson && !provider.visitModes?.includes("VIDEO") ? "IN_PERSON" : "VIDEO")
+  );
   const [appointmentId, setAppointmentId] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -416,8 +433,8 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
 
                 {/* Connection Preference */}
                 <div>
-                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Connection Preference</h3>
-                  <div className="grid grid-cols-2 gap-2">
+                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Visit Type</h3>
+                  <div className={`grid gap-2 ${hasInPerson ? "grid-cols-3" : "grid-cols-2"}`}>
                     <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 ${visitMode === "VIDEO" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white hover:border-[#2f6ea5]/40"}`}>
                       <div className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 ${visitMode === "VIDEO" ? "border-[#2f6ea5]" : "border-slate-400"}`}>
                         {visitMode === "VIDEO" && <div className="h-1.5 w-1.5 rounded-full bg-[#2f6ea5]" />}
@@ -438,7 +455,33 @@ export default function BookClient({ provider, slots, initialSlotId }: Props) {
                       </svg>
                       <span className={`text-sm ${visitMode === "AUDIO" ? "font-medium text-slate-900" : "text-slate-600"}`}>Audio-only</span>
                     </label>
+                    {hasInPerson && (
+                      <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 ${visitMode === "IN_PERSON" ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-emerald-300"}`}>
+                        <div className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 ${visitMode === "IN_PERSON" ? "border-emerald-600" : "border-slate-400"}`}>
+                          {visitMode === "IN_PERSON" && <div className="h-1.5 w-1.5 rounded-full bg-emerald-600" />}
+                        </div>
+                        <input type="radio" name="visitMode" value="IN_PERSON" checked={visitMode === "IN_PERSON"} onChange={() => setVisitMode("IN_PERSON")} className="sr-only" />
+                        <svg className={`h-3.5 w-3.5 ${visitMode === "IN_PERSON" ? "text-emerald-600" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
+                        </svg>
+                        <span className={`text-sm ${visitMode === "IN_PERSON" ? "font-medium text-slate-900" : "text-slate-600"}`}>In-person</span>
+                      </label>
+                    )}
                   </div>
+                  {/* Clinic address when in-person selected */}
+                  {visitMode === "IN_PERSON" && provider.clinics && provider.clinics.length > 0 && (
+                    <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                      <p className="text-xs font-semibold text-emerald-800 mb-1">Clinic location</p>
+                      {provider.clinics.map((c) => (
+                        <div key={c.id} className="text-sm text-emerald-900">
+                          <p className="font-medium">{c.clinicName}</p>
+                          <p className="text-xs text-emerald-700">{c.addressLine1}{c.addressLine2 ? `, ${c.addressLine2}` : ""}</p>
+                          <p className="text-xs text-emerald-700">{c.city}, {c.state} – {c.pincode}</p>
+                          {c.phone && <p className="text-xs text-emerald-700">📞 {c.phone}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

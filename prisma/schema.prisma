@@ -44,10 +44,34 @@ model Provider {
   registrationDocKey String?
   phone              String?
   defaultFeePaise    Int              @default(100)
+  visitModes         String[]         @default([])
   appointments       Appointment[]
   ngoReservations    NgoReservation[]
   users              ProviderUser[]
   slots              Slot[]
+  clinics            ProviderClinic[]
+}
+
+model ProviderClinic {
+  id           String   @id @default(cuid())
+  providerId   String
+  clinicName   String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  pincode      String
+  lat          Float?
+  lng          Float?
+  phone        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  provider     Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([city])
+  @@index([pincode])
 }
 
 model Slot {
@@ -185,6 +209,7 @@ model PatientOtp {
 
   @@index([phoneCanonical])
   @@index([last10])
+  @@index([expiresAt])
 }
 
 model Prescription {
@@ -367,6 +392,9 @@ model LabOrder {
   patient              Patient?        @relation(fields: [patientId], references: [id], onDelete: Cascade)
   payment              Payment?        @relation("LabOrderPayment")
   events               LabOrderEvent[]
+
+  @@index([status, createdAt])
+  @@index([labPartnerId, status])
 }
 
 model LabOrderEvent {
@@ -432,6 +460,7 @@ model RxOrder {
 
   @@index([patientId])
   @@index([pharmacyPartnerId])
+  @@index([status, createdAt])
 }
 
 model RxOrderEvent {
@@ -638,4 +667,6 @@ model PatientPasswordReset {
   expiresAt DateTime
   usedAt    DateTime?
   patient   Patient   @relation(fields: [patientId], references: [id])
+
+  @@index([expiresAt])
 }
