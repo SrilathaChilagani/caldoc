@@ -6,6 +6,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { MapPin } from "./MapView";
 
+
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -253,7 +254,9 @@ export default function ProvidersClient({
   const [total, setTotal] = useState(initialTotal);
   const [city, setCity] = useState(initialCity || "Hyderabad");
   const [specialty, setSpecialty] = useState(initialSpecialty);
-  const [mode, setMode] = useState(initialMode); // "" | "IN_PERSON" | "VIDEO"
+  const [mode, setMode] = useState(initialMode);
+  const [language, setLanguage] = useState("");
+  const [is24x7, setIs24x7] = useState(false);
   const [q, setQ] = useState(initialQ);
   const [page, setPage] = useState(1);
   const [activePin, setActivePin] = useState<string | null>(null);
@@ -261,8 +264,29 @@ export default function ProvidersClient({
   const [isPending, startTransition] = useTransition();
   const abortRef = useRef<AbortController | null>(null);
 
+  // Filter dropdown state
+  const [openFilter, setOpenFilter] = useState<"specialty" | "mode" | "more" | null>(null);
+  // Draft state (applied on "Apply" click)
+  const [draftSpecialty, setDraftSpecialty] = useState(initialSpecialty);
+  const [draftMode, setDraftMode] = useState(initialMode);
+  const [draftLanguage, setDraftLanguage] = useState("");
+  const [draftIs24x7, setDraftIs24x7] = useState(false);
+
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setOpenFilter(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
   const fetchProviders = useCallback(
-    (params: { city: string; specialty: string; mode: string; q: string; page: number }) => {
+    (params: { city: string; specialty: string; mode: string; language: string; is24x7: boolean; q: string; page: number }) => {
       abortRef.current?.abort();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
@@ -271,6 +295,8 @@ export default function ProvidersClient({
       if (params.city) sp.set("city", params.city);
       if (params.specialty) sp.set("specialty", params.specialty);
       if (params.mode) sp.set("mode", params.mode);
+      if (params.language) sp.set("language", params.language);
+      if (params.is24x7) sp.set("is24x7", "true");
       if (params.q) sp.set("q", params.q);
       sp.set("page", String(params.page));
       sp.set("pageSize", "12");
@@ -290,34 +316,63 @@ export default function ProvidersClient({
     []
   );
 
-  // Re-fetch when filters change
   useEffect(() => {
-    fetchProviders({ city, specialty, mode, q, page });
+    fetchProviders({ city, specialty, mode, language, is24x7, q, page });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city, specialty, mode, page]);
+  }, [city, specialty, mode, language, is24x7, page]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     setPage(1);
-    fetchProviders({ city, specialty, mode, q, page: 1 });
+    fetchProviders({ city, specialty, mode, language, is24x7, q, page: 1 });
   }
 
-  // Build map pins from providers that have lat/lng
+  function applySpecialty() {
+    setSpecialty(draftSpecialty);
+    setPage(1);
+    setOpenFilter(null);
+  }
+  function applyMode() {
+    setMode(draftMode);
+    setPage(1);
+    setOpenFilter(null);
+  }
+  function applyMore() {
+    setLanguage(draftLanguage);
+    setIs24x7(draftIs24x7);
+    setPage(1);
+    setOpenFilter(null);
+  }
+
+  function openSpecialty() {
+    setDraftSpecialty(specialty);
+    setOpenFilter(openFilter === "specialty" ? null : "specialty");
+  }
+  function openMode() {
+    setDraftMode(mode);
+    setOpenFilter(openFilter === "mode" ? null : "mode");
+  }
+  function openMore() {
+    setDraftLanguage(language);
+    setDraftIs24x7(is24x7);
+    setOpenFilter(openFilter === "more" ? null : "more");
+  }
+
+  const modeLabel = mode === "IN_PERSON" ? "In-person" : mode === "VIDEO" ? "Video" : "In-person/Video";
+  const langLabel = language ? (languageLabels[language] ?? language) : "Language";
+  const moreActive = !!language || is24x7;
+
+  // Build map pins
   const mapPins: MapPin[] = [];
   for (const p of providers) {
     for (const c of p.clinics) {
       if (c.lat != null && c.lng != null) {
         mapPins.push({
-          id: p.id,
-          name: p.name,
-          speciality: p.speciality,
-          lat: c.lat,
-          lng: c.lng,
-          clinicName: c.clinicName,
-          address: `${c.addressLine1}, ${c.city}`,
-          slug: p.slug,
+          id: p.id, name: p.name, speciality: p.speciality,
+          lat: c.lat, lng: c.lng, clinicName: c.clinicName,
+          address: `${c.addressLine1}, ${c.city}`, slug: p.slug,
         });
-        break; // one pin per provider
+        break;
       }
     }
   }
@@ -326,11 +381,11 @@ export default function ProvidersClient({
 
   return (
     <div className="bg-[#f7f2ea] min-h-screen">
-      {/* ── Search bar ── */}
+      {/* ── Search + filter bar ── */}
       <div className="sticky top-0 z-30 border-b border-[#e7e0d5] bg-[#f7f2ea]/95 backdrop-blur-sm shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-3">
+          {/* Row 1: search inputs */}
           <form onSubmit={handleSearch} className="flex flex-wrap gap-2 items-center">
-            {/* Condition / doctor search */}
             <div className="relative flex-1 min-w-[180px]">
               <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
               <input
@@ -340,84 +395,176 @@ export default function ProvidersClient({
                 className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
               />
             </div>
-
-            {/* City */}
             <div className="relative">
               <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
               <input
                 list="city-options"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="City / Pincode"
-                className="h-10 w-44 rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
+                placeholder="City"
+                className="h-10 w-40 rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
               />
               <datalist id="city-options">
                 {POPULAR_CITIES.map((c) => <option key={c} value={c} />)}
               </datalist>
             </div>
-
-            {/* Mode toggle */}
-            <div className="flex rounded-xl border border-slate-200 bg-white overflow-hidden text-sm font-semibold">
-              <button
-                type="button"
-                onClick={() => { setMode(""); setPage(1); }}
-                className={`px-3 py-2 transition-colors ${mode === "" ? "bg-[#2f6ea5] text-white" : "text-slate-600 hover:bg-slate-50"}`}
-              >
-                All
-              </button>
-              <button
-                type="button"
-                onClick={() => { setMode("IN_PERSON"); setPage(1); }}
-                className={`px-3 py-2 transition-colors border-l border-slate-200 ${mode === "IN_PERSON" ? "bg-[#2f6ea5] text-white" : "text-slate-600 hover:bg-slate-50"}`}
-              >
-                In-person
-              </button>
-              <button
-                type="button"
-                onClick={() => { setMode("VIDEO"); setPage(1); }}
-                className={`px-3 py-2 transition-colors border-l border-slate-200 ${mode === "VIDEO" ? "bg-[#2f6ea5] text-white" : "text-slate-600 hover:bg-slate-50"}`}
-              >
-                Video
-              </button>
-            </div>
-
-            <button
-              type="submit"
-              className="h-10 rounded-xl bg-[#2f6ea5] px-6 text-sm font-semibold text-white hover:bg-[#255b8b] transition-colors"
-            >
+            <button type="submit" className="h-10 rounded-xl bg-[#2f6ea5] px-6 text-sm font-semibold text-white hover:bg-[#255b8b] transition-colors">
               Search
             </button>
-
-            {/* Map toggle (mobile) */}
-            <button
-              type="button"
-              onClick={() => setShowMap((v) => !v)}
-              className="ml-auto h-10 rounded-xl border border-slate-200 px-3 text-sm text-slate-600 hover:bg-slate-50 lg:hidden"
-            >
+            <button type="button" onClick={() => setShowMap((v) => !v)} className="ml-auto h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 hover:bg-slate-50 lg:hidden">
               {showMap ? "Hide map" : "Show map"}
             </button>
           </form>
 
-          {/* Specialty pill filters */}
-          {specialtyOptions.length > 0 && (
-            <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
+          {/* Row 2: filter chips */}
+          <div ref={filterRef} className="relative mt-2.5 flex gap-2 overflow-x-auto pb-1">
+            {/* Specialty */}
+            <div className="relative">
               <button
-                onClick={() => { setSpecialty(""); setPage(1); }}
-                className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-colors ${specialty === "" ? "bg-[#2f6ea5] text-white" : "border border-slate-200 text-slate-600 hover:border-[#2f6ea5]/40"}`}
+                type="button"
+                onClick={openSpecialty}
+                className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
+                  specialty ? "border-[#2f6ea5] bg-[#2f6ea5] text-white" : "border-slate-300 bg-white text-slate-700 hover:border-[#2f6ea5]/50"
+                }`}
               >
-                All specialties
+                {specialty || "Specialty"}
+                <svg className={`h-3.5 w-3.5 transition-transform ${openFilter === "specialty" ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
               </button>
-              {specialtyOptions.slice(0, 10).map((sp) => (
-                <button
-                  key={sp}
-                  onClick={() => { setSpecialty(sp); setPage(1); }}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-colors ${specialty === sp ? "bg-[#2f6ea5] text-white" : "border border-slate-200 text-slate-600 hover:border-[#2f6ea5]/40"}`}
-                >
-                  {sp}
-                </button>
-              ))}
+              {openFilter === "specialty" && (
+                <div className="absolute left-0 top-full mt-1 z-50 w-72 rounded-2xl border border-slate-200 bg-white shadow-xl">
+                  <div className="max-h-72 overflow-y-auto p-3">
+                    <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-slate-400">All specialties</p>
+                    <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
+                      <input type="radio" name="specialty" checked={draftSpecialty === ""} onChange={() => setDraftSpecialty("")} className="accent-[#2f6ea5]" />
+                      <span className="text-sm font-medium text-slate-700">Any specialty</span>
+                    </label>
+                    {specialtyOptions.map((sp) => (
+                      <label key={sp} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
+                        <input type="radio" name="specialty" checked={draftSpecialty === sp} onChange={() => setDraftSpecialty(sp)} className="accent-[#2f6ea5]" />
+                        <span className="text-sm font-medium text-slate-700">{sp}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
+                    <button type="button" onClick={() => { setDraftSpecialty(""); }} className="text-sm font-semibold text-slate-500 hover:text-slate-700">Clear</button>
+                    <button type="button" onClick={applySpecialty} className="rounded-full bg-[#2f6ea5] px-5 py-1.5 text-sm font-semibold text-white hover:bg-[#255b8b]">Apply</button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+
+            {/* In-person / Video */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={openMode}
+                className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
+                  mode ? "border-[#2f6ea5] bg-[#2f6ea5] text-white" : "border-slate-300 bg-white text-slate-700 hover:border-[#2f6ea5]/50"
+                }`}
+              >
+                {modeLabel}
+                <svg className={`h-3.5 w-3.5 transition-transform ${openFilter === "mode" ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              {openFilter === "mode" && (
+                <div className="absolute left-0 top-full mt-1 z-50 w-56 rounded-2xl border border-slate-200 bg-white shadow-xl">
+                  <div className="p-3">
+                    {[
+                      { value: "", label: "All modes" },
+                      { value: "IN_PERSON", label: "In-person" },
+                      { value: "VIDEO", label: "Video consultation" },
+                    ].map(({ value, label }) => (
+                      <label key={value} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-slate-50">
+                        <input type="radio" name="mode" checked={draftMode === value} onChange={() => setDraftMode(value)} className="accent-[#2f6ea5]" />
+                        <span className="text-sm font-medium text-slate-700">{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
+                    <button type="button" onClick={() => setDraftMode("")} className="text-sm font-semibold text-slate-500 hover:text-slate-700">Clear</button>
+                    <button type="button" onClick={applyMode} className="rounded-full bg-[#2f6ea5] px-5 py-1.5 text-sm font-semibold text-white hover:bg-[#255b8b]">Apply</button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 24×7 toggle chip */}
+            <button
+              type="button"
+              onClick={() => { setIs24x7((v) => !v); setPage(1); }}
+              className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
+                is24x7 ? "border-[#2f6ea5] bg-[#2f6ea5] text-white" : "border-slate-300 bg-white text-slate-700 hover:border-[#2f6ea5]/50"
+              }`}
+            >
+              24×7
+            </button>
+
+            {/* More filters */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={openMore}
+                className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
+                  moreActive ? "border-[#2f6ea5] bg-[#2f6ea5] text-white" : "border-slate-300 bg-white text-slate-700 hover:border-[#2f6ea5]/50"
+                }`}
+              >
+                More filters
+                {moreActive && <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white/30 text-[10px] font-bold">{[language, is24x7].filter(Boolean).length}</span>}
+              </button>
+              {openFilter === "more" && (
+                <div className="absolute left-0 top-full mt-1 z-50 w-72 rounded-2xl border border-slate-200 bg-white shadow-xl">
+                  <div className="p-4">
+                    <p className="mb-3 text-base font-semibold text-slate-900">More filters</p>
+
+                    {/* Language */}
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Language</p>
+                    <div className="space-y-1">
+                      {[
+                        { value: "", label: "Any language" },
+                        { value: "en", label: "English" },
+                        { value: "hi", label: "Hindi" },
+                        { value: "te", label: "Telugu" },
+                        { value: "ta", label: "Tamil" },
+                        { value: "ur", label: "Urdu" },
+                        { value: "bn", label: "Bengali" },
+                        { value: "mr", label: "Marathi" },
+                      ].map(({ value, label }) => (
+                        <label key={value} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
+                          <input type="radio" name="language" checked={draftLanguage === value} onChange={() => setDraftLanguage(value)} className="accent-[#2f6ea5]" />
+                          <span className="text-sm font-medium text-slate-700">{label}</span>
+                        </label>
+                      ))}
+                    </div>
+
+                    {/* Availability */}
+                    <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Availability</p>
+                    <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
+                      <input type="checkbox" checked={draftIs24x7} onChange={(e) => setDraftIs24x7(e.target.checked)} className="accent-[#2f6ea5]" />
+                      <span className="text-sm font-medium text-slate-700">Available 24×7</span>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
+                    <button type="button" onClick={() => { setDraftLanguage(""); setDraftIs24x7(false); }} className="text-sm font-semibold text-slate-500 hover:text-slate-700">Clear all</button>
+                    <button type="button" onClick={applyMore} className="rounded-full bg-[#2f6ea5] px-5 py-1.5 text-sm font-semibold text-white hover:bg-[#255b8b]">Apply</button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Active filter summary badge */}
+            {(specialty || mode || language || is24x7) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSpecialty(""); setMode(""); setLanguage(""); setIs24x7(false);
+                  setDraftSpecialty(""); setDraftMode(""); setDraftLanguage(""); setDraftIs24x7(false);
+                  setPage(1);
+                }}
+                className="flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-600 whitespace-nowrap hover:bg-red-100 transition-colors"
+              >
+                Clear filters ×
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -430,7 +577,10 @@ export default function ProvidersClient({
             <p className={`mb-3 text-sm text-slate-500 transition-opacity ${isPending ? "opacity-50" : ""}`}>
               {total} provider{total !== 1 ? "s" : ""} found
               {city ? ` in ${city}` : ""}
+              {specialty ? ` · ${specialty}` : ""}
               {mode === "IN_PERSON" ? " · In-person" : mode === "VIDEO" ? " · Video" : ""}
+              {language ? ` · ${languageLabels[language] ?? language}` : ""}
+              {is24x7 ? " · 24×7" : ""}
             </p>
 
             <div className={`space-y-3 transition-opacity ${isPending ? "opacity-60 pointer-events-none" : ""}`}>
@@ -476,8 +626,8 @@ export default function ProvidersClient({
 
           {/* Map (sticky, desktop: always visible) */}
           <div
-            className={`shrink-0 lg:sticky lg:top-[120px] lg:block ${showMap ? "block" : "hidden"}`}
-            style={{ width: "420px", height: "calc(100vh - 140px)" }}
+            className={`shrink-0 lg:sticky lg:top-[148px] lg:block ${showMap ? "block" : "hidden"}`}
+            style={{ width: "420px", height: "calc(100vh - 168px)" }}
           >
             <div className="h-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
               <MapView

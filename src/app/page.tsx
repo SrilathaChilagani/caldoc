@@ -144,7 +144,7 @@ export default async function Home() {
 
         <div className="relative container mx-auto px-6 lg:px-12">
           <div className="max-w-2xl pt-16">
-            <h1 className="font-serif font-normal leading-tight tracking-tight text-slate-900" style={{ fontSize: "clamp(2.25rem, 5vw, 4.5rem)" }}>
+            <h1 className="font-serif font-normal leading-tight tracking-tight text-slate-900" style={{ fontSize: "clamp(1.75rem, 3.5vw, 3rem)" }}>
               Book your
               <br />
               <span className="text-[#2f6ea5]">teleconsultations</span>

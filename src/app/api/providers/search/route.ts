@@ -31,6 +31,8 @@ export async function GET(req: NextRequest) {
     const specialty = searchParams.get("specialty")?.trim() || "";
     const mode = searchParams.get("mode")?.trim().toUpperCase() || "";
     const q = searchParams.get("q")?.trim() || "";
+    const language = searchParams.get("language")?.trim().toLowerCase() || "";
+    const is24x7 = searchParams.get("is24x7") === "true";
     const page = Math.max(1, Number(searchParams.get("page") || 1));
     const pageSize = Math.min(24, Math.max(1, Number(searchParams.get("pageSize") || 12)));
 
@@ -49,11 +51,16 @@ export async function GET(req: NextRequest) {
       });
     }
     if (mode === "IN_PERSON") {
-      // Only providers who have at least one active clinic
       andClauses.push({ clinics: { some: { isActive: true } } });
     }
     if (mode && mode !== "IN_PERSON") {
       andClauses.push({ visitModes: { has: mode } });
+    }
+    if (language) {
+      andClauses.push({ languages: { has: language } });
+    }
+    if (is24x7) {
+      andClauses.push({ is24x7: true });
     }
 
     // Clinic sub-query: only filter by city for the clinic addresses we show on cards/map
