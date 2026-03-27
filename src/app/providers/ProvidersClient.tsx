@@ -260,7 +260,7 @@ export default function ProvidersClient({
   const [q, setQ] = useState(initialQ);
   const [page, setPage] = useState(1);
   const [activePin, setActivePin] = useState<string | null>(null);
-  const [showMap, setShowMap] = useState(true);
+  const [showMap, setShowMap] = useState(false);
   const [isPending, startTransition] = useTransition();
   const abortRef = useRef<AbortController | null>(null);
 
@@ -411,7 +411,7 @@ export default function ProvidersClient({
             <button type="submit" className="h-10 rounded-xl bg-[#2f6ea5] px-6 text-sm font-semibold text-white hover:bg-[#255b8b] transition-colors">
               Search
             </button>
-            <button type="button" onClick={() => setShowMap((v) => !v)} className="ml-auto h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600 hover:bg-slate-50 lg:hidden">
+            <button type="button" onClick={() => setShowMap((v) => !v)} className="ml-auto h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 lg:hidden">
               {showMap ? "Hide map" : "Show map"}
             </button>
           </form>
@@ -570,7 +570,7 @@ export default function ProvidersClient({
 
       {/* ── Main content: list + map ── */}
       <div className="mx-auto max-w-7xl px-4 py-4">
-        <div className="flex gap-4 items-start">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
 
           {/* Provider list */}
           <div className="min-w-0 flex-1">
@@ -624,12 +624,11 @@ export default function ProvidersClient({
             )}
           </div>
 
-          {/* Map (sticky, desktop: always visible) */}
+          {/* Map — hidden on mobile by default, full-width when toggled; sidebar on desktop */}
           <div
-            className={`shrink-0 lg:sticky lg:top-[148px] lg:block ${showMap ? "block" : "hidden"}`}
-            style={{ width: "420px", height: "calc(100vh - 168px)" }}
+            className={`lg:sticky lg:top-[148px] lg:block lg:w-[420px] lg:shrink-0 ${showMap ? "block" : "hidden lg:block"}`}
           >
-            <div className="h-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+            <div className="h-[50vh] rounded-2xl overflow-hidden border border-slate-200 shadow-sm lg:h-[calc(100vh-168px)]">
               <MapView
                 pins={mapPins}
                 activeId={activePin}
