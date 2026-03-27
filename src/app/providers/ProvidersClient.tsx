@@ -417,7 +417,7 @@ export default function ProvidersClient({
           </form>
 
           {/* Row 2: filter chips */}
-          <div ref={filterRef} className="relative mt-2.5 flex gap-2 overflow-x-auto pb-1">
+          <div ref={filterRef} className="relative mt-2.5 flex flex-wrap gap-2">
             {/* Specialty */}
             <div className="relative">
               <button
