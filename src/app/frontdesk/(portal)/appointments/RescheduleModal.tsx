@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 type Slot = { id: string; startsAt: string; endsAt: string };
@@ -26,6 +26,7 @@ export default function RescheduleModal({
   freeSlots: Slot[];
 }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -52,7 +53,7 @@ export default function RescheduleModal({
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || "Failed"); }
       setOpen(false);
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (e) { setErr((e as Error).message); }
     finally { setBusy(false); }
   }

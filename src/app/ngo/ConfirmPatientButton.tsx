@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 type Props = {
   reservationId: string;
@@ -12,6 +12,7 @@ type Props = {
 
 export default function ConfirmPatientButton({ reservationId, friendlyId, providerName, slotTime }: Props) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +39,7 @@ export default function ConfirmPatientButton({ reservationId, friendlyId, provid
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Failed to assign patient.");
       setOpen(false);
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message);
     } finally {

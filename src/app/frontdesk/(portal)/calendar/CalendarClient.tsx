@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -318,6 +318,7 @@ function MonthView({base,appointments,providerMap,onReschedule}: {
 
 export default function CalendarClient({ initialProviders }: { initialProviders: Provider[] }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [view, setView] = useState<View>("week");
   const [base, setBase] = useState(toISTStr(new Date()));
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set(initialProviders.map(p=>p.id)));
@@ -371,7 +372,7 @@ export default function CalendarClient({ initialProviders }: { initialProviders:
           freeSlots={freeSlots}
           providerName={providerMap.get(rescheduleTarget.providerId)?.name.replace(/^dr\.?\s+/i,"") ?? ""}
           onClose={()=>setRescheduleTarget(null)}
-          onDone={()=>{setRescheduleTarget(null);router.refresh();load(view,base,selectedIds);}}
+          onDone={()=>{setRescheduleTarget(null);startTransition(() => router.refresh());load(view,base,selectedIds);}}
         />
       )}
 

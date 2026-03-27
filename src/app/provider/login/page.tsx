@@ -74,9 +74,9 @@ export default async function ProviderLoginPage({
 
   return (
     <main className="flex min-h-[80vh] items-center justify-center bg-[#f7f2ea] px-4 py-16">
-      <div className="w-full max-w-md space-y-6 rounded-[32px] border border-white/70 bg-white/90 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+      <div className="w-full max-w-md space-y-6 rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
         <div className="space-y-1 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">{copy.badge}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">{copy.badge}</p>
           <h1 className="font-serif text-2xl font-semibold text-slate-900">{copy.headline}</h1>
           <p className="text-sm text-slate-500">{copy.body}</p>
         </div>

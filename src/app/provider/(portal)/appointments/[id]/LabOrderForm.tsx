@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -31,6 +31,7 @@ type Props = {
 
 export default function LabOrderForm({ appointmentId, existingOrders }: Props) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [mode, setMode] = useState<"IN_HOUSE" | "EXTERNAL">("IN_HOUSE");
   const [selected, setSelected] = useState<string[]>([]);
   const [customTests, setCustomTests] = useState("");
@@ -67,7 +68,7 @@ export default function LabOrderForm({ appointmentId, existingOrders }: Props) {
       setSelected([]);
       setCustomTests("");
       setNotes("");
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setMessage(getErrorMessage(err));
     } finally {

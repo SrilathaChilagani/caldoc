@@ -165,7 +165,7 @@ export default async function PatientAppointments(props: PageProps) {
   return (
     <div className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-10">
       <div className="mx-auto max-w-5xl space-y-8 px-4">
-        <div className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] md:p-8">
+        <div className="pb-6 border-b border-slate-200 md:pb-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#2f6ea5] text-2xl font-semibold text-white">
@@ -252,7 +252,7 @@ export default async function PatientAppointments(props: PageProps) {
 
         <div className="space-y-4">
           {appointments.length === 0 && (
-            <div className="rounded-3xl border border-dashed border-slate-200 bg-white/80 px-6 py-10 text-center text-sm text-slate-500">
+            <div className="py-10 text-center text-sm text-slate-500">
               {activeFilter === "ALL"
                 ? "No appointments found."
                 : "No appointments found for this filter."}
@@ -269,7 +269,7 @@ export default async function PatientAppointments(props: PageProps) {
             return (
               <div
                 key={appt.id}
-                className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]"
+                className="border-b border-slate-100 py-5"
               >
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>

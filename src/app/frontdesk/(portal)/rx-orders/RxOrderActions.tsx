@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 const STATUSES = [
@@ -26,6 +26,7 @@ export default function RxOrderActions({
   pharmacyPartners: PharmacyPartner[];
 }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState(currentStatus);
   const [partnerId, setPartnerId] = useState(currentPharmacyPartnerId ?? "");
@@ -54,7 +55,7 @@ export default function RxOrderActions({
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || "Failed"); }
       setOpen(false);
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (e) { setErr((e as Error).message); }
     finally { setBusy(false); }
   }

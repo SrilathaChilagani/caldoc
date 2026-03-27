@@ -22,7 +22,7 @@ export default function LoginForm({ nextUrl, loggedOut, errorMessage, defaultEma
           type="email"
           name="email"
           defaultValue={defaultEmail}
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
+          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
           required
         />
       </label>
@@ -31,13 +31,13 @@ export default function LoginForm({ nextUrl, loggedOut, errorMessage, defaultEma
         <input
           type="password"
           name="password"
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
+          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
           required
         />
       </label>
       <button
         type="submit"
-        className="w-full rounded-full bg-[#2f6ea5] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b]"
+        className="w-full rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
       >
         Sign in
       </button>

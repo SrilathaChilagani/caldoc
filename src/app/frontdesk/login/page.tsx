@@ -7,9 +7,9 @@ export default function FrontDeskLoginPage({
 }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f7f2ea] px-4">
-      <div className="w-full max-w-sm rounded-3xl border border-white/70 bg-white/90 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+      <div className="w-full max-w-sm rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
         <div className="mb-6 text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">CalDoc</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">CalDoc</p>
           <h1 className="mt-1 font-serif text-2xl font-semibold text-slate-900">Front Desk</h1>
           <p className="mt-1 text-sm text-slate-500">Sign in to manage appointments and orders</p>
         </div>

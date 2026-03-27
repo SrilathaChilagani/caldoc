@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 type Props = {
@@ -9,6 +9,7 @@ type Props = {
 
 export default function UploadClient({ token }: Props) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isUploading, setUploading] = useState(false);
@@ -43,7 +44,7 @@ export default function UploadClient({ token }: Props) {
 
       setSuccess("File uploaded successfully");
       form.reset();
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message || "Upload failed");
     } finally {

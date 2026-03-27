@@ -140,7 +140,7 @@ function ProviderCard({
                 <p className="text-xs text-slate-500">{provider.qualification}</p>
               )}
               {provider.languages.length > 0 && (
-                <p className="mt-0.5 text-xs text-slate-400">
+                <p className="mt-0.5 text-xs text-slate-500">
                   {provider.languages.map((l) => languageLabels[l.toLowerCase()] ?? l).join(", ")}
                 </p>
               )}
@@ -229,7 +229,7 @@ function ProviderCard({
             </Link>
           </div>
         ) : (
-          <p className="mt-2 text-xs text-slate-400">No slots available for this day</p>
+          <p className="mt-2 text-xs text-slate-500">No slots available for this day</p>
         )}
       </div>
     </article>

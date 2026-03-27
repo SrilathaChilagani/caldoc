@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 const STATUSES = [
@@ -16,6 +16,7 @@ const STATUSES = [
 
 export default function LabOrderActions({ orderId, currentStatus }: { orderId: string; currentStatus: string }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [status, setStatus] = useState(currentStatus);
   const [collectionAgentName, setCollectionAgentName] = useState("");
   const [collectionAgentPhone, setCollectionAgentPhone] = useState("");
@@ -44,7 +45,7 @@ export default function LabOrderActions({ orderId, currentStatus }: { orderId: s
       if (!res.ok) throw new Error(data?.error || "Update failed");
       setSuccess(true);
       setNote("");
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {

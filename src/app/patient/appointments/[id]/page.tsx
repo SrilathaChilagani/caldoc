@@ -85,8 +85,8 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
           </div>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <section className="grid gap-6 border-b border-slate-200 pb-6 md:grid-cols-3">
+          <div className="py-2">
             <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>
             <p className="mt-2 text-xl font-semibold text-slate-900">{appointment.status}</p>
             <p className="mt-2 text-xs text-slate-500">
@@ -108,7 +108,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
               </a>
             )}
           </div>
-          <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+          <div className="py-2">
             <p className="text-xs uppercase tracking-wide text-slate-500">Prescription</p>
             {appointment.prescription ? (
               <a
@@ -123,7 +123,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
               <p className="mt-2 text-sm text-slate-500">Not uploaded yet.</p>
             )}
           </div>
-          <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+          <div className="py-2">
             <p className="text-xs uppercase tracking-wide text-slate-500">Receipt</p>
             {receiptUrl ? (
               <a
@@ -140,7 +140,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <section className="border-b border-slate-200 pb-6">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="font-serif text-xl font-semibold text-slate-900">Patient documents</h2>
@@ -177,7 +177,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
           )}
         </section>
 
-        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <section className="border-b border-slate-200 pb-6">
           <h2 className="font-serif text-xl font-semibold text-slate-900">Doctor&apos;s notes</h2>
           {appointment.visitNote ? (
             <p className="mt-3 whitespace-pre-line text-sm text-slate-600">{appointment.visitNote.text}</p>
@@ -186,7 +186,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
           )}
         </section>
 
-        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <section className="pt-2">
           <h2 className="font-serif text-xl font-semibold text-slate-900">Provider credentials</h2>
           <dl className="mt-3 grid gap-4 sm:grid-cols-2 text-sm text-slate-600">
             <div>

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 type User = { id: string; email: string; role: string; createdAt: string };
 
 export default function LabTeamClient({ initialUsers }: { initialUsers: User[] }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [users, setUsers] = useState(initialUsers);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +33,7 @@ export default function LabTeamClient({ initialUsers }: { initialUsers: User[] }
       setEmail("");
       setPassword("");
       setSuccess(`${data.user.email} added successfully`);
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -50,7 +51,7 @@ export default function LabTeamClient({ initialUsers }: { initialUsers: User[] }
         throw new Error(d.error || "Failed to remove");
       }
       setUsers((prev) => prev.filter((u) => u.id !== id));
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message);
     } finally {

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 export default function CancelAppointmentButton({ appointmentId }: { appointmentId: string }) {
@@ -7,6 +7,7 @@ export default function CancelAppointmentButton({ appointmentId }: { appointment
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const [, startTransition] = useTransition();
 
   async function handleCancel() {
     setLoading(true);
@@ -17,7 +18,7 @@ export default function CancelAppointmentButton({ appointmentId }: { appointment
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Failed to cancel");
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to cancel");
       setLoading(false);

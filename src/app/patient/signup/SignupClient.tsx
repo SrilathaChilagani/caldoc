@@ -75,7 +75,7 @@ export default function SignupClient() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Create an account</h1>
+        <h1 className="font-serif text-3xl font-semibold text-slate-900">Create an account</h1>
         <p className="mt-1 text-sm text-slate-500">
           Already have an account?{" "}
           <Link href="/patient/login" className="font-medium text-[#2f6ea5] hover:underline">

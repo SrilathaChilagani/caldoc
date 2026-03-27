@@ -107,7 +107,7 @@ export default function SiteHeader() {
       window.removeEventListener("focus", handler);
     };
   }, [isRxRoute, isLabsRoute]);
-  const headerClassName = "relative z-10 border-b border-transparent bg-transparent";
+  const headerClassName = "relative z-40 border-b border-transparent bg-transparent";
   const navLinkClassName = "text-base text-slate-800 hover:text-slate-950";
   const dropdownTriggerClassName = "inline-flex items-center gap-1 text-base text-slate-800 hover:text-slate-950";
   const loginButtonClassName = "inline-flex items-center gap-1 rounded-full border border-slate-300/70 bg-white/70 px-4 py-2 text-base font-medium text-slate-800 hover:border-slate-400 hover:text-slate-950 backdrop-blur-sm";

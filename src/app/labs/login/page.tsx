@@ -13,7 +13,7 @@ export default async function LabsLoginPage({ searchParams }: { searchParams: Pr
   }
   const message = err === "creds" ? "Invalid email or password." : err === "server" ? "Unable to sign in." : undefined;
   return (
-    <main className="flex min-h-[80vh] items-center justify-center bg-gradient-to-b from-[#f0fff9] via-white to-white px-4 py-16">
+    <main className="flex min-h-[80vh] items-center justify-center bg-[#f7f2ea] px-4 py-16">
       <div className="w-full max-w-md space-y-6 rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
         <div className="space-y-1 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Labs portal</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 const STATUSES = [
@@ -14,6 +14,7 @@ const STATUSES = [
 
 export default function RxOrderActions({ orderId, currentStatus }: { orderId: string; currentStatus: string }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [status, setStatus] = useState(currentStatus);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [courierName, setCourierName] = useState("");
@@ -37,7 +38,7 @@ export default function RxOrderActions({ orderId, currentStatus }: { orderId: st
       if (!res.ok) throw new Error(data?.error || "Update failed");
       setSuccess(true);
       setNote("");
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {

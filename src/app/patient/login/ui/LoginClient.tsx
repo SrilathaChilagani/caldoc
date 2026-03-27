@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 const OTP_COOLDOWN_SECONDS = Number(process.env.NEXT_PUBLIC_PATIENT_OTP_COOLDOWN ?? "60");
@@ -15,6 +15,7 @@ type Props = {
 
 export default function LoginClient({ next, initialPhone }: Props) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
 
   // OTP state
   const [tab, setTab] = useState<Tab>("otp");
@@ -64,7 +65,7 @@ export default function LoginClient({ next, initialPhone }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Unable to send OTP");
       if (data.skip && data.redirect) {
-        router.push(data.redirect); router.refresh(); return;
+        router.push(data.redirect); startTransition(() => router.refresh()); return;
       }
       setStep("otp");
       setStatus(data.masked
@@ -90,7 +91,7 @@ export default function LoginClient({ next, initialPhone }: Props) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Invalid code");
-      router.push(data.redirect || next); router.refresh();
+      router.push(data.redirect || next); startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed");
     } finally {
@@ -123,7 +124,7 @@ export default function LoginClient({ next, initialPhone }: Props) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Login failed");
-      router.push(data.redirect || next); router.refresh();
+      router.push(data.redirect || next); startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -143,7 +144,7 @@ export default function LoginClient({ next, initialPhone }: Props) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Registration failed");
-      router.push(data.redirect || next); router.refresh();
+      router.push(data.redirect || next); startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {

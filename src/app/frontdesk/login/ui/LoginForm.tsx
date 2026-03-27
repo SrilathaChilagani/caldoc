@@ -40,7 +40,7 @@ export default function LoginForm({
           defaultValue={uid}
           required
           autoComplete="email"
-          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
+          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
           placeholder="frontdesk@caldoc.in"
         />
       </div>
@@ -52,14 +52,14 @@ export default function LoginForm({
           name="password"
           required
           autoComplete="current-password"
-          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]/20"
+          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
         />
       </div>
 
       <button
         type="submit"
         disabled={busy}
-        className="w-full rounded-full bg-[#2f6ea5] py-2.5 text-sm font-semibold text-white hover:bg-[#255b8b] disabled:opacity-60"
+        className="w-full rounded-full bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
       >
         {busy ? "Signing in…" : "Sign in"}
       </button>

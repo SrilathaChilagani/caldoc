@@ -46,7 +46,7 @@ export default async function PatientProfilePage() {
   return (
     <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-10">
       <div className="mx-auto max-w-3xl space-y-6 px-4">
-        <div className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] md:p-8">
+        <div className="pb-6">
           <div className="flex flex-col gap-3">
             <Link href="/patient/appointments" className="text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]">
               ← Back to dashboard

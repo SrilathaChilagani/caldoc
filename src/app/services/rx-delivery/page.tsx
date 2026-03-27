@@ -201,7 +201,7 @@ export default async function RxDeliveryPage({ searchParams }: RxDeliveryPagePro
         </div>
       </section>
 
-      <section className="py-20 lg:py-28 bg-white/70">
+      <section className="py-20 lg:py-28 bg-transparent">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="text-center mb-12">
             <h2 className="font-serif text-3xl lg:text-4xl text-slate-900 mb-3">Popular Medicines</h2>
@@ -232,7 +232,7 @@ export default async function RxDeliveryPage({ searchParams }: RxDeliveryPagePro
               <a href="/compliance" className="font-semibold underline">View compliance details</a>.
             </p>
           </div>
-          <div className="rounded-[32px] border border-white/70 bg-white/90 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+          <div>
             <RxDeliveryForm options={options} initialItemName={initialItemName} />
           </div>
         </div>

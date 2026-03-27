@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 export default function LabEnrollmentActions({
   enrollmentId,
@@ -11,6 +11,7 @@ export default function LabEnrollmentActions({
   adminEmail: string;
 }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -31,7 +32,7 @@ export default function LabEnrollmentActions({
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Approval failed.");
       setSuccess("Lab approved and partner account created!");
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -55,7 +56,7 @@ export default function LabEnrollmentActions({
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Rejection failed.");
       setSuccess("Application rejected.");
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -36,6 +36,7 @@ export default function AppointmentActions({
   patientPhone,
 }: Props) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [busy, setBusy] = useState<null | "CONFIRM" | "CANCEL" | "NO_SHOW">(null);
   const [error, setError] = useState<string | null>(null);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -58,7 +59,7 @@ export default function AppointmentActions({
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error || "Request failed");
       }
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message || "Something went wrong");
     } finally {
@@ -111,7 +112,7 @@ export default function AppointmentActions({
       }
       setRescheduleOpen(false);
       setReason("");
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message || "Something went wrong");
     } finally {

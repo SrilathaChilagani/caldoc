@@ -184,7 +184,7 @@ export default async function Home() {
               />
               <button
                 type="submit"
-                className="h-12 w-full rounded-xl bg-[#2f6ea5] px-6 text-sm font-medium text-white hover:bg-[#255b8b] sm:w-auto"
+                className="h-12 w-full rounded-xl bg-[#2f6ea5] px-6 text-sm font-semibold text-white hover:bg-[#255b8b] sm:w-auto"
               >
                 Find a doctor
               </button>
@@ -208,13 +208,13 @@ export default async function Home() {
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/services/rx-delivery"
-                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/60 bg-white/70 px-8 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/60 bg-white/70 px-8 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white"
               >
                 Pharmacy
               </Link>
               <Link
                 href="/services/labs-at-home"
-                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/60 bg-white/70 px-8 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/60 bg-white/70 px-8 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white"
               >
                 Labs
               </Link>
@@ -222,7 +222,7 @@ export default async function Home() {
 
             <a
               href="#specialties"
-              className="mt-10 hidden items-center gap-2 text-sm text-slate-600 transition-colors hover:text-[#2f6ea5] lg:inline-flex"
+              className="mt-10 hidden items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-[#2f6ea5] lg:inline-flex"
             >
               Discover More
               <span className="inline-flex h-5 w-5 items-center justify-center motion-safe:animate-bounce">
@@ -249,14 +249,14 @@ export default async function Home() {
       <section id="specialties" className="bg-[#f7f2ea]">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="mb-10 text-center">
-            <p className="text-xs uppercase tracking-[0.3em] text-[#2f6ea5]">Browse by specialty</p>
-            <h2 className="mt-2 font-serif text-3xl text-slate-900 md:text-4xl">Find the right care team</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Browse by specialty</p>
+            <h2 className="mt-2 font-serif text-3xl font-semibold text-slate-900 md:text-4xl">Find the right care team</h2>
             <p className="mt-2 text-sm text-slate-600">
               Choose a specialty to explore doctors that match your needs.
             </p>
             <Link
               href="/providers"
-              className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#2f6ea5] hover:gap-3"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#2f6ea5] hover:gap-3"
             >
               See all doctors →
             </Link>
@@ -317,7 +317,7 @@ export default async function Home() {
       <section id="doctors" className="bg-[#f7f2ea]">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="mb-10 text-center">
-            <h2 className="font-serif text-3xl text-slate-900 md:text-4xl">Meet Our Doctors</h2>
+            <h2 className="font-serif text-3xl font-semibold text-slate-900 md:text-4xl">Meet Our Doctors</h2>
             <p className="mt-2 text-sm text-slate-600">
               Expert healthcare professionals dedicated to your wellbeing
             </p>
@@ -350,17 +350,17 @@ export default async function Home() {
                     <span className="font-serif text-3xl font-semibold text-white">{initials}</span>
                   </div>
                   <div className="text-center">
-                    <h3 className="font-serif text-xl text-slate-900">{provider.name}</h3>
+                    <h3 className="font-serif text-xl font-semibold text-slate-900">{provider.name}</h3>
                     <p className="text-sm font-medium text-[#2f6ea5]">{provider.speciality}</p>
                     {provider.qualification && (
                       <p className="text-xs text-slate-500">{provider.qualification}</p>
                     )}
                     {languages && (
-                      <p className="mt-3 text-xs text-slate-600">Speaks: {languages}</p>
+                      <p className="mt-3 text-xs text-slate-500">Speaks: {languages}</p>
                     )}
                     <Link
                       href={href}
-                      className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[#2f6ea5]/10 px-4 py-2 text-sm font-medium text-[#2f6ea5] transition hover:bg-[#2f6ea5] hover:text-white"
+                      className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[#2f6ea5]/10 px-4 py-2 text-sm font-semibold text-[#2f6ea5] transition hover:bg-[#2f6ea5] hover:text-white"
                     >
                       Book Now
                     </Link>
@@ -372,7 +372,7 @@ export default async function Home() {
           <div className="mt-10 text-center">
             <Link
               href="/providers"
-              className="inline-flex items-center gap-2 text-sm font-medium text-[#2f6ea5] hover:gap-3"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[#2f6ea5] hover:gap-3"
             >
               View all doctors →
             </Link>
@@ -383,7 +383,7 @@ export default async function Home() {
       <section id="how-it-works" className="bg-[#f7f2ea]">
         <div className="container mx-auto grid gap-12 px-4 py-12 md:grid-cols-2 md:gap-16 md:py-16">
           <div>
-            <h2 className="font-serif text-3xl text-slate-900 md:text-4xl">
+            <h2 className="font-serif text-3xl font-semibold text-slate-900 md:text-4xl">
               Your journey to better health, <span className="text-[#2f6ea5]">simplified.</span>
             </h2>
             <p className="mt-4 text-base leading-relaxed text-slate-600">
@@ -445,7 +445,7 @@ export default async function Home() {
                 <div className="pt-1">
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-semibold tracking-[0.2em] text-[#2f6ea5]/70">{x.step}</span>
-                    <h3 className="font-serif text-xl text-slate-900">{x.title}</h3>
+                    <h3 className="font-serif text-xl font-semibold text-slate-900">{x.title}</h3>
                   </div>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600">{x.desc}</p>
                 </div>
@@ -458,7 +458,7 @@ export default async function Home() {
       <section id="testimonials" className="bg-[#f7f2ea]">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="mb-10 text-center">
-            <h2 className="font-serif text-3xl text-slate-900 md:text-4xl">What Our Patients Say</h2>
+            <h2 className="font-serif text-3xl font-semibold text-slate-900 md:text-4xl">What Our Patients Say</h2>
             <p className="mt-2 text-sm text-slate-600">Real stories from people who found care with CalDoc</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -512,7 +512,7 @@ export default async function Home() {
                   </div>
                   <div>
                     <div className="text-sm font-medium text-slate-900">{testimonial.name}</div>
-                    <div className="text-xs text-slate-600">{testimonial.location}</div>
+                    <div className="text-xs text-slate-500">{testimonial.location}</div>
                   </div>
                 </div>
               </div>

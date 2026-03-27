@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 const STATUSES = [
@@ -33,6 +33,7 @@ export default function LabStatusAction({
   currentStatus: string;
 }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(currentStatus);
   const [busy, setBusy] = useState(false);
@@ -53,7 +54,7 @@ export default function LabStatusAction({
         throw new Error(d.error || "Failed to update");
       }
       setOpen(false);
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message);
     } finally {

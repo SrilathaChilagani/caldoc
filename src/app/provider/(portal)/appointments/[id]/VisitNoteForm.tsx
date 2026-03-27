@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -11,6 +11,7 @@ type Props = {
 
 export default function VisitNoteForm({ appointmentId, initialText }: Props) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [note, setNote] = useState(initialText);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -30,7 +31,7 @@ export default function VisitNoteForm({ appointmentId, initialText }: Props) {
         throw new Error(data?.error || "Unable to save note");
       }
       setMessage("Note saved");
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setMessage(getErrorMessage(err));
     } finally {

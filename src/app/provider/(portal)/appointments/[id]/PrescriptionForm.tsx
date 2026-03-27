@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getErrorMessage } from "@/lib/errors";
 import {
@@ -46,6 +46,7 @@ function normalizeInitialMeds(initial: Medicine[]): Medicine[] {
 
 export default function PrescriptionForm({ appointmentId, initialMeds }: Props) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [meds, setMeds] = useState<Medicine[]>(normalizeInitialMeds(initialMeds));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -192,7 +193,7 @@ export default function PrescriptionForm({ appointmentId, initialMeds }: Props) 
         throw new Error(data?.error || "Unable to save prescription");
       }
       setMessage("Prescription saved");
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setMessage(getErrorMessage(err));
     } finally {

@@ -86,7 +86,7 @@ export default function RxDeliverySearchResults({ meds }: Props) {
       </div>
 
       {meds.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#e7e0d5] bg-white/70 px-6 py-8 text-sm text-slate-600">
+        <div className="py-8 text-sm text-slate-500">
           No medicines found. Try another name, composition, or strength.
         </div>
       ) : (

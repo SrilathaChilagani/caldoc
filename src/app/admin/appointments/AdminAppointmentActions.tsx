@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 type Slot = { id: string; startsAt: string; feePaise: number | null };
@@ -14,6 +14,7 @@ export default function AdminAppointmentActions({
   currentStatus: string;
 }) {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [open, setOpen] = useState<"cancel" | "reassign" | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +58,7 @@ export default function AdminAppointmentActions({
         throw new Error(d.error || "Failed to cancel");
       }
       setOpen(null);
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -80,7 +81,7 @@ export default function AdminAppointmentActions({
         throw new Error(d.error || "Failed to reassign");
       }
       setOpen(null);
-      router.refresh();
+      startTransition(() => router.refresh());
     } catch (err) {
       setError((err as Error).message);
     } finally {

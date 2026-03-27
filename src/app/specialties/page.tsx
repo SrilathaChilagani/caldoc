@@ -27,19 +27,19 @@ const specialties = [
 
 export default function SpecialtiesPage() {
   return (
-    <main className="bg-[#f7f9fc] py-16">
+    <main className="bg-[#f7f2ea] py-16">
       <div className="mx-auto w-full max-w-6xl space-y-8 px-4 sm:px-6 lg:px-10">
-        <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">Specialties</p>
-          <h1 className="mt-2 text-3xl font-semibold text-slate-900">Explore CalDoc’s specialty network</h1>
+        <div className="border-b border-slate-200 pb-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Specialties</p>
+          <h1 className="mt-2 font-serif text-3xl font-semibold text-slate-900">Explore CalDoc’s specialty network</h1>
           <p className="mt-3 text-sm text-slate-600">
             Every online visit is staffed by specialists registered in India. Browse the most-requested departments below.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-0 md:grid-cols-2">
           {specialties.map((spec) => (
-            <article key={spec.title} className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+            <article key={spec.title} className="border-b border-slate-200 py-6 md:px-4">
               <h2 className="text-xl font-semibold text-slate-900">{spec.title}</h2>
               <p className="mt-3 text-sm text-slate-600">{spec.description}</p>
             </article>
