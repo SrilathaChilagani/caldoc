@@ -128,7 +128,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-white text-gray-900">
       <section
-        className="relative -mt-16 min-h-screen overflow-hidden bg-[#f7f2ea]"
+        className="relative -mt-16 flex min-h-screen items-center overflow-hidden bg-[#f7f2ea]"
       >
         <div className="absolute inset-0">
           <Image
@@ -142,9 +142,9 @@ export default async function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#f7f2ea]/90 via-[#f7f2ea]/50 to-transparent" />
         </div>
 
-        <div className="relative container mx-auto px-6 py-32 lg:px-12">
-          <div className="max-w-2xl pt-[4.5rem] md:pt-[5.5rem]">
-            <h1 className="font-serif text-5xl font-normal leading-tight tracking-tight text-slate-900 md:text-6xl lg:text-7xl">
+        <div className="relative container mx-auto px-6 lg:px-12">
+          <div className="max-w-2xl pt-16">
+            <h1 className="font-serif font-normal leading-tight tracking-tight text-slate-900" style={{ fontSize: "clamp(2.25rem, 5vw, 4.5rem)" }}>
               Book your
               <br />
               <span className="text-[#2f6ea5]">teleconsultations</span>
