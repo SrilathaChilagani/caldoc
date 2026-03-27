@@ -333,7 +333,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
             <div className="flex-1 space-y-4 min-w-0">
 
               {/* Time slots */}
-              <div className="rounded-2xl border border-white/30 bg-white/70 p-3 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm sm:p-4">
+              <div className="py-2 sm:py-3">
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -379,7 +379,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
               </div>
 
               {/* Patient Details + Connection Preference */}
-              <div className="rounded-2xl border border-white/30 bg-white/70 p-3 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm space-y-4 sm:p-4">
+              <div className="space-y-6 border-t border-slate-200 pt-6">
 
                 {/* Patient Details */}
                 <div>
@@ -402,7 +402,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
                       <input
                         value={patientName}
                         onChange={(e) => setPatientName(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-200 bg-white/50 px-3 text-sm text-slate-800 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
+                        className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
                       />
                     </div>
                     <div>
@@ -486,7 +486,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
               </div>
 
               {/* Consent */}
-              <div className="rounded-2xl border border-white/30 bg-white/70 px-3 py-3 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm sm:px-4">
+              <div className="border-t border-slate-200 pt-6">
                 <label className="flex cursor-pointer items-start gap-3">
                   <input
                     type="checkbox"
@@ -514,7 +514,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
             <aside className="shrink-0 space-y-4 md:w-56 lg:w-72 xl:w-84 2xl:w-96">
 
               {/* Symptoms */}
-              <div className="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm">
+              <div>
                 <p className="text-sm font-semibold text-slate-900">Common symptoms</p>
                 <p className="mb-3 text-xs text-slate-500">Select all that apply.</p>
                 <div className="grid grid-cols-2 gap-2">
@@ -564,7 +564,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
               </div>
 
               {/* Notes */}
-              <div className="rounded-2xl border border-white/30 bg-white/70 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] backdrop-blur-sm">
+              <div className="border-t border-slate-200 pt-4">
                 <p className="mb-2 text-sm font-semibold text-slate-900">Notes (optional)</p>
                 <textarea
                   value={notes}
@@ -590,7 +590,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
       )}
 
       {step === "delivery" && (
-        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <section className="pt-4">
           <div className="flex flex-col gap-4">
             <div>
               <h2 className="font-serif text-xl font-semibold text-slate-900">Prescription delivery preference</h2>
@@ -702,7 +702,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
       )}
 
       {step === "pay" && appointmentId && (
-        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <section className="pt-4">
           <div className="flex flex-col gap-4">
             <div>
               <h2 className="font-serif text-xl font-semibold text-slate-900">Payment & confirmation</h2>
@@ -776,7 +776,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
       )}
 
       {step === "pay" && !appointmentId && (
-        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+        <section className="pt-4">
           <p className="text-sm text-slate-500">Lock a slot first to proceed to payment.</p>
         </section>
       )}
