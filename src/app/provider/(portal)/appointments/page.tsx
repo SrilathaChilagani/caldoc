@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { Prisma } from "@prisma/client";
 import { readProviderSession } from "@/lib/auth.server";
-import ProviderScheduleModal from "@/components/ProviderScheduleModal";
 import { IMAGES } from "@/lib/imagePaths";
 
 export const dynamic = "force-dynamic";
@@ -244,20 +243,6 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
                 </p>
               </div>
             </div>
-          <div className="flex gap-3">
-            <ProviderScheduleModal
-              label="Manage slots"
-              className="inline-flex items-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b]"
-            />
-            <form action="/provider/logout" method="post">
-              <button
-                type="submit"
-                className="inline-flex items-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-              >
-                Sign out
-              </button>
-            </form>
-          </div>
         </div>
 
         {upcomingAppointment && (
