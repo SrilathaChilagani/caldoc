@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
 import AdminAppointmentActions from "./AdminAppointmentActions";
+import AdminAppointmentFilters from "./AdminAppointmentFilters";
 
 export const dynamic = "force-dynamic";
 
@@ -115,69 +116,20 @@ export default async function AdminAppointmentsPage({
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">Status</label>
-          <div className="flex flex-wrap gap-1">
-            {["", "CONFIRMED", "PENDING", "CANCELLED", "RESCHEDULED", "NO_SHOW", "COMPLETED"].map((s) => (
-              <Link
-                key={s}
-                href={buildHref({ status: s, page: "1" })}
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  statusFilter === s
-                    ? "bg-[#2f6ea5] text-white"
-                    : "border border-slate-200 text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-                }`}
-              >
-                {s || "All"}
-              </Link>
-            ))}
-          </div>
-        </div>
-        {activeProviders.length > 0 && (
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">Provider</label>
-            <Link
-              href={buildHref({ provider: "", page: "1" })}
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                !providerFilter
-                  ? "bg-[#2f6ea5] text-white"
-                  : "border border-slate-200 text-slate-600 hover:border-[#2f6ea5]"
-              }`}
-            >
-              All
-            </Link>
-            {activeProviders.slice(0, 8).map((p) => (
-              <Link
-                key={p.id}
-                href={buildHref({ provider: p.id, page: "1" })}
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  providerFilter === p.id
-                    ? "bg-[#2f6ea5] text-white"
-                    : "border border-slate-200 text-slate-600 hover:border-[#2f6ea5]"
-                }`}
-              >
-                {p.name}
-              </Link>
-            ))}
-          </div>
-        )}
+      <div className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+        <AdminAppointmentFilters
+          statusFilter={statusFilter}
+          providerFilter={providerFilter}
+          providers={activeProviders}
+        />
       </div>
 
       {/* Table */}
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4">
           <p className="text-sm text-slate-500">
             Showing {appointments.length} of {total} appointments
           </p>
-          {providerFilter && (
-            <Link
-              href="/admin/appointments"
-              className="text-xs font-semibold text-[#2f6ea5] hover:underline"
-            >
-              Clear filters
-            </Link>
-          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
