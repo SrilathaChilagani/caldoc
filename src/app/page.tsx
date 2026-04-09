@@ -246,6 +246,53 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Features / Why Choose Us */}
+      <section className="bg-[#f7f2ea] py-16">
+        <div className="container mx-auto px-6 lg:px-16">
+          <div className="text-center mb-12">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#2f6ea5] mb-2">Why Choose Us</p>
+            <h2 className="font-serif text-3xl font-semibold text-slate-900 md:text-4xl">Healthcare where comfort meets care</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="rounded-2xl border border-white/70 bg-white/90 p-8 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2f6ea5]/10 text-[#2f6ea5]">
+                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <rect x="3" y="7" width="13" height="10" rx="2" />
+                  <path d="M16 10l5-3v10l-5-3" />
+                </svg>
+              </div>
+              <h3 className="font-serif text-xl font-semibold text-slate-900 mb-2">Video Consultations</h3>
+              <p className="text-sm leading-relaxed text-slate-600">
+                HD video calls with registered doctors from the comfort of your home. No waiting rooms, no commute.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/70 bg-white/90 p-8 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2f6ea5]/10 text-[#2f6ea5]">
+                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+              <h3 className="font-serif text-xl font-semibold text-slate-900 mb-2">Safe &amp; Secure</h3>
+              <p className="text-sm leading-relaxed text-slate-600">
+                Your health data is encrypted end-to-end. All doctors are NMC-registered with verified credentials.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/70 bg-white/90 p-8 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2f6ea5]/10 text-[#2f6ea5]">
+                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 6v6l4 2" />
+                </svg>
+              </div>
+              <h3 className="font-serif text-xl font-semibold text-slate-900 mb-2">Available 24/7</h3>
+              <p className="text-sm leading-relaxed text-slate-600">
+                Book appointments any time of day. Doctors available across time zones for rural and urban patients alike.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="specialties" className="bg-[#f7f2ea]">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="mb-10 text-center">

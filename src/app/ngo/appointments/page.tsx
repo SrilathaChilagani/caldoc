@@ -159,7 +159,7 @@ export default async function NgoAppointmentsPage({ searchParams }: PageProps) {
   ];
 
   const cardCls =
-    "rounded-2xl border border-white/30 bg-white/70 backdrop-blur-sm shadow-[0_4px_24px_rgba(47,110,165,0.08)] p-5";
+    "rounded-2xl border border-white/70 bg-white/90 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] p-5";
 
   const thCls = "px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500";
   const tdCls = "px-3 py-3 align-middle";
@@ -169,8 +169,8 @@ export default async function NgoAppointmentsPage({ searchParams }: PageProps) {
       {/* Header */}
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 pb-8 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">NGO dashboard</p>
-          <h1 className="mt-0.5 text-3xl font-semibold text-slate-900">{ngo?.name || "Your NGO"}</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">NGO portal</p>
+          <h1 className="mt-0.5 font-serif text-3xl font-semibold text-slate-900">{ngo?.name || "Your NGO"}</h1>
           <p className="mt-1 text-sm text-slate-600">Track every appointment booked under your programmes.</p>
           <p className="mt-0.5 text-xs text-slate-500">Showing reservations between {rangeLabel}</p>
         </div>

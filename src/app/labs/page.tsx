@@ -101,7 +101,8 @@ export default async function LabsDashboardPage() {
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="font-serif text-2xl font-semibold text-slate-900">Labs queue</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Lab portal</p>
+            <h1 className="font-serif text-2xl font-semibold text-slate-900">Lab Orders</h1>
             <p className="text-sm text-slate-500">
               Track lab orders, assign collection agents, and manage results.
             </p>
@@ -118,7 +119,7 @@ export default async function LabsDashboardPage() {
         </div>
         <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {kpis.map((k) => (
-            <div key={k.label} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+            <div key={k.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{k.label}</p>
               <p className={`mt-1 text-2xl font-semibold ${k.color}`}>{k.value}</p>
             </div>

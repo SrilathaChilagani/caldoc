@@ -25,3 +25,15 @@ body {
   color: #171717;
   font-family: var(--font-sans);
 }
+
+@layer utilities {
+  .glass {
+    @apply bg-white/80 backdrop-blur-sm border border-white/70;
+  }
+  .shadow-soft {
+    box-shadow: 0 4px 24px -4px rgba(88, 110, 132, 0.15);
+  }
+  .shadow-soft-lg {
+    box-shadow: 0 8px 40px -8px rgba(88, 110, 132, 0.22);
+  }
+}

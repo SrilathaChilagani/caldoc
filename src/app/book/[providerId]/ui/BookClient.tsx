@@ -330,7 +330,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-5 lg:gap-6">
 
             {/* Left column */}
-            <div className="flex-1 space-y-4 min-w-0">
+            <div className="flex-1 min-w-0 rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] space-y-4">
 
               {/* Time slots */}
               <div className="py-2 sm:py-3">
@@ -511,11 +511,11 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
             </div>
 
             {/* Right sidebar */}
-            <aside className="shrink-0 space-y-4 md:w-56 lg:w-72 xl:w-84 2xl:w-96">
+            <aside className="shrink-0 space-y-4 md:w-56 lg:w-72 xl:w-84 2xl:w-96 rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
 
               {/* Symptoms */}
               <div>
-                <p className="text-sm font-semibold text-slate-900">Common symptoms</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#2f6ea5] mb-1">Common symptoms</p>
                 <p className="mb-3 text-xs text-slate-500">Select all that apply.</p>
                 <div className="grid grid-cols-2 gap-2">
                   {SYMPTOM_OPTIONS.map((symptom) => {
@@ -565,7 +565,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
 
               {/* Notes */}
               <div className="border-t border-slate-200 pt-4">
-                <p className="mb-2 text-sm font-semibold text-slate-900">Notes (optional)</p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Notes (optional)</p>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -591,7 +591,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
 
       {step === "delivery" && (
         <section className="pt-4">
-          <div className="flex flex-col gap-4">
+          <div className="rounded-2xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] flex flex-col gap-4">
             <div>
               <h2 className="font-serif text-xl font-semibold text-slate-900">Prescription delivery preference</h2>
               <p className="text-sm text-slate-500">
@@ -703,7 +703,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
 
       {step === "pay" && appointmentId && (
         <section className="pt-4">
-          <div className="flex flex-col gap-4">
+          <div className="rounded-2xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] flex flex-col gap-4">
             <div>
               <h2 className="font-serif text-xl font-semibold text-slate-900">Payment & confirmation</h2>
               <p className="text-sm text-slate-500">

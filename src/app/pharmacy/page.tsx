@@ -158,7 +158,8 @@ export default async function PharmacyDashboardPage() {
     <>
       {/* Appointment fulfillment section */}
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
-        <h1 className="font-serif text-2xl font-semibold text-slate-900">Pharmacy queue</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Pharmacy portal</p>
+        <h1 className="font-serif text-2xl font-semibold text-slate-900">Fulfilment Queue</h1>
         <p className="text-sm text-slate-500">
           Track every appointment with the information you need to pack and dispatch prescriptions.
         </p>
@@ -171,7 +172,7 @@ export default async function PharmacyDashboardPage() {
             { label: "Delivered", value: statusCounts.DELIVERED },
             { label: "Waiting for Rx", value: awaitingPrescription },
           ].map((k) => (
-            <div key={k.label} className="rounded-2xl border border-white/70 bg-slate-50 p-4">
+            <div key={k.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{k.label}</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">{k.value}</p>
             </div>
