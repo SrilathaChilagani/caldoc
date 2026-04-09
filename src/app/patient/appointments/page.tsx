@@ -162,81 +162,129 @@ export default async function PatientAppointments(props: PageProps) {
     { label: "Pending", value: appointments.filter((a) => a.status === "PENDING").length },
   ];
 
+  const tabs = [
+    {
+      key: "appointments",
+      label: "Appointments",
+      href: urlPhone ? `/patient/appointments?phone=${urlPhone}` : "/patient/appointments",
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M7 3v4M17 3v4M3 11h18" />
+        </svg>
+      ),
+    },
+    {
+      key: "documents",
+      label: "Documents",
+      href: urlPhone ? `/patient/labs?phone=${urlPhone}` : "/patient/labs",
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M6 2h9l5 5v15a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" />
+          <path d="M14 2v5h5" />
+        </svg>
+      ),
+    },
+    {
+      key: "profile",
+      label: "Profile",
+      href: "/patient/profile",
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <div className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-10">
-      <div className="mx-auto max-w-5xl space-y-6 px-4">
+      <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6">
 
-        {/* Header card */}
-        <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#2f6ea5] text-2xl font-semibold text-white shadow-sm">
-                {photoSrc ? (
-                  <Image
-                    src={photoSrc}
-                    alt="Profile"
-                    width={64}
-                    height={64}
-                    unoptimized
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  (patient.name || "P").charAt(0).toUpperCase()
-                )}
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Patient portal</p>
-                <h1 className="font-serif text-3xl font-semibold text-slate-900">{patient.name || "Patient"}</h1>
-                <p className="text-sm font-mono text-slate-500">{patient.phone}</p>
-              </div>
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#2f6ea5] text-2xl font-semibold text-white shadow-sm">
+              {photoSrc ? (
+                <Image
+                  src={photoSrc}
+                  alt="Profile"
+                  width={56}
+                  height={56}
+                  unoptimized
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                (patient.name || "P").charAt(0).toUpperCase()
+              )}
             </div>
-            <div className="flex flex-wrap gap-3">
-              <PatientBookingModal
-                label="Book appointment"
-                path="/providers"
-                patientName={patient.name}
-                patientPhone={patient.phone}
-                className="inline-flex items-center justify-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b]"
-              />
-              <Link
-                href="/patient/profile"
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-              >
-                Profile
-              </Link>
-              <a
-                href="/api/patient/logout"
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-              >
-                Sign out
-              </a>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Patient portal</p>
+              <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">{patient.name || "Patient"}</h1>
+              <p className="text-sm font-mono text-slate-500">{patient.phone}</p>
             </div>
           </div>
-          <p className="mt-4 text-sm text-slate-500">
-            Review upcoming visits, download receipts, and share documents with your doctor before the call.
-          </p>
-          <PatientPortalNav active="appointments" phone={urlPhone || patient.phone} />
-
-          {/* Summary KPI cards */}
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {summary.map((item) => (
-              <div key={item.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 text-center shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">{item.label}</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">{item.value}</p>
-              </div>
-            ))}
+          <div className="flex flex-wrap items-center gap-3">
+            <PatientBookingModal
+              label="Book appointment"
+              path="/providers"
+              patientName={patient.name}
+              patientPhone={patient.phone}
+              className="inline-flex items-center justify-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b]"
+            />
+            <a
+              href="/api/patient/logout"
+              className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
+            >
+              Sign out
+            </a>
           </div>
         </div>
 
+        {/* Tab navigation */}
+        <div className="rounded-2xl border border-white/70 bg-white/90 p-3 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <div className="grid grid-cols-3 gap-2">
+            {tabs.map((tab) => {
+              const isActive = tab.key === "appointments";
+              return (
+                <Link
+                  key={tab.key}
+                  href={tab.href}
+                  className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-[#2f6ea5]/10 text-[#2f6ea5]"
+                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                  }`}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* KPI summary cards */}
+        <div className="grid gap-3 sm:grid-cols-3">
+          {summary.map((item) => (
+            <div key={item.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 text-center shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{item.label}</p>
+              <p className="mt-1 text-2xl font-semibold text-slate-900">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
         {err === "notfound" && (
-          <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             We couldn&apos;t find that appointment. Please pick another from the list below.
           </div>
         )}
 
-        {/* Appointments card with filter tabs */}
+        {/* Appointments card */}
         <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
-          <div className="mb-5 flex flex-wrap gap-2">
+          {/* Filter pills */}
+          <div className="mb-6 flex flex-wrap gap-2">
             {allowedFilters.map((filter) => (
               <Link
                 key={filter}
@@ -244,7 +292,7 @@ export default async function PatientAppointments(props: PageProps) {
                 className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
                   activeFilter === filter
                     ? "bg-[#2f6ea5] text-white shadow-sm"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-[#2f6ea5]/40 hover:text-[#2f6ea5]"
                 }`}
               >
                 {filter === "ALL"
@@ -256,12 +304,11 @@ export default async function PatientAppointments(props: PageProps) {
             ))}
           </div>
 
-          <div className="space-y-3">
+          {/* Appointment rows */}
+          <div className="divide-y divide-slate-100">
             {appointments.length === 0 && (
               <div className="py-10 text-center text-sm text-slate-500">
-                {activeFilter === "ALL"
-                  ? "No appointments found."
-                  : "No appointments found for this filter."}
+                {activeFilter === "ALL" ? "No appointments found." : "No appointments found for this filter."}
               </div>
             )}
 
@@ -273,10 +320,7 @@ export default async function PatientAppointments(props: PageProps) {
                   : `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/visit/${appt.id}`;
 
               return (
-                <div
-                  key={appt.id}
-                  className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
-                >
+                <div key={appt.id} className="py-5 first:pt-0 last:pb-0">
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
                       <p className="text-base font-semibold text-slate-900">
@@ -285,27 +329,30 @@ export default async function PatientAppointments(props: PageProps) {
                       <p className="text-xs text-slate-500">
                         {appt.provider?.speciality || "Teleconsultation"} · {formatIST(when)}
                       </p>
-                      <p className="text-xs text-slate-500">
-                        Patient: {appt.patientName || patient.name || "Patient"}
-                      </p>
+                      {appt.patientName && appt.patientName !== patient.name && (
+                        <p className="text-xs text-slate-400">For: {appt.patientName}</p>
+                      )}
                     </div>
                     <span
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                      className={`inline-flex items-center self-start rounded-full px-3 py-1 text-xs font-semibold md:self-auto ${
                         statusClasses[appt.status] || "bg-slate-100 text-slate-700"
                       }`}
                     >
-                      {appt.status}
+                      {appt.status === "CANCELED" ? "CANCELLED" : appt.status.replace("_", " ")}
                     </span>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     {visitUrl && (appt.status === "CONFIRMED" || appt.status === "PENDING") && (
                       <a
                         href={visitUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-full bg-[#2f6ea5] px-4 py-1.5 text-sm font-semibold text-white hover:bg-[#255b8b]"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[#2f6ea5] px-4 py-1.5 text-sm font-semibold text-white hover:bg-[#255b8b]"
                       >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="7" width="13" height="10" rx="2" /><path d="M16 10l5-3v10l-5-3" />
+                        </svg>
                         Join visit
                       </a>
                     )}
@@ -315,7 +362,7 @@ export default async function PatientAppointments(props: PageProps) {
                         path={`/book/${encodeURIComponent(appt.provider.slug || appt.provider.id)}?ref=patient-portal`}
                         patientName={appt.patientName || patient.name}
                         patientPhone={patient.phone}
-                        className="rounded-full border border-[#2f6ea5]/30 px-4 py-1.5 text-sm font-medium text-[#2f6ea5] hover:border-[#2f6ea5] hover:text-[#255b8b]"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[#2f6ea5]/30 px-4 py-1.5 text-sm font-medium text-[#2f6ea5] hover:border-[#2f6ea5]"
                       />
                     )}
                     {appt.prescription && (
@@ -323,8 +370,9 @@ export default async function PatientAppointments(props: PageProps) {
                         href={`/api/appointments/${appt.id}/prescription.pdf`}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
                       >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>
                         Prescription
                       </a>
                     )}
@@ -333,16 +381,18 @@ export default async function PatientAppointments(props: PageProps) {
                         href={appt.payment.receiptUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
                       >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
                         Receipt
                       </a>
                     )}
                     <Link
                       href={`/patient/appointments/${appt.id}`}
-                      className="rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
                     >
                       View details
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </Link>
                   </div>
                 </div>
@@ -350,7 +400,7 @@ export default async function PatientAppointments(props: PageProps) {
             })}
           </div>
 
-          <p className="mt-5 text-xs text-slate-500">Showing up to 100 of your most recent appointments.</p>
+          <p className="mt-5 text-xs text-slate-400">Showing up to 100 of your most recent appointments.</p>
         </div>
       </div>
 
