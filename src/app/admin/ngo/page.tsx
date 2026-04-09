@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
 import { formatINR } from "@/lib/format";
 import AdminNgoReservationActions from "../AdminNgoReservationActions";
+import AdminNgoFilters from "./AdminNgoFilters";
 
 export const dynamic = "force-dynamic";
 
@@ -113,47 +114,12 @@ export default async function AdminNgoPage({
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 mr-1">Status</span>
-          {["", "HELD", "CONFIRMED", "INVOICE_REQUESTED", "RELEASED", "CANCELLED"].map((s) => (
-            <Link
-              key={s}
-              href={buildHref({ status: s, page: "1" })}
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                statusFilter === s
-                  ? "bg-[#2f6ea5] text-white"
-                  : "border border-slate-200 text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-              }`}
-            >
-              {s || "All"}
-            </Link>
-          ))}
-        </div>
-        {ngos.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 mt-2 w-full">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 mr-1">NGO</span>
-            <Link
-              href={buildHref({ ngo: "", page: "1" })}
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                !ngoFilter ? "bg-[#2f6ea5] text-white" : "border border-slate-200 text-slate-600 hover:border-[#2f6ea5]"
-              }`}
-            >
-              All
-            </Link>
-            {ngos.map((n) => (
-              <Link
-                key={n.id}
-                href={buildHref({ ngo: n.id, page: "1" })}
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  ngoFilter === n.id ? "bg-[#2f6ea5] text-white" : "border border-slate-200 text-slate-600 hover:border-[#2f6ea5]"
-                }`}
-              >
-                {n.name}
-              </Link>
-            ))}
-          </div>
-        )}
+      <div className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+        <AdminNgoFilters
+          statusFilter={statusFilter}
+          ngoFilter={ngoFilter}
+          ngos={ngos}
+        />
       </div>
 
       {/* Table */}

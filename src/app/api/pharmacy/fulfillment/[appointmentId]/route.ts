@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requireAdminSession, requirePharmacySession } from "@/lib/auth.server";
 import { getErrorMessage } from "@/lib/errors";
 import { sendPharmacyUpdate } from "@/lib/sendPharmacyUpdate";
 import { logAudit } from "@/lib/audit";
@@ -17,7 +17,7 @@ type RouteContext = {
 
 export async function POST(req: NextRequest, ctx: RouteContext) {
   try {
-    const session = await requireAdminSession();
+    const session = (await requirePharmacySession()) ?? (await requireAdminSession());
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

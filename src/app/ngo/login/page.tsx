@@ -1,65 +1,71 @@
 import { redirect } from "next/navigation";
-import LoginForm from "@/app/provider/login/ui/LoginForm";
 import { readNgoSession } from "@/lib/auth.server";
+
+export const dynamic = "force-dynamic";
+
+type SearchParams = { next?: string; err?: string; logged_out?: string; uid?: string };
 
 export default async function NgoLoginPage({
   searchParams,
-}: { searchParams: Promise<{ next?: string; err?: string; logged_out?: string; uid?: string }> }) {
+}: { searchParams: Promise<SearchParams> }) {
   const session = await readNgoSession();
-  const sp = await searchParams;
-  const next = sp?.next || "/ngo/appointments";
-  const errorCode = sp?.err;
-  const loggedOut = !!sp?.logged_out;
-  const defaultEmail = sp?.uid;
-  const errorMessage =
-    errorCode === "creds"
+  const { next = "/ngo/appointments", err, uid } = (await searchParams) || {};
+
+  if (session) redirect(next);
+
+  const message =
+    err === "creds"
       ? "Invalid email or password."
-      : errorCode === "server"
+      : err === "server"
       ? "Unable to sign in right now. Please try again."
       : undefined;
 
-  if (session) {
-    redirect(next);
-  }
-
   return (
-    <main className="min-h-screen bg-[#f7f2ea] py-14">
-      <div className="mx-auto grid max-w-5xl items-center gap-10 px-6 md:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6 text-slate-800">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">NGO portal</p>
-          <h1 className="text-3xl font-semibold text-slate-900">Book and manage NGO appointments</h1>
-          <p className="text-base text-slate-600">
-            Hold slots in bulk, monitor confirmations, and download receipts or prescriptions for every beneficiary from a
-            single dashboard.
-          </p>
-          <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur">
-            <p className="text-sm font-semibold text-slate-800">What you can do</p>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
-              <li>Book blocks of appointments by specialty or provider</li>
-              <li>Track confirmations, reschedules, and pending slots</li>
-              <li>Download receipts and prescriptions for reporting</li>
-            </ul>
-          </div>
+    <main className="flex min-h-[80vh] items-center justify-center bg-[#f7f2ea] px-4 py-16">
+      <div className="w-full max-w-md space-y-6 rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
+        <div className="space-y-1 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">NGO portal</p>
+          <h1 className="text-2xl font-semibold text-slate-900">Sign in to your NGO account</h1>
+          <p className="text-sm text-slate-500">Use the credentials shared with your CalDoc partner manager.</p>
         </div>
-
-        <div className="rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-slate-900">Sign in to your NGO account</h2>
-            <p className="text-sm text-slate-500">Use the credentials shared with your CalDoc partner manager.</p>
-          </div>
-          <div className="mt-6 space-y-4">
-            <LoginForm
-              nextUrl={next}
-              loggedOut={loggedOut}
-              errorMessage={errorMessage}
-              defaultEmail={defaultEmail}
-              action="/api/ngo/login"
+        <form method="POST" action="/api/ngo/login" className="space-y-4">
+          <input type="hidden" name="next" value={next} />
+          {message && (
+            <div className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">{message}</div>
+          )}
+          <label className="block text-sm font-medium text-slate-700">
+            Email
+            <input
+              type="email"
+              name="email"
+              defaultValue={uid}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
+              required
             />
-            <p className="text-xs text-center text-slate-500">
-              Need help? Email <a href="mailto:support@caldoc.in" className="font-medium text-slate-700">support@caldoc.in</a>.
-            </p>
-          </div>
-        </div>
+          </label>
+          <label className="block text-sm font-medium text-slate-700">
+            Password
+            <input
+              type="password"
+              name="password"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#2f6ea5] focus:ring-2 focus:ring-[#2f6ea5]/20"
+              required
+            />
+          </label>
+          <button
+            type="submit"
+            className="w-full rounded-full bg-[#2f6ea5] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b]"
+          >
+            Sign in
+          </button>
+        </form>
+        <p className="text-center text-xs text-slate-500">
+          Need help? Email{" "}
+          <a href="mailto:support@caldoc.in" className="font-medium text-slate-700">
+            support@caldoc.in
+          </a>
+          .
+        </p>
       </div>
     </main>
   );

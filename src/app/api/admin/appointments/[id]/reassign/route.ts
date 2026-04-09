@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
+import { sendWhatsAppText } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,55 @@ export async function POST(
       },
     }),
   ]);
+
+  // Notify patient and new provider via WhatsApp (non-blocking)
+  const fullAppt = await prisma.appointment.findUnique({
+    where: { id },
+    select: {
+      patientName: true,
+      patient: { select: { name: true, phone: true } },
+      provider: { select: { name: true, phone: true } },
+      slot: { select: { startsAt: true } },
+    },
+  });
+
+  if (fullAppt) {
+    const patientName = fullAppt.patientName || fullAppt.patient?.name || "Patient";
+    const newProviderName = newProvider.name;
+    const slotTime = fullAppt.slot?.startsAt
+      ? new Date(fullAppt.slot.startsAt).toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          weekday: "short",
+          day: "2-digit",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : newSlot?.startsAt
+      ? new Date(newSlot.startsAt).toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          weekday: "short",
+          day: "2-digit",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "an updated slot";
+
+    const patientMsg = `Hi ${patientName}, your CalDoc appointment has been reassigned to ${newProviderName} (scheduled for ${slotTime}). Please log in to view your updated appointment details.`;
+    const providerMsg = `Hi ${newProviderName}, a new CalDoc appointment with patient ${patientName} has been assigned to you (scheduled for ${slotTime}). Please log in to your provider portal for details.`;
+
+    if (fullAppt.patient?.phone) {
+      sendWhatsAppText(fullAppt.patient.phone, patientMsg).catch((e) =>
+        console.error("[admin/reassign] patient WA failed:", e)
+      );
+    }
+    if (newProvider.phone) {
+      sendWhatsAppText(newProvider.phone, providerMsg).catch((e) =>
+        console.error("[admin/reassign] provider WA failed:", e)
+      );
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }
