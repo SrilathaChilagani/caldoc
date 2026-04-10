@@ -6,7 +6,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { MapPin } from "./MapView";
 
-
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -62,7 +61,7 @@ const languageLabels: Record<string, string> = {
 
 function formatFee(paise?: number | null) {
   if (!paise || paise <= 0) return null;
-  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(paise / 100);
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(paise / 100);
 }
 
 function formatDayLabel(dateStr: string) {
@@ -81,9 +80,23 @@ function formatSlotTime(isoStr: string) {
 
 const POPULAR_CITIES = ["Hyderabad", "Bangalore", "Mumbai", "Delhi", "Chennai", "Pune", "Kolkata"];
 
-// ── Provider Card with 7-day slot calendar ────────────────────────────
+const AVATAR_GRADIENTS = [
+  "from-[#4f7bba] to-[#3a6aa8]",
+  "from-[#43a890] to-[#2e8a74]",
+  "from-[#7b6fd4] to-[#6159bb]",
+  "from-[#d4756b] to-[#b85e55]",
+  "from-[#5aab8f] to-[#3d8f74]",
+  "from-[#e08a44] to-[#c8722f]",
+];
+
+function getInitials(name: string) {
+  return name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+}
+
+// ── Provider Card ─────────────────────────────────────────────────────
 function ProviderCard({
   provider,
+  index,
   onHover,
   active,
   patientName,
@@ -91,6 +104,7 @@ function ProviderCard({
   embed,
 }: {
   provider: Provider;
+  index: number;
   onHover: (id: string | null) => void;
   active: boolean;
   patientName?: string;
@@ -100,11 +114,20 @@ function ProviderCard({
   const [selectedDay, setSelectedDay] = useState(provider.days[0] ?? "");
   const photoUrl = provider.profilePhotoKey
     ? `/api/providers/${provider.slug}/photo?v=${encodeURIComponent(provider.profilePhotoKey)}`
-    : "/images/doc-placeholder.jpg";
+    : null;
 
   const primaryClinic = provider.clinics[0];
   const slotsForDay = (provider.slotsByDay[selectedDay] ?? []).slice(0, 5);
   const feeLabel = formatFee(provider.defaultFeePaise);
+  const initials = getInitials(provider.name);
+  const gradient = AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length];
+  const hasInPerson = provider.visitModes.includes("IN_PERSON") || provider.clinics.length > 0;
+
+  const allSlots = provider.days
+    .flatMap((d) => provider.slotsByDay[d] ?? [])
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  const nextSlot = allSlots[0];
+  const nextSlotLabel = nextSlot ? formatSlotTime(nextSlot.startsAt) : null;
 
   function withPrefill(href: string) {
     if (!patientName && !patientPhone && !embed) return href;
@@ -115,72 +138,96 @@ function ProviderCard({
     return `${url.pathname}${url.search}`;
   }
 
-  const hasInPerson = provider.visitModes.includes("IN_PERSON") || provider.clinics.length > 0;
+  const bookHref = withPrefill(`/book/${encodeURIComponent(provider.slug || provider.id)}`);
 
   return (
     <article
       onMouseEnter={() => onHover(provider.id)}
       onMouseLeave={() => onHover(null)}
-      className={`rounded-2xl border bg-white p-5 transition-all duration-200 ${
+      className={`rounded-2xl border bg-white transition-all duration-200 ${
         active
           ? "border-[#2f6ea5] shadow-[0_4px_20px_-4px_rgba(47,110,165,0.25)]"
-          : "border-[#e7e0d5]/60 hover:shadow-[0_4px_20px_-4px_rgba(88,110,132,0.12)]"
+          : "border-slate-200 hover:shadow-[0_4px_16px_-4px_rgba(88,110,132,0.15)]"
       }`}
     >
-      {/* Top: photo + info */}
-      <div className="flex items-start gap-4">
-        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-          <Image src={photoUrl} alt={provider.name} fill className="object-cover" sizes="64px" />
+      {/* Main row */}
+      <div className="flex items-start gap-4 p-5">
+        {/* Avatar */}
+        <div className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+          {photoUrl ? (
+            <Image src={photoUrl} alt={provider.name} fill className="object-cover" sizes="64px" />
+          ) : (
+            <span className="text-xl font-bold text-white">{initials}</span>
+          )}
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div>
-              <p className="font-semibold text-slate-900">{provider.name}</p>
-              <p className="text-sm font-medium text-[#2f6ea5]">{provider.speciality}</p>
-              {provider.qualification && (
-                <p className="text-xs text-slate-500">{provider.qualification}</p>
-              )}
-              {provider.languages.length > 0 && (
-                <p className="mt-0.5 text-xs text-slate-500">
-                  {provider.languages.map((l) => languageLabels[l.toLowerCase()] ?? l).join(", ")}
-                </p>
-              )}
-            </div>
-            <div className="text-right shrink-0">
-              {feeLabel && <p className="text-sm font-semibold text-slate-700">{feeLabel}</p>}
-              <div className="mt-1 flex flex-wrap gap-1 justify-end">
-                {hasInPerson && (
-                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
-                    In-person
-                  </span>
-                )}
-                {provider.visitModes.includes("VIDEO") && (
-                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
-                    Video
-                  </span>
-                )}
-                {provider.is24x7 && (
-                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 border border-amber-200">
-                    24×7
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
 
-          {/* Clinic address */}
-          {primaryClinic && (
-            <p className="mt-1.5 text-xs text-slate-500">
-              📍 {primaryClinic.clinicName}, {primaryClinic.addressLine1}, {primaryClinic.city}
+        {/* Info */}
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-slate-900">{provider.name}</p>
+          <p className="text-sm font-semibold text-[#2f6ea5]">{provider.speciality}</p>
+          {provider.qualification && (
+            <p className="mt-0.5 text-xs text-slate-500">{provider.qualification}</p>
+          )}
+          {provider.languages.length > 0 && (
+            <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
+              </svg>
+              {provider.languages.map((l) => languageLabels[l.toLowerCase()] ?? l).join(", ")}
             </p>
           )}
+          {feeLabel && (
+            <p className="mt-1 text-xs text-slate-600">
+              Consultation fee: <span className="font-semibold">{feeLabel}</span>
+            </p>
+          )}
+          {primaryClinic && (
+            <p className="mt-0.5 text-xs text-slate-400">📍 {primaryClinic.clinicName}, {primaryClinic.city}</p>
+          )}
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {provider.is24x7 && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+                </svg>
+                Available 24×7
+              </span>
+            )}
+            {hasInPerson && (
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                In-person
+              </span>
+            )}
+            {provider.visitModes.includes("VIDEO") && (
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                Video
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* NEXT AVAILABILITY + Book */}
+        <div className="flex shrink-0 flex-col items-end gap-3 pl-2">
+          <div className="text-right">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Next Availability</p>
+            {nextSlotLabel ? (
+              <p className="mt-0.5 text-sm font-semibold text-slate-700">{nextSlotLabel}</p>
+            ) : (
+              <p className="mt-0.5 text-sm text-slate-400">No slots open</p>
+            )}
+          </div>
+          <Link
+            href={bookHref}
+            className="whitespace-nowrap rounded-xl bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#255b8b]"
+          >
+            Book doctor
+          </Link>
         </div>
       </div>
 
       {/* 7-day slot calendar */}
-      <div className="mt-4">
-        {/* Day picker */}
-        <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-thin">
+      <div className="border-t border-slate-100 px-5 pb-4 pt-3">
+        <div className="flex gap-1 overflow-x-auto pb-1">
           {provider.days.map((day) => {
             const { day: d, date } = formatDayLabel(day);
             const count = (provider.slotsByDay[day] ?? []).length;
@@ -189,12 +236,10 @@ function ProviderCard({
               <button
                 key={day}
                 onClick={() => setSelectedDay(day)}
-                className={`flex min-w-[56px] flex-col items-center rounded-xl px-2 py-1.5 text-center transition-all ${
-                  isSelected
-                    ? "bg-[#2f6ea5] text-white"
-                    : count > 0
-                    ? "border border-slate-200 bg-white text-slate-700 hover:border-[#2f6ea5]/40"
-                    : "border border-slate-100 bg-slate-50 text-slate-400 cursor-default"
+                className={`flex min-w-[54px] flex-col items-center rounded-xl px-2 py-1.5 text-center transition-all ${
+                  isSelected ? "bg-[#2f6ea5] text-white"
+                  : count > 0 ? "border border-slate-200 bg-white text-slate-700 hover:border-[#2f6ea5]/40"
+                  : "border border-slate-100 bg-slate-50 text-slate-400 cursor-default"
                 }`}
                 disabled={count === 0}
               >
@@ -209,28 +254,26 @@ function ProviderCard({
             );
           })}
         </div>
-
-        {/* Slots for selected day */}
         {slotsForDay.length > 0 ? (
           <div className="mt-2 flex flex-wrap gap-2">
             {slotsForDay.map((slot) => (
               <Link
                 key={slot.id}
                 href={withPrefill(`/book/${encodeURIComponent(provider.slug || provider.id)}?slot=${slot.id}&mode=${hasInPerson && !provider.visitModes.includes("VIDEO") ? "IN_PERSON" : "VIDEO"}`)}
-                className="rounded-lg border border-[#2f6ea5]/30 bg-[#e7edf3] px-3 py-1 text-xs font-semibold text-[#2f6ea5] hover:border-[#2f6ea5]/60 hover:bg-[#d9e4ee] transition-colors"
+                className="rounded-lg border border-[#2f6ea5]/30 bg-[#e7edf3] px-3 py-1 text-xs font-semibold text-[#2f6ea5] transition-colors hover:border-[#2f6ea5]/60 hover:bg-[#d9e4ee]"
               >
                 {formatSlotTime(slot.startsAt)}
               </Link>
             ))}
             <Link
-              href={withPrefill(`/book/${encodeURIComponent(provider.slug || provider.id)}`)}
-              className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-slate-300 transition-colors"
+              href={bookHref}
+              className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-300"
             >
               More →
             </Link>
           </div>
         ) : (
-          <p className="mt-2 text-xs text-slate-500">No slots available for this day</p>
+          <p className="mt-2 text-xs text-slate-400">No slots available for this day</p>
         )}
       </div>
     </article>
@@ -263,27 +306,6 @@ export default function ProvidersClient({
   const [showMap, setShowMap] = useState(false);
   const [isPending, startTransition] = useTransition();
   const abortRef = useRef<AbortController | null>(null);
-
-  // Filter dropdown state
-  const [openFilter, setOpenFilter] = useState<"specialty" | "mode" | "more" | null>(null);
-  // Draft state (applied on "Apply" click)
-  const [draftSpecialty, setDraftSpecialty] = useState(initialSpecialty);
-  const [draftMode, setDraftMode] = useState(initialMode);
-  const [draftLanguage, setDraftLanguage] = useState("");
-  const [draftIs24x7, setDraftIs24x7] = useState(false);
-
-  const filterRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdowns on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-        setOpenFilter(null);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
 
   const fetchProviders = useCallback(
     (params: { city: string; specialty: string; mode: string; language: string; is24x7: boolean; q: string; page: number }) => {
@@ -327,42 +349,13 @@ export default function ProvidersClient({
     fetchProviders({ city, specialty, mode, language, is24x7, q, page: 1 });
   }
 
-  function applySpecialty() {
-    setSpecialty(draftSpecialty);
-    setPage(1);
-    setOpenFilter(null);
-  }
-  function applyMode() {
-    setMode(draftMode);
-    setPage(1);
-    setOpenFilter(null);
-  }
-  function applyMore() {
-    setLanguage(draftLanguage);
-    setIs24x7(draftIs24x7);
-    setPage(1);
-    setOpenFilter(null);
+  function clearAllFilters() {
+    setSpecialty(""); setMode(""); setLanguage(""); setIs24x7(false); setPage(1);
   }
 
-  function openSpecialty() {
-    setDraftSpecialty(specialty);
-    setOpenFilter(openFilter === "specialty" ? null : "specialty");
-  }
-  function openMode() {
-    setDraftMode(mode);
-    setOpenFilter(openFilter === "mode" ? null : "mode");
-  }
-  function openMore() {
-    setDraftLanguage(language);
-    setDraftIs24x7(is24x7);
-    setOpenFilter(openFilter === "more" ? null : "more");
-  }
+  const hasActiveFilters = !!(specialty || mode || language || is24x7);
 
-  const modeLabel = mode === "IN_PERSON" ? "In-person" : mode === "VIDEO" ? "Video" : "In-person/Video";
-  const langLabel = language ? (languageLabels[language] ?? language) : "Language";
-  const moreActive = !!language || is24x7;
-
-  // Build map pins
+  // Map pins
   const mapPins: MapPin[] = [];
   for (const p of providers) {
     for (const c of p.clinics) {
@@ -380,273 +373,246 @@ export default function ProvidersClient({
   const totalPages = Math.ceil(total / 12);
 
   return (
-    <div className="bg-[#f7f2ea] min-h-screen">
-      {/* ── Search + filter bar ── */}
-      <div className="sticky top-0 z-30 border-b border-[#e7e0d5] bg-[#f7f2ea]/95 backdrop-blur-sm shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 py-3">
-          {/* Row 1: search inputs */}
-          <form onSubmit={handleSearch} className="flex flex-wrap gap-2 items-center">
-            <div className="relative flex-1 min-w-[180px]">
-              <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+    <div className="min-h-screen bg-gray-100">
+
+      {/* ── Hero — pulls behind transparent header via -mt-16 ── */}
+      <div className="relative -mt-16 overflow-hidden bg-slate-800" style={{ minHeight: 320 }}>
+        <Image
+          src="/images/hero-doctor-2.jpg"
+          alt="Find a doctor"
+          fill
+          className="object-cover object-top"
+          sizes="100vw"
+          priority
+        />
+        {/* left fade so text is readable */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/50 to-transparent" />
+        {/* bottom fade blends hero into the content section below */}
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-gray-100 to-transparent" />
+
+        {/* content — padded top to clear the header (pt-20 = 16px header + 4px gap) */}
+        <div className="relative px-8 pb-10 pt-24 lg:px-16 xl:px-24">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            Back to home
+          </Link>
+          <h1 className="mt-3 text-4xl font-bold text-slate-900">Find a doctor</h1>
+
+          <form onSubmit={handleSearch} className="mt-5 flex max-w-2xl items-center gap-2">
+            <div className="relative flex-1">
+              <svg className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+              </svg>
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Condition, doctor name, specialty…"
-                className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
+                placeholder="Search specialties, doctor names, symptoms, or registration number"
+                className="h-12 w-full rounded-xl border-0 bg-white pl-11 pr-4 text-sm shadow-md focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]"
               />
             </div>
             <div className="relative">
-              <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
               <input
                 list="city-options"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="City"
-                className="h-10 w-40 rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
+                className="h-12 w-32 rounded-xl border-0 bg-white px-3 text-sm shadow-md focus:outline-none focus:ring-2 focus:ring-[#2f6ea5]"
               />
               <datalist id="city-options">
                 {POPULAR_CITIES.map((c) => <option key={c} value={c} />)}
               </datalist>
             </div>
-            <button type="submit" className="h-10 rounded-xl bg-[#2f6ea5] px-6 text-sm font-semibold text-white hover:bg-[#255b8b] transition-colors">
+            <button
+              type="submit"
+              className="h-12 rounded-xl bg-[#2f6ea5] px-7 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#255b8b]"
+            >
               Search
             </button>
-            <button type="button" onClick={() => setShowMap((v) => !v)} className="ml-auto h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 lg:hidden">
+          </form>
+        </div>
+      </div>
+
+      {/* ── 3-column layout ── */}
+      <div className="flex gap-0 items-start mx-6 lg:mx-16 xl:mx-24 mt-6 mb-8">
+
+        {/* ── Left: Filters sidebar ── */}
+        <aside className="hidden w-56 shrink-0 self-start sticky top-0 lg:block bg-gray-100 min-h-screen px-5 py-6">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-semibold text-slate-900">Filters</h2>
+            {hasActiveFilters && (
+              <button type="button" onClick={clearAllFilters} className="text-sm font-semibold text-[#2f6ea5] hover:underline">
+                Clear all
+              </button>
+            )}
+          </div>
+
+          {/* AVAILABILITY */}
+          <div className="mb-5">
+            <p className="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Availability</p>
+            <div className="space-y-2.5">
+              {[
+                { label: "Any time", value: false },
+                { label: "Available 24×7", value: true },
+              ].map(({ label, value }) => (
+                <label key={label} className="flex cursor-pointer items-center gap-2.5">
+                  <input type="radio" name="availability" checked={is24x7 === value}
+                    onChange={() => { setIs24x7(value); setPage(1); }} className="accent-[#2f6ea5]" />
+                  <span className="text-sm text-slate-700">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* CONSULTATION TYPE */}
+          <div className="mb-5 border-t border-slate-100 pt-4">
+            <p className="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Consultation Type</p>
+            <div className="space-y-2.5">
+              {[
+                { label: "All types", value: "" },
+                { label: "Audio Call", value: "AUDIO" },
+                { label: "Video Call", value: "VIDEO" },
+                { label: "In-person", value: "IN_PERSON" },
+              ].map(({ label, value }) => (
+                <label key={label} className="flex cursor-pointer items-center gap-2.5">
+                  <input type="radio" name="mode" checked={mode === value}
+                    onChange={() => { setMode(value); setPage(1); }} className="accent-[#2f6ea5]" />
+                  <span className="text-sm text-slate-700">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* SPECIALTY */}
+          <div className="mb-5 border-t border-slate-100 pt-4">
+            <p className="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Specialty</p>
+            <div className="max-h-52 space-y-2.5 overflow-y-auto pr-1">
+              <label className="flex cursor-pointer items-center gap-2.5">
+                <input type="radio" name="specialty" checked={specialty === ""}
+                  onChange={() => { setSpecialty(""); setPage(1); }} className="accent-[#2f6ea5]" />
+                <span className="text-sm text-slate-700">Any specialty</span>
+              </label>
+              {specialtyOptions.map((sp) => (
+                <label key={sp} className="flex cursor-pointer items-center gap-2.5">
+                  <input type="radio" name="specialty" checked={specialty === sp}
+                    onChange={() => { setSpecialty(sp); setPage(1); }} className="accent-[#2f6ea5]" />
+                  <span className="text-sm text-slate-700">{sp}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* LANGUAGE */}
+          <div className="border-t border-slate-100 pt-4">
+            <p className="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Language</p>
+            <div className="max-h-44 space-y-2.5 overflow-y-auto pr-1">
+              {[
+                { value: "", label: "Any language" },
+                { value: "en", label: "English" },
+                { value: "hi", label: "Hindi" },
+                { value: "te", label: "Telugu" },
+                { value: "ta", label: "Tamil" },
+                { value: "ur", label: "Urdu" },
+                { value: "bn", label: "Bengali" },
+                { value: "mr", label: "Marathi" },
+              ].map(({ value, label }) => (
+                <label key={value} className="flex cursor-pointer items-center gap-2.5">
+                  <input type="radio" name="language" checked={language === value}
+                    onChange={() => { setLanguage(value); setPage(1); }} className="accent-[#2f6ea5]" />
+                  <span className="text-sm text-slate-700">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* ── Center: Provider list ── */}
+        <div className="min-w-0 flex-1 bg-gray-100 px-5 py-6">
+          {/* Mobile controls */}
+          <div className="mb-3 flex items-center justify-between lg:hidden">
+            <button type="button" onClick={() => setShowMap((v) => !v)}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
               {showMap ? "Hide map" : "Show map"}
             </button>
-          </form>
-
-          {/* Row 2: filter chips */}
-          <div ref={filterRef} className="relative mt-2.5 flex flex-wrap gap-2">
-            {/* Specialty */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={openSpecialty}
-                className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
-                  specialty ? "border-[#2f6ea5] bg-[#2f6ea5] text-white" : "border-slate-300 bg-white text-slate-700 hover:border-[#2f6ea5]/50"
-                }`}
-              >
-                {specialty || "Specialty"}
-                <svg className={`h-3.5 w-3.5 transition-transform ${openFilter === "specialty" ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              {openFilter === "specialty" && (
-                <div className="absolute left-0 top-full mt-1 z-50 w-72 rounded-2xl border border-slate-200 bg-white shadow-xl">
-                  <div className="max-h-72 overflow-y-auto p-3">
-                    <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-slate-400">All specialties</p>
-                    <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
-                      <input type="radio" name="specialty" checked={draftSpecialty === ""} onChange={() => setDraftSpecialty("")} className="accent-[#2f6ea5]" />
-                      <span className="text-sm font-medium text-slate-700">Any specialty</span>
-                    </label>
-                    {specialtyOptions.map((sp) => (
-                      <label key={sp} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
-                        <input type="radio" name="specialty" checked={draftSpecialty === sp} onChange={() => setDraftSpecialty(sp)} className="accent-[#2f6ea5]" />
-                        <span className="text-sm font-medium text-slate-700">{sp}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
-                    <button type="button" onClick={() => { setDraftSpecialty(""); }} className="text-sm font-semibold text-slate-500 hover:text-slate-700">Clear</button>
-                    <button type="button" onClick={applySpecialty} className="rounded-full bg-[#2f6ea5] px-5 py-1.5 text-sm font-semibold text-white hover:bg-[#255b8b]">Apply</button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* In-person / Video */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={openMode}
-                className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
-                  mode ? "border-[#2f6ea5] bg-[#2f6ea5] text-white" : "border-slate-300 bg-white text-slate-700 hover:border-[#2f6ea5]/50"
-                }`}
-              >
-                {modeLabel}
-                <svg className={`h-3.5 w-3.5 transition-transform ${openFilter === "mode" ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              {openFilter === "mode" && (
-                <div className="absolute left-0 top-full mt-1 z-50 w-56 rounded-2xl border border-slate-200 bg-white shadow-xl">
-                  <div className="p-3">
-                    {[
-                      { value: "", label: "All modes" },
-                      { value: "IN_PERSON", label: "In-person" },
-                      { value: "VIDEO", label: "Video consultation" },
-                    ].map(({ value, label }) => (
-                      <label key={value} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-slate-50">
-                        <input type="radio" name="mode" checked={draftMode === value} onChange={() => setDraftMode(value)} className="accent-[#2f6ea5]" />
-                        <span className="text-sm font-medium text-slate-700">{label}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
-                    <button type="button" onClick={() => setDraftMode("")} className="text-sm font-semibold text-slate-500 hover:text-slate-700">Clear</button>
-                    <button type="button" onClick={applyMode} className="rounded-full bg-[#2f6ea5] px-5 py-1.5 text-sm font-semibold text-white hover:bg-[#255b8b]">Apply</button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 24×7 toggle chip */}
-            <button
-              type="button"
-              onClick={() => { setIs24x7((v) => !v); setPage(1); }}
-              className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
-                is24x7 ? "border-[#2f6ea5] bg-[#2f6ea5] text-white" : "border-slate-300 bg-white text-slate-700 hover:border-[#2f6ea5]/50"
-              }`}
-            >
-              24×7
-            </button>
-
-            {/* More filters */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={openMore}
-                className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ${
-                  moreActive ? "border-[#2f6ea5] bg-[#2f6ea5] text-white" : "border-slate-300 bg-white text-slate-700 hover:border-[#2f6ea5]/50"
-                }`}
-              >
-                More filters
-                {moreActive && <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white/30 text-[10px] font-bold">{[language, is24x7].filter(Boolean).length}</span>}
-              </button>
-              {openFilter === "more" && (
-                <div className="absolute left-0 top-full mt-1 z-50 w-72 rounded-2xl border border-slate-200 bg-white shadow-xl">
-                  <div className="p-4">
-                    <p className="mb-3 text-base font-semibold text-slate-900">More filters</p>
-
-                    {/* Language */}
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Language</p>
-                    <div className="space-y-1">
-                      {[
-                        { value: "", label: "Any language" },
-                        { value: "en", label: "English" },
-                        { value: "hi", label: "Hindi" },
-                        { value: "te", label: "Telugu" },
-                        { value: "ta", label: "Tamil" },
-                        { value: "ur", label: "Urdu" },
-                        { value: "bn", label: "Bengali" },
-                        { value: "mr", label: "Marathi" },
-                      ].map(({ value, label }) => (
-                        <label key={value} className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
-                          <input type="radio" name="language" checked={draftLanguage === value} onChange={() => setDraftLanguage(value)} className="accent-[#2f6ea5]" />
-                          <span className="text-sm font-medium text-slate-700">{label}</span>
-                        </label>
-                      ))}
-                    </div>
-
-                    {/* Availability */}
-                    <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Availability</p>
-                    <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
-                      <input type="checkbox" checked={draftIs24x7} onChange={(e) => setDraftIs24x7(e.target.checked)} className="accent-[#2f6ea5]" />
-                      <span className="text-sm font-medium text-slate-700">Available 24×7</span>
-                    </label>
-                  </div>
-                  <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
-                    <button type="button" onClick={() => { setDraftLanguage(""); setDraftIs24x7(false); }} className="text-sm font-semibold text-slate-500 hover:text-slate-700">Clear all</button>
-                    <button type="button" onClick={applyMore} className="rounded-full bg-[#2f6ea5] px-5 py-1.5 text-sm font-semibold text-white hover:bg-[#255b8b]">Apply</button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Active filter summary badge */}
-            {(specialty || mode || language || is24x7) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSpecialty(""); setMode(""); setLanguage(""); setIs24x7(false);
-                  setDraftSpecialty(""); setDraftMode(""); setDraftLanguage(""); setDraftIs24x7(false);
-                  setPage(1);
-                }}
-                className="flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-600 whitespace-nowrap hover:bg-red-100 transition-colors"
-              >
+            {hasActiveFilters && (
+              <button type="button" onClick={clearAllFilters} className="text-sm font-semibold text-rose-600">
                 Clear filters ×
               </button>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* ── Main content: list + map ── */}
-      <div className="mx-auto max-w-7xl px-4 py-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+          <p className={`mb-3 text-sm text-slate-500 transition-opacity ${isPending ? "opacity-50" : ""}`}>
+            {total} provider{total !== 1 ? "s" : ""} found
+            {city ? ` in ${city}` : ""}
+            {specialty ? ` · ${specialty}` : ""}
+            {mode === "IN_PERSON" ? " · In-person" : mode === "VIDEO" ? " · Video" : mode === "AUDIO" ? " · Audio" : ""}
+            {language ? ` · ${languageLabels[language] ?? language}` : ""}
+            {is24x7 ? " · 24×7" : ""}
+          </p>
 
-          {/* Provider list */}
-          <div className="min-w-0 flex-1">
-            <p className={`mb-3 text-sm text-slate-500 transition-opacity ${isPending ? "opacity-50" : ""}`}>
-              {total} provider{total !== 1 ? "s" : ""} found
-              {city ? ` in ${city}` : ""}
-              {specialty ? ` · ${specialty}` : ""}
-              {mode === "IN_PERSON" ? " · In-person" : mode === "VIDEO" ? " · Video" : ""}
-              {language ? ` · ${languageLabels[language] ?? language}` : ""}
-              {is24x7 ? " · 24×7" : ""}
-            </p>
-
-            <div className={`space-y-3 transition-opacity ${isPending ? "opacity-60 pointer-events-none" : ""}`}>
-              {providers.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-[#e7e0d5] bg-white/60 px-6 py-16 text-center">
-                  <p className="text-slate-500">No providers found. Try changing the city or removing filters.</p>
-                  {mode === "IN_PERSON" && (
-                    <p className="mt-2 text-xs text-slate-400">In-person providers are added as clinics are onboarded.</p>
-                  )}
-                </div>
-              ) : (
-                providers.map((p) => (
-                  <ProviderCard
-                    key={p.id}
-                    provider={p}
-                    onHover={setActivePin}
-                    active={activePin === p.id}
-                    patientName={patientName}
-                    patientPhone={patientPhone}
-                    embed={embed}
-                  />
-                ))
-              )}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-center gap-2">
-                {page > 1 && (
-                  <button onClick={() => setPage((p) => p - 1)} className="rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]">
-                    ← Prev
-                  </button>
-                )}
-                <span className="text-xs text-slate-400">Page {page} of {totalPages}</span>
-                {page < totalPages && (
-                  <button onClick={() => setPage((p) => p + 1)} className="rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]">
-                    Next →
-                  </button>
+          <div className={`space-y-4 transition-opacity ${isPending ? "opacity-60 pointer-events-none" : ""}`}>
+            {providers.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
+                <p className="text-slate-500">No providers found. Try changing the city or removing filters.</p>
+                {mode === "IN_PERSON" && (
+                  <p className="mt-2 text-xs text-slate-400">In-person providers are added as clinics are onboarded.</p>
                 )}
               </div>
+            ) : (
+              providers.map((p, i) => (
+                <ProviderCard
+                  key={p.id}
+                  provider={p}
+                  index={i}
+                  onHover={setActivePin}
+                  active={activePin === p.id}
+                  patientName={patientName}
+                  patientPhone={patientPhone}
+                  embed={embed}
+                />
+              ))
             )}
           </div>
 
-          {/* Map — hidden on mobile by default, full-width when toggled; sidebar on desktop */}
-          <div
-            className={`lg:sticky lg:top-[148px] lg:block lg:w-[420px] lg:shrink-0 ${showMap ? "block" : "hidden lg:block"}`}
-          >
-            <div className="h-[50vh] rounded-2xl overflow-hidden border border-slate-200 shadow-sm lg:h-[calc(100vh-168px)]">
-              <MapView
-                pins={mapPins}
-                activeId={activePin}
-                onPinClick={setActivePin}
-                city={city}
-              />
-              {mapPins.length === 0 && (
-                <div className="absolute inset-0 flex items-end justify-center pb-6 pointer-events-none">
-                  <div className="rounded-xl bg-white/90 px-4 py-2 text-xs text-slate-500 shadow backdrop-blur-sm">
-                    {mode === "IN_PERSON"
-                      ? "Add clinic locations in admin to see map pins"
-                      : "Map pins appear for in-person providers with clinic addresses"}
-                  </div>
-                </div>
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-2">
+              {page > 1 && (
+                <button onClick={() => setPage((p) => p - 1)}
+                  className="rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]">
+                  ← Prev
+                </button>
+              )}
+              <span className="text-xs text-slate-400">Page {page} of {totalPages}</span>
+              {page < totalPages && (
+                <button onClick={() => setPage((p) => p + 1)}
+                  className="rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]">
+                  Next →
+                </button>
               )}
             </div>
+          )}
+        </div>
+
+        {/* ── Right: Map — sticky, full viewport height ── */}
+        <div className={`lg:sticky lg:top-0 lg:block lg:w-[380px] lg:shrink-0 ${showMap ? "block" : "hidden lg:block"}`}>
+          <div className="h-screen overflow-hidden rounded-xl">
+            <MapView pins={mapPins} activeId={activePin} onPinClick={setActivePin} city={city} />
+            {mapPins.length === 0 && (
+              <div className="absolute inset-0 flex items-end justify-center pb-6 pointer-events-none">
+                <div className="rounded-xl bg-white/90 px-4 py-2 text-xs text-slate-500 shadow backdrop-blur-sm">
+                  {mode === "IN_PERSON"
+                    ? "Add clinic locations in admin to see map pins"
+                    : "Map pins appear for in-person providers with clinic addresses"}
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
       </div>
     </div>
   );
