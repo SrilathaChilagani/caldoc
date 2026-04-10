@@ -296,7 +296,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
       : `${address.contactName || patientName} · ${address.line1 || "No address"}`;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6 lg:px-10 xl:px-16 2xl:px-20">
+    <div className="w-full px-6 lg:px-16 xl:px-24">
       <Link
         href="/providers"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
@@ -330,10 +330,11 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-5 lg:gap-6">
 
             {/* Left column */}
-            <div className="flex-1 min-w-0 rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] space-y-4">
+            <div className="flex-1 min-w-0 space-y-6">
 
               {/* Time slots */}
-              <div className="py-2 sm:py-3">
+              <div>
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Available Slots</h3>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -379,7 +380,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
               </div>
 
               {/* Patient Details + Connection Preference */}
-              <div className="space-y-6 border-t border-slate-200 pt-6">
+              <div className="space-y-6">
 
                 {/* Patient Details */}
                 <div>
@@ -486,7 +487,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
               </div>
 
               {/* Consent */}
-              <div className="border-t border-slate-200 pt-6">
+              <div>
                 <label className="flex cursor-pointer items-start gap-3">
                   <input
                     type="checkbox"
@@ -507,11 +508,11 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
                 </label>
               </div>
 
-              {error && <p className="text-sm text-rose-600">{error}</p>}
+              {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
             </div>
 
             {/* Right sidebar */}
-            <aside className="shrink-0 space-y-4 md:w-56 lg:w-72 xl:w-84 2xl:w-96 rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+            <aside className="shrink-0 space-y-6 md:w-56 lg:w-72 xl:w-84 2xl:w-96">
 
               {/* Symptoms */}
               <div>
@@ -564,7 +565,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
               </div>
 
               {/* Notes */}
-              <div className="border-t border-slate-200 pt-4">
+              <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Notes (optional)</p>
                 <textarea
                   value={notes}
@@ -591,7 +592,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
 
       {step === "delivery" && (
         <section className="pt-4">
-          <div className="rounded-2xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             <div>
               <h2 className="font-serif text-xl font-semibold text-slate-900">Prescription delivery preference</h2>
               <p className="text-sm text-slate-500">
@@ -703,7 +704,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
 
       {step === "pay" && appointmentId && (
         <section className="pt-4">
-          <div className="rounded-2xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             <div>
               <h2 className="font-serif text-xl font-semibold text-slate-900">Payment & confirmation</h2>
               <p className="text-sm text-slate-500">

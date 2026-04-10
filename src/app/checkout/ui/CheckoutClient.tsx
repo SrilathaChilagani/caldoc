@@ -138,7 +138,7 @@ export default function CheckoutClient({ appointmentId, amount }: Props) {
   }, [appointmentId, amount, runKey]);
 
   return (
-    <div className="mt-6 rounded-2xl border border-white/60 bg-white/50 px-4 py-4 text-sm text-slate-600 backdrop-blur-sm">
+    <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600">
       <p className="font-medium text-slate-700">Status: {status}</p>
       {error ? (
         <p className="mt-2 text-rose-600">{error}</p>

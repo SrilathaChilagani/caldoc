@@ -57,8 +57,8 @@ export default function EmergencyBookingPage() {
   const summarySymptoms = symptoms.length > 0 ? symptoms.join(", ") : null;
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-6xl px-4 py-10 lg:px-8">
+    <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
+      <div className="w-full px-6 lg:px-16 xl:px-24">
 
         {/* Back link */}
         <Link
