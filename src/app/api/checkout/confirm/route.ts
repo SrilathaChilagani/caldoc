@@ -89,11 +89,51 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     }
 
-    if (!appointment.slotId) {
-      return NextResponse.json({ error: "Slot missing for appointment" }, { status: 400 });
+    const isEmergency = appointment.status === "EMERGENCY_PENDING" || !appointment.slotId;
+
+    if (isEmergency) {
+      // ── Emergency appointment: no slot, mark payment captured and keep EMERGENCY_PENDING ──
+      await prisma.$transaction(async (tx) => {
+        await tx.payment.update({
+          where: { orderId },
+          data: {
+            status: "CAPTURED",
+            paymentRef: paymentId,
+            receiptUrl: `/api/payments/${orderId}/receipt`,
+          },
+        });
+        // Status stays EMERGENCY_PENDING so admin can see and assign a doctor
+        await tx.appointment.update({
+          where: { id: appointmentId },
+          data: {
+            statusHistory: {
+              create: {
+                fromStatus: appointment.status,
+                toStatus: "EMERGENCY_PENDING",
+                actorType: "SYSTEM",
+                reason: "Payment captured — awaiting doctor assignment",
+              },
+            },
+          },
+        });
+      });
+
+      // Send WhatsApp alert to patient (fire-and-forget)
+      if (appointment.patient?.phone) {
+        const { sendWhatsAppText } = await import("@/lib/whatsapp");
+        const baseUrl = appBaseUrl();
+        const trackUrl = `${baseUrl}/patient/appointments/${appointmentId}`;
+        const firstName = (appointment.patientName || appointment.patient.name || "there").split(" ")[0];
+        sendWhatsAppText(
+          appointment.patient.phone,
+          `✅ Payment confirmed!\n\nHi ${firstName}, your emergency consultation payment has been received. One of our doctors will reach out to you within 5 minutes.\n\nTrack your appointment:\n${trackUrl}\n\n— CalDoc Team`
+        ).catch((err) => console.error("[confirm] emergency WhatsApp failed:", err));
+      }
+
+      return NextResponse.json({ ok: true });
     }
 
-    const slotId = appointment.slotId;
+    const slotId = appointment.slotId!;
 
     await prisma.$transaction(async (tx) => {
       await tx.payment.update({
