@@ -1,0 +1,5 @@
+caldoc-app/
+backups/
+backup.sql
+caldoc/
+.git/

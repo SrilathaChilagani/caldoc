@@ -60,6 +60,7 @@ export default function CheckoutClient({ appointmentId, amount }: Props) {
   const searchParams = useSearchParams();
   const embedParam = (searchParams.get("embed") || "").trim();
   const isEmbed = embedParam === "1" || embedParam === "true";
+  const returnTo = searchParams.get("returnTo") || null;
 
   useEffect(() => {
     async function startPayment() {
@@ -107,7 +108,9 @@ export default function CheckoutClient({ appointmentId, amount }: Props) {
                 throw new Error(err?.error || "Failed to confirm payment");
               }
               setStatus("success");
-              window.location.href = `/visit/${appointmentId}${isEmbed ? "?embed=1" : ""}`;
+              window.location.href = returnTo
+                ? returnTo
+                : `/visit/${appointmentId}${isEmbed ? "?embed=1" : ""}`;
             } catch (err) {
               const message = err instanceof Error ? err.message : "Payment confirm failed";
               setStatus("error");
