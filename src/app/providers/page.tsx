@@ -2,7 +2,14 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import ProvidersClient from "./ProvidersClient";
 
-export const dynamic = "force-dynamic";
+// Cache provider results by the combination of filters — 60s TTL, 12s stale window
+function getCachedProviders(key: string, fn: () => Promise<unknown>) {
+  return unstable_cache(fn, [key], { revalidate: 60 })();
+}
+
+// Cache the page for 60 seconds — providers/slots change rarely enough
+// that a 1-minute stale window dramatically cuts DB load and TTFB.
+export const revalidate = 60;
 
 // Cache specialty list (changes rarely)
 const getCachedSpecialties = unstable_cache(
@@ -58,29 +65,35 @@ export default async function ProvidersPage({ searchParams }: { searchParams?: S
 
   const whereClause = { AND: andClauses };
 
+  const cacheKey = `providers:${city}:${specialty}:${mode}:${q}:1`;
+
   const [rawProviders, specialtyList, total] = await Promise.all([
-    prisma.provider.findMany({
-      where: whereClause,
-      orderBy: { name: "asc" },
-      take: 12,
-      select: {
-        id: true, slug: true, name: true, speciality: true, qualification: true,
-        languages: true, is24x7: true, defaultFeePaise: true, profilePhotoKey: true, visitModes: true,
-        clinics: {
-          where: clinicWhere,
-          select: { id: true, clinicName: true, addressLine1: true, addressLine2: true, city: true, state: true, pincode: true, lat: true, lng: true, phone: true },
-          take: 3,
+    getCachedProviders(cacheKey, () =>
+      prisma.provider.findMany({
+        where: whereClause,
+        orderBy: { name: "asc" },
+        take: 12,
+        select: {
+          id: true, slug: true, name: true, speciality: true, qualification: true,
+          languages: true, is24x7: true, defaultFeePaise: true, profilePhotoKey: true, visitModes: true,
+          clinics: {
+            where: clinicWhere,
+            select: { id: true, clinicName: true, addressLine1: true, addressLine2: true, city: true, state: true, pincode: true, lat: true, lng: true, phone: true },
+            take: 3,
+          },
+          slots: {
+            where: { isBooked: false, startsAt: { gte: now, lt: windowEnd } },
+            orderBy: { startsAt: "asc" },
+            select: { id: true, startsAt: true },
+            take: 35, // 5 slots × 7 days is plenty; was 100
+          },
         },
-        slots: {
-          where: { isBooked: false, startsAt: { gte: now, lt: windowEnd } },
-          orderBy: { startsAt: "asc" },
-          select: { id: true, startsAt: true },
-          take: 100,
-        },
-      },
-    }),
+      })
+    ) as ReturnType<typeof prisma.provider.findMany>,
     getCachedSpecialties(),
-    prisma.provider.count({ where: whereClause }),
+    getCachedProviders(`${cacheKey}:count`, () =>
+      prisma.provider.count({ where: whereClause })
+    ) as ReturnType<typeof prisma.provider.count>,
   ]);
 
   // Build slotsByDay buckets for each provider
