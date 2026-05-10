@@ -157,7 +157,7 @@ export default async function PharmacyDashboardPage() {
   return (
     <>
       {/* Appointment fulfillment section */}
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Pharmacy portal</p>
         <h1 className="font-serif text-2xl font-semibold text-slate-900">Fulfilment Queue</h1>
         <p className="text-sm text-slate-500">
@@ -172,7 +172,7 @@ export default async function PharmacyDashboardPage() {
             { label: "Delivered", value: statusCounts.DELIVERED },
             { label: "Waiting for Rx", value: awaitingPrescription },
           ].map((k) => (
-            <div key={k.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+            <div key={k.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 ">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{k.label}</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">{k.value}</p>
             </div>
@@ -180,7 +180,7 @@ export default async function PharmacyDashboardPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] space-y-4">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6  space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-serif text-lg font-semibold text-slate-900">Recent appointments</h2>
           <p className="text-xs text-slate-500">Showing the last {appointmentRows.length} bookings.</p>
@@ -281,7 +281,7 @@ export default async function PharmacyDashboardPage() {
       </section>
 
       {/* Ad-hoc Rx orders with supply chain tracking */}
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] space-y-4">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6  space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-serif text-lg font-semibold text-slate-900">Ad-hoc Rx delivery orders</h2>

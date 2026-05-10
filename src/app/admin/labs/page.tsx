@@ -121,7 +121,7 @@ export default async function AdminLabsPage({
       {/* KPI strip */}
       <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
         {kpis.map((k) => (
-          <div key={k.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <div key={k.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 ">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">{k.label}</p>
             <p className="mt-1 text-2xl font-semibold text-slate-900">{k.value}</p>
           </div>
@@ -129,7 +129,7 @@ export default async function AdminLabsPage({
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+      <div className="flex flex-wrap gap-2 rounded-2xl border border-white/70 bg-white/90 p-4 ">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-400 mr-1">Status</span>
           {["", "PENDING", "AWAITING_PAYMENT", "CONFIRMED", "SAMPLE_COLLECTED", "PROCESSING", "REPORTS_READY", "COMPLETED", "CANCELLED"].map((s) => (
@@ -165,7 +165,7 @@ export default async function AdminLabsPage({
       </div>
 
       {/* Table */}
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <p className="mb-4 text-sm text-slate-500">Showing {orders.length} of {total} orders</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

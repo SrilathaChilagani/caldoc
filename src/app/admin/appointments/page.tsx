@@ -108,7 +108,7 @@ export default async function AdminAppointmentsPage({
       {/* KPI strip */}
       <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
         {kpis.map((k) => (
-          <div key={k.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <div key={k.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 ">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">{k.label}</p>
             <p className={`mt-1 text-2xl font-semibold ${k.color}`}>{k.value}</p>
           </div>
@@ -116,7 +116,7 @@ export default async function AdminAppointmentsPage({
       </div>
 
       {/* Filters */}
-      <div className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+      <div className="rounded-2xl border border-white/70 bg-white/90 p-4 ">
         <AdminAppointmentFilters
           statusFilter={statusFilter}
           providerFilter={providerFilter}
@@ -125,7 +125,7 @@ export default async function AdminAppointmentsPage({
       </div>
 
       {/* Table */}
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <div className="mb-4">
           <p className="text-sm text-slate-500">
             Showing {appointments.length} of {total} appointments

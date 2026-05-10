@@ -109,7 +109,7 @@ export default async function AdminPatientsPage({ searchParams }: PageProps) {
       </form>
 
       {/* Table */}
-      <section className="rounded-3xl border border-white/70 bg-white/90 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] overflow-hidden">
+      <section className="rounded-3xl border border-white/70 bg-white/90  overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="border-b border-slate-100">

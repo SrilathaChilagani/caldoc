@@ -46,7 +46,7 @@ export default function ProviderSettingsPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] space-y-4"
+        className="rounded-3xl border border-white/70 bg-white/90 p-6  space-y-4"
       >
         <div>
           <label className="text-sm font-semibold text-slate-700">Current password</label>

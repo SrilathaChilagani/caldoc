@@ -124,7 +124,7 @@ export default async function AdminEnrollmentsPage({
       </div>
 
       {/* Table */}
-      <div className="rounded-3xl border border-white/70 bg-white/90 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] overflow-hidden">
+      <div className="rounded-3xl border border-white/70 bg-white/90  overflow-hidden">
         {enrollments.length === 0 ? (
           <div className="py-16 text-center text-slate-400">
             No {filterStatus !== "ALL" ? filterStatus.toLowerCase() : ""} enrollments found.

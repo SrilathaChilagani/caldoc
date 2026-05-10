@@ -173,7 +173,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         </span>
       </div>
 
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <h1 className="font-serif text-2xl font-semibold text-slate-900">Visit details</h1>
         <p className="text-sm text-slate-500">
           Review the booking, confirm it for the patient, or cancel if needed.
@@ -300,7 +300,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         )}
       </section>
 
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-serif text-lg font-semibold text-slate-900">Patient documents</h2>
@@ -342,7 +342,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
       </section>
 
       {/* ── Pre-visit check-in form ── */}
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="font-serif text-lg font-semibold text-slate-900">Pre-visit check-in</h2>
@@ -381,7 +381,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         )}
       </section>
 
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <h2 className="font-serif text-lg font-semibold text-slate-900">Visit notes</h2>
         <p className="text-sm text-slate-500">Share clinical notes with the patient portal.</p>
         {readOnly ? (
@@ -395,7 +395,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         )}
       </section>
 
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-serif text-lg font-semibold text-slate-900">Prescription</h2>
@@ -436,7 +436,7 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
         )}
       </section>
 
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <h2 className="font-serif text-lg font-semibold text-slate-900">Labs</h2>
         <p className="text-sm text-slate-500">
           Choose whether CalDoc labs or the patient will handle tests, then list the required panels.

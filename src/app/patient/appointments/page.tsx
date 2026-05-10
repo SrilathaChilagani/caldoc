@@ -69,7 +69,7 @@ export default async function PatientAppointments(props: PageProps) {
 
   if (!last10) {
     return (
-      <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-12">
+      <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
         <div className="mx-auto max-w-3xl space-y-4 px-4 text-slate-700">
           <h1 className="font-serif text-3xl font-semibold text-slate-900">Patient portal</h1>
           <p>
@@ -98,7 +98,7 @@ export default async function PatientAppointments(props: PageProps) {
 
   if (!patient) {
     return (
-      <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-12">
+      <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
         <div className="mx-auto max-w-3xl space-y-4 px-4 text-slate-700">
           <h1 className="font-serif text-3xl font-semibold text-slate-900">Patient portal</h1>
           <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -199,7 +199,7 @@ export default async function PatientAppointments(props: PageProps) {
   ];
 
   return (
-    <div className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-10">
+    <div className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
       <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6">
 
         {/* Header */}
@@ -243,7 +243,7 @@ export default async function PatientAppointments(props: PageProps) {
         </div>
 
         {/* Tab navigation */}
-        <div className="rounded-2xl border border-white/70 bg-white/90 p-3 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+        <div className="rounded-2xl border border-white/70 bg-white/90 p-3 ">
           <div className="grid grid-cols-3 gap-2">
             {tabs.map((tab) => {
               const isActive = tab.key === "appointments";
@@ -268,7 +268,7 @@ export default async function PatientAppointments(props: PageProps) {
         {/* KPI summary cards */}
         <div className="grid gap-3 sm:grid-cols-3">
           {summary.map((item) => (
-            <div key={item.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 text-center shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+            <div key={item.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 text-center ">
               <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{item.label}</p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">{item.value}</p>
             </div>
@@ -282,7 +282,7 @@ export default async function PatientAppointments(props: PageProps) {
         )}
 
         {/* Appointments card */}
-        <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+        <div className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
           {/* Filter pills */}
           <div className="mb-6 flex flex-wrap gap-2">
             {allowedFilters.map((filter) => (

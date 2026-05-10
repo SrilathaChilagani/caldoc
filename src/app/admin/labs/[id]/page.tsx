@@ -143,7 +143,7 @@ export default async function AdminLabOrderDetailPage({ params }: PageProps) {
         {/* Left column */}
         <div className="space-y-6 lg:col-span-2">
           {/* Patient info */}
-          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-lg font-semibold text-slate-900">Patient</h2>
               {order.appointment?.id && (
@@ -191,7 +191,7 @@ export default async function AdminLabOrderDetailPage({ params }: PageProps) {
 
           {/* Address */}
           {(address || addressIssues.length > 0) && (
-            <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+            <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
               <h2 className="font-serif text-lg font-semibold text-slate-900">
                 {order.deliveryMode === "HOME" ? "Home visit address" : "Delivery address"}
               </h2>
@@ -250,7 +250,7 @@ export default async function AdminLabOrderDetailPage({ params }: PageProps) {
           )}
 
           {/* Tests */}
-          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-lg font-semibold text-slate-900">Tests ordered</h2>
               {order.amountPaise && (
@@ -284,7 +284,7 @@ export default async function AdminLabOrderDetailPage({ params }: PageProps) {
           </section>
 
           {/* Timeline */}
-          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
             <h2 className="font-serif text-lg font-semibold text-slate-900">Order timeline</h2>
             <p className="text-sm text-slate-500">All status transitions for this lab order.</p>
 
@@ -338,7 +338,7 @@ export default async function AdminLabOrderDetailPage({ params }: PageProps) {
 
         {/* Right column: update */}
         <div>
-          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
             <h2 className="font-serif text-lg font-semibold text-slate-900">Update order</h2>
             <p className="mb-4 text-sm text-slate-500">Change status, assign agent, or leave an internal note.</p>
             <LabOrderActions orderId={order.id} currentStatus={order.status} />

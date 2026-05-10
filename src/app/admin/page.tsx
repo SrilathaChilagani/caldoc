@@ -107,7 +107,7 @@ export default async function AdminDashboard() {
       {/* KPI strip */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         {kpis.map((k) => (
-          <div key={k.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <div key={k.label} className="rounded-2xl border border-white/70 bg-white/90 p-4 ">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">{k.label}</p>
             <p className="mt-1 text-2xl font-semibold text-slate-900">{k.value}</p>
             <p className="text-[11px] text-slate-400">{k.sub}</p>
@@ -124,7 +124,7 @@ export default async function AdminDashboard() {
             <Link
               key={card.href}
               href={card.href}
-              className="group relative overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-5 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] transition-shadow hover:shadow-[0_8px_30px_-4px_rgba(88,110,132,0.25)]"
+              className="group relative overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-5  transition-shadow hover:shadow-[0_8px_30px_-4px_rgba(88,110,132,0.25)]"
             >
               <div className={`mb-3 h-1.5 w-8 rounded-full ${card.bar}`} />
               <p className="font-semibold text-slate-900">{card.label}</p>
@@ -136,7 +136,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* NGO reservations */}
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="font-serif text-lg font-semibold text-slate-900">Recent NGO bookings</h2>
@@ -193,7 +193,7 @@ export default async function AdminDashboard() {
       </section>
 
       {/* Telephonic queue */}
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <div className="mb-4">
           <h2 className="font-serif text-lg font-semibold text-slate-900">Telephonic queue</h2>
           <p className="text-xs text-slate-500">Unresolved offline requests from low-bandwidth patients.</p>

@@ -44,7 +44,7 @@ export default async function PatientProfilePage() {
   };
 
   return (
-    <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-10">
+    <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
       <div className="mx-auto max-w-3xl space-y-6 px-4">
         <div className="pb-6">
           <div className="flex flex-col gap-3">

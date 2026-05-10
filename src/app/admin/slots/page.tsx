@@ -36,7 +36,7 @@ export default async function AdminSlotsPage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <form method="GET" className="flex flex-col gap-3 sm:flex-row mb-6">
           <input
             type="search"

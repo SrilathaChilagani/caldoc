@@ -70,15 +70,15 @@ export default async function AdminProvidersPage({
 
       {/* KPI + actions */}
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+        <div className="rounded-2xl border border-white/70 bg-white/90 p-4 ">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Active</p>
           <p className="mt-1 text-2xl font-semibold text-emerald-700">{totalActive}</p>
         </div>
-        <div className="rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+        <div className="rounded-2xl border border-white/70 bg-white/90 p-4 ">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Inactive</p>
           <p className="mt-1 text-2xl font-semibold text-slate-500">{totalInactive}</p>
         </div>
-        <div className="flex flex-col gap-2 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+        <div className="flex flex-col gap-2 rounded-2xl border border-white/70 bg-white/90 p-4 ">
           <Link
             href="/admin/providers/onboard"
             className="inline-flex items-center justify-center rounded-full bg-[#2f6ea5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]"
@@ -110,7 +110,7 @@ export default async function AdminProvidersPage({
           providers.map((p) => (
             <div
               key={p.id}
-              className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]"
+              className="rounded-3xl border border-white/70 bg-white/90 p-5 "
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">

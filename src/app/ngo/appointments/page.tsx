@@ -159,7 +159,7 @@ export default async function NgoAppointmentsPage({ searchParams }: PageProps) {
   ];
 
   const cardCls =
-    "rounded-2xl border border-white/70 bg-white/90 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)] p-5";
+    "rounded-2xl border border-white/70 bg-white/90  p-5";
 
   const thCls = "px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500";
   const tdCls = "px-3 py-3 align-middle";

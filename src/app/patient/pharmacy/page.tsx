@@ -63,7 +63,7 @@ export default async function PatientPharmacyPage(props: PageProps) {
 
   if (!last10) {
     return (
-      <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-12">
+      <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
         <div className="mx-auto max-w-3xl space-y-4 px-4 text-slate-700">
           <h1 className="font-serif text-3xl font-semibold text-slate-900">Patient portal</h1>
           <p>
@@ -93,7 +93,7 @@ export default async function PatientPharmacyPage(props: PageProps) {
 
   if (!patient) {
     return (
-      <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-12">
+      <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
         <div className="mx-auto max-w-3xl space-y-4 px-4 text-slate-700">
           <h1 className="font-serif text-3xl font-semibold text-slate-900">Patient portal</h1>
           <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -131,7 +131,7 @@ export default async function PatientPharmacyPage(props: PageProps) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-10">
+    <div className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
       <div className="mx-auto max-w-5xl space-y-8 px-4">
         <div className="pb-6 border-b border-slate-200 md:pb-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">

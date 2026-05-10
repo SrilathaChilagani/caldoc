@@ -110,7 +110,7 @@ export default async function PharmacyEnrollmentsPage({
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+      <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/90 ">
         {enrollments.length === 0 ? (
           <div className="py-16 text-center text-slate-400">
             No {filterStatus !== "ALL" ? filterStatus.toLowerCase() : ""} pharmacy enrollments found.

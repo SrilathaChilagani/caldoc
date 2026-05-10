@@ -85,7 +85,7 @@ export default function ProviderSchedule() {
       </Link>
       <h1 className="font-serif text-2xl font-semibold text-slate-900">Schedule builder</h1>
 
-      <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)]">
+      <div className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <div className="grid grid-cols-1 gap-4">
           {/* NEW: when we know the signed-in provider, show name & hide editable ID */}
           {providerName && providerId ? (

@@ -99,7 +99,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
         {/* Left column: patient, address, items */}
         <div className="space-y-6 lg:col-span-2">
           {/* Patient info */}
-          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
             <h2 className="font-serif text-lg font-semibold text-slate-900">Patient</h2>
             <dl className="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
@@ -124,7 +124,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
           </section>
 
           {/* Delivery address */}
-          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
             <h2 className="font-serif text-lg font-semibold text-slate-900">Delivery address</h2>
             {addressIssues.length > 0 && (
               <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
@@ -189,7 +189,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
           </section>
 
           {/* Items */}
-          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-lg font-semibold text-slate-900">Items</h2>
               <span className="text-sm font-semibold text-slate-900">{formatINR(order.amountPaise)}</span>
@@ -221,7 +221,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
           </section>
 
           {/* Supply chain timeline */}
-          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
             <h2 className="font-serif text-lg font-semibold text-slate-900">Order timeline</h2>
             <p className="text-sm text-slate-500">All status transitions and notes for this order.</p>
 
@@ -274,7 +274,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
 
         {/* Right column: update status */}
         <div className="space-y-6">
-          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+          <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
             <h2 className="font-serif text-lg font-semibold text-slate-900">Update order</h2>
             <p className="mb-4 text-sm text-slate-500">Change status, add tracking info, or leave an internal note.</p>
             <RxOrderActions orderId={order.id} currentStatus={order.status} />
@@ -282,7 +282,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
 
           {/* Rx document */}
           {order.rxDocumentKey && (
-            <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
+            <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
               <h2 className="font-serif text-lg font-semibold text-slate-900">Prescription document</h2>
               <p className="mt-1 text-sm text-slate-500">{order.rxDocumentName ?? "Attached file"}</p>
               <Link

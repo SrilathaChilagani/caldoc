@@ -32,7 +32,7 @@ export default async function OnboardPharmacyPartner() {
       <form
         method="POST"
         action="/api/admin/pharmacy-partners"
-        className="space-y-5 rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]"
+        className="space-y-5 rounded-3xl border border-white/70 bg-white/90 p-6 "
       >
         {/* Basic info */}
         <div>
