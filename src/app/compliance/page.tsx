@@ -35,7 +35,7 @@ export default function CompliancePage() {
             </li>
             <li>
               <strong>Patient identification.</strong> Patients provide their name and mobile number during booking;
-              identity is further verified through WhatsApp OTP login to access the patient portal.
+              identity is further verified through SMS OTP login to access the patient portal.
             </li>
             <li>
               <strong>Explicit informed consent.</strong> A mandatory consent checkbox is presented before every

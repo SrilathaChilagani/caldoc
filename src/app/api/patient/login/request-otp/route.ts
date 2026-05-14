@@ -1,21 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { buildPatientPhoneMeta } from "@/lib/phone";
-import { sendWhatsAppTemplate } from "@/lib/whatsapp";
+import { sendVerificationSms } from "@/lib/twilioVerify";
 import { getErrorMessage } from "@/lib/errors";
 import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS, signPatientSession } from "@/lib/patientAuth.server";
 
-const OTP_TEMPLATE = process.env.WHATSAPP_TEMPLATE_PATIENT_LOGIN || "patient_login_otp";
-const OTP_TTL_MINUTES = Number(process.env.PATIENT_OTP_TTL_MINUTES || 5);
+const OTP_TTL_MINUTES = Number(process.env.PATIENT_OTP_TTL_MINUTES || 10);
 const RESEND_WINDOW_SECONDS = Number(process.env.PATIENT_OTP_RESEND_SECONDS || 60);
-// Set SKIP_PATIENT_OTP=true in dev/staging to bypass WhatsApp. Default: false (OTP enabled).
 const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true";
-
-function generateOtp() {
-  return String(Math.floor(100000 + Math.random() * 900000));
-}
 
 export async function POST(req: Request) {
   try {
@@ -30,12 +23,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Enter a valid phone number with country code (e.g. +91 for India, +1 for US)" }, { status: 400 });
     }
 
-    const patient = await prisma.patient.findUnique({
-      where: { phone: meta.canonical },
-    });
+    const patient = await prisma.patient.findUnique({ where: { phone: meta.canonical } });
 
     if (SKIP_OTP) {
-      // Auto-register if first time
       let p = patient;
       if (!p) {
         p = await prisma.patient.create({
@@ -56,14 +46,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, skip: true, redirect: nextPath });
     }
 
-    const now = new Date();
-    const existing = await prisma.patientOtp.findFirst({
-      where: { phoneCanonical: meta.canonical },
+    // Rate-limit using the most recent send attempt logged in OutboundMessage
+    const lastSend = await prisma.outboundMessage.findFirst({
+      where: { channel: "SMS", kind: "OTP", toPhone: meta.canonical },
       orderBy: { createdAt: "desc" },
     });
-
-    if (existing) {
-      const secondsSinceLast = (now.getTime() - existing.lastSentAt.getTime()) / 1000;
+    if (lastSend) {
+      const secondsSinceLast = (Date.now() - lastSend.createdAt.getTime()) / 1000;
       if (secondsSinceLast < RESEND_WINDOW_SECONDS) {
         const wait = Math.ceil(RESEND_WINDOW_SECONDS - secondsSinceLast);
         return NextResponse.json(
@@ -73,60 +62,36 @@ export async function POST(req: Request) {
       }
     }
 
-    const otp = generateOtp();
-    const otpHash = await bcrypt.hash(otp, 10);
-    const expiresAt = new Date(now.getTime() + OTP_TTL_MINUTES * 60 * 1000);
-
-    await prisma.patientOtp.create({
-      data: {
-        ...(patient ? { patientId: patient.id } : {}),
-        phoneRaw: phoneInput,
-        phoneCanonical: meta.canonical,
-        last10: meta.last10,
-        otpHash,
-        expiresAt,
-        lastSentAt: now,
-      },
-    });
-
-    let sentMessageId: string | null = null;
-
     try {
-      const waResult = await sendWhatsAppTemplate({
-        to: meta.canonical,
-        template: OTP_TEMPLATE,
-        vars: [otp, String(OTP_TTL_MINUTES)],
-      });
-      sentMessageId = waResult?.messageId ?? null;
-    } catch (waErr) {
-      const errMsg = waErr instanceof Error ? waErr.message : String(waErr);
-      console.warn("[OTP] WhatsApp send failed:", errMsg);
+      const result = await sendVerificationSms(meta.canonical);
       await prisma.outboundMessage.create({
         data: {
-          channel: "WHATSAPP",
+          channel: "SMS",
           kind: "OTP",
           toPhone: meta.canonical,
-          template: OTP_TEMPLATE,
+          template: "twilio_verify",
+          status: "SENT",
+          messageId: result.sid,
+        },
+      }).catch(() => {});
+    } catch (twErr) {
+      const errMsg = twErr instanceof Error ? twErr.message : String(twErr);
+      console.warn("[OTP] Twilio Verify send failed:", errMsg);
+      await prisma.outboundMessage.create({
+        data: {
+          channel: "SMS",
+          kind: "OTP",
+          toPhone: meta.canonical,
+          template: "twilio_verify",
           status: "FAILED",
           error: errMsg,
         },
       }).catch(() => {});
       return NextResponse.json(
-        { error: "Could not send WhatsApp OTP. Please use the Email tab to sign in instead." },
+        { error: "Could not send SMS OTP. Please try again in a moment." },
         { status: 503 }
       );
     }
-
-    await prisma.outboundMessage.create({
-      data: {
-        channel: "WHATSAPP",
-        kind: "OTP",
-        toPhone: meta.canonical,
-        template: OTP_TEMPLATE,
-        status: "SENT",
-        messageId: sentMessageId,
-      },
-    }).catch(() => {});
 
     return NextResponse.json({
       ok: true,

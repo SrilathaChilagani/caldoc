@@ -99,7 +99,7 @@ export default function LoginScreen({ navigation, route }: Props) {
 
   async function handleOtpVerify() {
     if (!otp.trim() || otp.trim().length < 4) {
-      Alert.alert('Invalid OTP', 'Enter the 6-digit code sent to your WhatsApp.');
+      Alert.alert('Invalid OTP', 'Enter the 6-digit code sent to your mobile.');
       return;
     }
     setLoading(true);
@@ -240,12 +240,12 @@ export default function LoginScreen({ navigation, route }: Props) {
 
         <Text style={styles.title}>Enter OTP</Text>
         <Text style={styles.subtitle}>
-          We sent a 6-digit code to your WhatsApp{'\n'}
+          We sent a 6-digit code to your mobile{'\n'}
           <Text style={styles.highlight}>{maskedPhone}</Text>
         </Text>
 
         <View style={styles.inputWrapper}>
-          <Ionicons name="logo-whatsapp" size={18} color="#25D366" style={styles.inputIcon} />
+          <Ionicons name="chatbubble-ellipses-outline" size={18} color="#2f6ea5" style={styles.inputIcon} />
           <TextInput
             ref={otpRef}
             style={[styles.input, styles.otpInput]}
@@ -508,7 +508,7 @@ export default function LoginScreen({ navigation, route }: Props) {
               style={[styles.tabBtn, authTab === 'mobile' && styles.tabBtnActive]}
               onPress={() => { setAuthTab('mobile'); setOtpStep('phone'); }}
             >
-              <Ionicons name="logo-whatsapp" size={15} color={authTab === 'mobile' ? '#2f6ea5' : '#9CA3AF'} />
+              <Ionicons name="phone-portrait-outline" size={15} color={authTab === 'mobile' ? '#2f6ea5' : '#9CA3AF'} />
               <Text style={[styles.tabText, authTab === 'mobile' && styles.tabTextActive]}>Mobile OTP</Text>
             </TouchableOpacity>
             <TouchableOpacity

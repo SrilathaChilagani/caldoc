@@ -69,8 +69,8 @@ export default function LoginClient({ next, initialPhone }: Props) {
       }
       setStep("otp");
       setStatus(data.masked
-        ? `OTP sent via WhatsApp to ${data.masked} (${data.ttlMinutes || 5} min validity)`
-        : "We sent a 6-digit code to your WhatsApp.");
+        ? `OTP sent via SMS to ${data.masked} (${data.ttlMinutes || 5} min validity)`
+        : "We sent a 6-digit code to your mobile.");
       setCooldown(Number(data.cooldown || OTP_COOLDOWN_SECONDS));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send OTP");
@@ -176,7 +176,7 @@ export default function LoginClient({ next, initialPhone }: Props) {
             tab === "otp" ? "bg-white shadow text-slate-900" : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          WhatsApp OTP
+          Mobile OTP
         </button>
         <button
           onClick={() => switchTab("email")}
@@ -199,11 +199,11 @@ export default function LoginClient({ next, initialPhone }: Props) {
         </div>
       )}
 
-      {/* ── WhatsApp OTP tab ── */}
+      {/* ── Mobile OTP tab ── */}
       {tab === "otp" && (
         <>
           <p className="text-sm text-slate-500 text-center mb-4">
-            {step === "phone" ? "Enter your number with country code to get a WhatsApp OTP." : "Enter the code we sent on WhatsApp."}
+            {step === "phone" ? "Enter your number with country code to get an OTP via SMS." : "Enter the code we sent to your mobile."}
           </p>
           {step === "otp" && (
             <div className="text-center mb-2">

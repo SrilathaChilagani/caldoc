@@ -1,14 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { buildPatientPhoneMeta } from "@/lib/phone";
+import { checkVerificationCode } from "@/lib/twilioVerify";
 import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS, signPatientSession } from "@/lib/patientAuth.server";
 import { getErrorMessage } from "@/lib/errors";
 
-const OTP_MAX_ATTEMPTS = Number(process.env.PATIENT_OTP_MAX_ATTEMPTS || 5);
 const PATIENT_REDIRECT = "/patient/appointments";
-// Set SKIP_PATIENT_OTP=true in dev/staging to bypass WhatsApp. Default: false (OTP enabled).
 const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true";
 
 export async function POST(req: Request) {
@@ -27,69 +25,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Enter a valid phone number with country code (e.g. +91 for India, +1 for US)" }, { status: 400 });
     }
 
-    let patient = await prisma.patient.findUnique({
-      where: { phone: meta.canonical },
-    });
+    if (!SKIP_OTP) {
+      try {
+        const result = await checkVerificationCode(meta.canonical, code);
+        if (!result.valid) {
+          return NextResponse.json({ error: "Incorrect or expired code" }, { status: 401 });
+        }
+      } catch (twErr) {
+        const errMsg = twErr instanceof Error ? twErr.message : String(twErr);
+        console.warn("[OTP] Twilio Verify check failed:", errMsg);
+        return NextResponse.json({ error: "Could not verify code. Request a new one." }, { status: 400 });
+      }
+    }
 
-    // Auto-register: create a patient record on first login
+    let patient = await prisma.patient.findUnique({ where: { phone: meta.canonical } });
     if (!patient) {
       try {
         patient = await prisma.patient.create({
-          data: {
-            phone: meta.canonical,
-            name: meta.canonical, // patient can update name in profile
-            consentAt: new Date(),
-          },
+          data: { phone: meta.canonical, name: meta.canonical, consentAt: new Date() },
         });
       } catch {
-        // Race condition — another request may have created the record
         patient = await prisma.patient.findUnique({ where: { phone: meta.canonical } });
       }
     }
-
     if (!patient) {
       return NextResponse.json({ error: "Unable to create account. Please try again." }, { status: 500 });
-    }
-
-    if (!SKIP_OTP) {
-      const otpRecord = await prisma.patientOtp.findFirst({
-        where: { phoneCanonical: meta.canonical },
-        orderBy: { createdAt: "desc" },
-      });
-
-      if (!otpRecord) {
-        return NextResponse.json({ error: "Request a new code" }, { status: 404 });
-      }
-
-      if (otpRecord.usedAt) {
-        return NextResponse.json({ error: "Code already used" }, { status: 400 });
-      }
-
-      if (otpRecord.expiresAt < new Date()) {
-        return NextResponse.json({ error: "Code expired" }, { status: 400 });
-      }
-
-      if (otpRecord.attempts >= OTP_MAX_ATTEMPTS) {
-        return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
-      }
-
-      const match = await bcrypt.compare(code, otpRecord.otpHash);
-      if (!match) {
-        await prisma.patientOtp.update({
-          where: { id: otpRecord.id },
-          data: { attempts: { increment: 1 } },
-        });
-        return NextResponse.json({ error: "Incorrect code" }, { status: 401 });
-      }
-
-      if (otpRecord.patientId) {
-        patient = await prisma.patient.findUnique({ where: { id: otpRecord.patientId } }) || patient;
-      }
-
-      await prisma.patientOtp.update({
-        where: { id: otpRecord.id },
-        data: { usedAt: new Date() },
-      });
     }
 
     const token = signPatientSession(patient.phone, patient.id);
