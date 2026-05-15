@@ -32,8 +32,8 @@ const nextConfig: NextConfig = {
               "connect-src 'self' https://api.daily.co https://*.daily.co https://api.razorpay.com https://*.razorpay.com; " +
               // iframes (Daily meeting + Razorpay checkout)
               "frame-src 'self' https://*.daily.co https://checkout.razorpay.com https://*.razorpay.com; " +
-              // images (logos from gateways + Next.js image optimization)
-              "img-src 'self' data: blob: https://*.daily.co https://checkout.razorpay.com https://*.razorpay.com; " +
+              // images (logos from gateways + Next.js image optimization + OpenStreetMap tiles)
+              "img-src 'self' data: blob: https://*.daily.co https://checkout.razorpay.com https://*.razorpay.com https://*.tile.openstreetmap.org https://tile.openstreetmap.org; " +
               // styles
               "style-src 'self' 'unsafe-inline'; " +
               // service worker (PWA)
