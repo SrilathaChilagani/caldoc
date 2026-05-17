@@ -2,8 +2,7 @@
 import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import { PATIENT_COOKIE } from "@/lib/patientAuth.server";
-import { cookies } from "next/headers";
+import { readPatientPhone } from "@/lib/patientAuth.server";
 import Link from "next/link";
 import PatientMobileTabs from "@/components/PatientMobileTabs";
 import PatientBookingModal from "@/components/PatientBookingModal";
@@ -61,8 +60,10 @@ export default async function PatientAppointments(props: PageProps) {
   const filterRaw = (sp.filter || "").toUpperCase();
   const err = sp.err;
 
-  const jar = await cookies();
-  const cookiePhone = jar.get(PATIENT_COOKIE)?.value || "";
+  // Cookie holds a signed JWT — decode it to the phone. Reading the raw
+  // cookie value here would feed the JWT string into buildPhoneCandidates
+  // and never match a patient.
+  const cookiePhone = (await readPatientPhone()) || "";
   const urlPhone = sp.phone || "";
   const phoneSource = urlPhone || cookiePhone;
   const { last10, candidates } = buildPhoneCandidates(phoneSource);
