@@ -10,13 +10,13 @@ export const dynamic = "force-dynamic";
  *
  * Lightweight keep-alive: issues a trivial query so the Neon compute
  * (which scale-to-zero suspends after ~5 min idle) stays awake, and
- * keeps the serverless function instance warm. Pinged on a short
- * interval by Vercel Cron and/or an external pinger (see
- * .github/workflows/warm.yml).
+ * keeps the serverless function instance warm. Pinged every 5 min by
+ * a GitHub Actions workflow (see .github/workflows/warm.yml) — Vercel
+ * Hobby crons only fire once/day, too slow to outrun Neon's ~5 min
+ * idle suspend.
  *
- * Auth: same CRON_SECRET pattern as the other cron routes. Vercel
- * injects `Authorization: Bearer <CRON_SECRET>` automatically; external
- * pingers must send the same header.
+ * Auth: same CRON_SECRET pattern as the other cron routes. The pinger
+ * must send `Authorization: Bearer <CRON_SECRET>`.
  */
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
