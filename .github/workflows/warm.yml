@@ -19,9 +19,15 @@ jobs:
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
+          # 1. Wake the Neon DB compute.
           code=$(curl -s -o /tmp/body -w "%{http_code}" \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             https://www.caldoc.in/api/cron/warm)
-          echo "HTTP $code"
-          cat /tmp/body
+          echo "warm endpoint: HTTP $code"
+          cat /tmp/body; echo
           test "$code" = "200"
+          # 2. Prime the /providers page function + its ISR cache, so the
+          #    page route real users hit is also warm (it's a separate
+          #    serverless function from the warm endpoint).
+          t=$(curl -s -o /dev/null -w "%{http_code} %{time_total}s" https://www.caldoc.in/providers)
+          echo "providers page: HTTP $t"
