@@ -306,6 +306,10 @@ export default function ProvidersClient({
   const [showMap, setShowMap] = useState(false);
   const [isPending, startTransition] = useTransition();
   const abortRef = useRef<AbortController | null>(null);
+  // initialProviders is already server-rendered for the initial filter
+  // state — skip the redundant fetch on mount so the page is usable
+  // immediately instead of after an extra uncached round-trip.
+  const hydratedRef = useRef(false);
 
   const fetchProviders = useCallback(
     (params: { city: string; specialty: string; mode: string; language: string; is24x7: boolean; q: string; page: number }) => {
@@ -339,6 +343,10 @@ export default function ProvidersClient({
   );
 
   useEffect(() => {
+    if (!hydratedRef.current) {
+      hydratedRef.current = true;
+      return;
+    }
     fetchProviders({ city, specialty, mode, language, is24x7, q, page });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [city, specialty, mode, language, is24x7, page]);

@@ -1,0 +1,27 @@
+name: Keep DB + functions warm
+
+# Neon scale-to-zero suspends the compute after ~5 min idle, and Vercel
+# Hobby crons only fire once/day. This pings the lightweight warm
+# endpoint every 5 minutes so the first real visitor doesn't pay the
+# cold-start penalty. GitHub-scheduled runs can be delayed a few minutes
+# under load, which is fine for a keep-alive.
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping warm endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          code=$(curl -s -o /tmp/body -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            https://www.caldoc.in/api/cron/warm)
+          echo "HTTP $code"
+          cat /tmp/body
+          test "$code" = "200"

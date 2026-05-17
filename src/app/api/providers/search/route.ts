@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -10,74 +11,62 @@ function toISTDate(date: Date): string {
   return ist.toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
-/**
- * GET /api/providers/search
- * Query params:
- *   city       - city name to filter clinics (default: Hyderabad)
- *   specialty  - specialty filter (partial match)
- *   mode       - IN_PERSON | VIDEO | AUDIO | "" (any)
- *   q          - name / specialty text search
- *   page       - page number (default 1)
- *   pageSize   - results per page (default 12)
- *
- * Returns providers with:
- *   - clinic locations (lat/lng for map)
- *   - 7-day slot availability buckets (counts per day in IST)
- */
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const city = searchParams.get("city")?.trim() || "";
-    const specialty = searchParams.get("specialty")?.trim() || "";
-    const mode = searchParams.get("mode")?.trim().toUpperCase() || "";
-    const q = searchParams.get("q")?.trim() || "";
-    const language = searchParams.get("language")?.trim().toLowerCase() || "";
-    const is24x7 = searchParams.get("is24x7") === "true";
-    const page = Math.max(1, Number(searchParams.get("page") || 1));
-    const pageSize = Math.min(24, Math.max(1, Number(searchParams.get("pageSize") || 12)));
+type SearchKey = {
+  city: string;
+  specialty: string;
+  mode: string;
+  q: string;
+  language: string;
+  is24x7: boolean;
+  page: number;
+  pageSize: number;
+};
 
-    // Build provider where clause
+// Same filter inputs → same cached result for 60s. Mirrors the 60s
+// revalidate window the /providers page itself uses, so filter changes
+// hit the DB at most once per minute per distinct filter combination.
+const getCachedSearch = unstable_cache(
+  async (k: SearchKey) => {
     const andClauses: object[] = [{ isActive: true }];
 
-    if (specialty) {
-      andClauses.push({ speciality: { contains: specialty, mode: "insensitive" } });
+    if (k.specialty) {
+      andClauses.push({ speciality: { contains: k.specialty, mode: "insensitive" } });
     }
-    if (q) {
+    if (k.q) {
       andClauses.push({
         OR: [
-          { name: { contains: q, mode: "insensitive" } },
-          { speciality: { contains: q, mode: "insensitive" } },
+          { name: { contains: k.q, mode: "insensitive" } },
+          { speciality: { contains: k.q, mode: "insensitive" } },
         ],
       });
     }
-    if (mode === "IN_PERSON") {
+    if (k.mode === "IN_PERSON") {
       andClauses.push({ clinics: { some: { isActive: true } } });
     }
-    if (mode && mode !== "IN_PERSON") {
-      andClauses.push({ visitModes: { has: mode } });
+    if (k.mode && k.mode !== "IN_PERSON") {
+      andClauses.push({ visitModes: { has: k.mode } });
     }
-    if (language) {
-      andClauses.push({ languages: { has: language } });
+    if (k.language) {
+      andClauses.push({ languages: { has: k.language } });
     }
-    if (is24x7) {
+    if (k.is24x7) {
       andClauses.push({ is24x7: true });
     }
 
-    // Clinic sub-query: only filter by city for the clinic addresses we show on cards/map
-    // For IN_PERSON mode the city filter is already applied above; for other modes
-    // we still want to show the provider but only show clinics in that city.
-    const clinicWhere = city
-      ? { isActive: true, city: { contains: city, mode: "insensitive" as const } }
+    // Clinic sub-query: only filter by city for the clinic addresses we show on cards/map.
+    const clinicWhere = k.city
+      ? { isActive: true, city: { contains: k.city, mode: "insensitive" as const } }
       : { isActive: true };
 
     // Only restrict *which providers appear* by city when explicitly filtering IN_PERSON
-    if (city && mode === "IN_PERSON") {
+    if (k.city && k.mode === "IN_PERSON") {
       andClauses.push({ clinics: { some: clinicWhere } });
     }
 
     const whereClause = { AND: andClauses };
 
-    // 7-day window for slot buckets
+    // 7-day window for slot buckets — anchored inside the cached entry so
+    // all viewers of a given cache entry see the same day buckets.
     const nowIST = new Date(Date.now());
     const windowEnd = new Date(nowIST.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -85,8 +74,8 @@ export async function GET(req: NextRequest) {
       prisma.provider.findMany({
         where: whereClause,
         orderBy: { name: "asc" },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
+        skip: (k.page - 1) * k.pageSize,
+        take: k.pageSize,
         select: {
           id: true,
           slug: true,
@@ -161,7 +150,43 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ providers: result, total, page, pageSize, days });
+    return { providers: result, total, days };
+  },
+  ["providers-search-v1"],
+  { revalidate: 60 }
+);
+
+/**
+ * GET /api/providers/search
+ * Query params:
+ *   city       - city name to filter clinics (default: Hyderabad)
+ *   specialty  - specialty filter (partial match)
+ *   mode       - IN_PERSON | VIDEO | AUDIO | "" (any)
+ *   q          - name / specialty text search
+ *   page       - page number (default 1)
+ *   pageSize   - results per page (default 12)
+ *
+ * Returns providers with:
+ *   - clinic locations (lat/lng for map)
+ *   - 7-day slot availability buckets (counts per day in IST)
+ */
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const key: SearchKey = {
+      city: searchParams.get("city")?.trim() || "",
+      specialty: searchParams.get("specialty")?.trim() || "",
+      mode: searchParams.get("mode")?.trim().toUpperCase() || "",
+      q: searchParams.get("q")?.trim() || "",
+      language: searchParams.get("language")?.trim().toLowerCase() || "",
+      is24x7: searchParams.get("is24x7") === "true",
+      page: Math.max(1, Number(searchParams.get("page") || 1)),
+      pageSize: Math.min(24, Math.max(1, Number(searchParams.get("pageSize") || 12))),
+    };
+
+    const { providers, total, days } = await getCachedSearch(key);
+
+    return NextResponse.json({ providers, total, page: key.page, pageSize: key.pageSize, days });
   } catch (err) {
     return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 });
   }
