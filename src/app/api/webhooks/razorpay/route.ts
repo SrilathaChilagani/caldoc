@@ -127,7 +127,15 @@ export async function POST(req: NextRequest) {
         data: { isBooked: true },
       });
 
-      const nextStatus = appointment.status === "CONFIRMED" ? "CONFIRMED" : "PENDING";
+      // Auto-confirm on payment capture — no manual provider step.
+      // Preserve terminal states so a retried webhook can't resurrect a
+      // cancelled/completed/no-show appointment.
+      const nextStatus =
+        appointment.status === "COMPLETED" ||
+        appointment.status === "CANCELLED" ||
+        appointment.status === "NO_SHOW"
+          ? appointment.status
+          : "CONFIRMED";
       if (appointment.status !== nextStatus) {
         await tx.appointment.update({
           where: { id: appointmentId },
@@ -138,7 +146,7 @@ export async function POST(req: NextRequest) {
                 fromStatus: appointment.status,
                 toStatus: nextStatus,
                 actorType: "SYSTEM",
-                reason: "Payment captured via Razorpay webhook",
+                reason: "Payment captured via Razorpay webhook — auto-confirmed",
               },
             },
           },
