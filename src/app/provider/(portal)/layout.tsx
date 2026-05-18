@@ -13,6 +13,10 @@ const NAV = [
 export default function ProviderLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
 
+  // Hide the portal tab nav on a specific appointment detail page
+  // (/provider/appointments/<id>) — keep it on the list and elsewhere.
+  const hideTabs = /^\/provider\/appointments\/[^/]+/.test(path);
+
   return (
     <div className="min-h-screen -mt-16 bg-gray-100 text-slate-900">
       <div className="pt-20 pb-10 px-6 lg:px-16 xl:px-24">
@@ -32,25 +36,27 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
           </form>
         </div>
 
-        {/* Tab nav */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {NAV.map((item) => {
-            const active = path === item.href || path.startsWith(item.href + "/");
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-                  active
-                    ? "bg-[#2f6ea5] text-white"
-                    : "border border-slate-200 bg-white text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
+        {/* Tab nav — hidden on the appointment detail page */}
+        {!hideTabs && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {NAV.map((item) => {
+              const active = path === item.href || path.startsWith(item.href + "/");
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+                    active
+                      ? "bg-[#2f6ea5] text-white"
+                      : "border border-slate-200 bg-white text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
         <main className="space-y-6">{children}</main>
       </div>
