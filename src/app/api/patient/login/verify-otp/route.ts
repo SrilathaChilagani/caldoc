@@ -11,10 +11,23 @@ const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true";
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as { phone?: string; code?: string; next?: string };
+    const body = (await req.json()) as {
+      phone?: string;
+      code?: string;
+      next?: string;
+      name?: string;
+      dob?: string;
+      sex?: string;
+    };
     const phoneInput = String(body?.phone || "").trim();
     const code = String(body?.code || "").trim();
     const next = body?.next && body.next.startsWith("/") ? body.next : PATIENT_REDIRECT;
+
+    // Optional signup details — present only when coming from the sign-up form.
+    const signupName = String(body?.name || "").trim();
+    const dobRaw = String(body?.dob || "").trim();
+    const signupDob = dobRaw ? new Date(dobRaw) : null;
+    const signupSex = String(body?.sex || "").trim() || null;
 
     if (!phoneInput || (!code && !SKIP_OTP)) {
       return NextResponse.json({ error: "Enter your phone number and OTP" }, { status: 400 });
@@ -40,12 +53,32 @@ export async function POST(req: Request) {
 
     let patient = await prisma.patient.findUnique({ where: { phone: meta.canonical } });
     if (!patient) {
+      // New account — use the signup name if provided, else the phone as a
+      // placeholder (kept consistent with the OTP auto-create elsewhere).
       try {
         patient = await prisma.patient.create({
-          data: { phone: meta.canonical, name: meta.canonical, consentAt: new Date() },
+          data: {
+            phone: meta.canonical,
+            name: signupName || meta.canonical,
+            ...(signupDob ? { dob: signupDob } : {}),
+            ...(signupSex ? { sex: signupSex } : {}),
+            consentAt: new Date(),
+          },
         });
       } catch {
         patient = await prisma.patient.findUnique({ where: { phone: meta.canonical } });
+      }
+    } else if (signupName) {
+      // Existing record (e.g. auto-created during booking with the phone as
+      // the name). Backfill the real name / details from the signup form.
+      const patch: { name?: string; dob?: Date; sex?: string } = {};
+      if (patient.name === patient.phone || !patient.name) patch.name = signupName;
+      if (signupDob && !patient.dob) patch.dob = signupDob;
+      if (signupSex && !patient.sex) patch.sex = signupSex;
+      if (Object.keys(patch).length > 0) {
+        patient = await prisma.patient
+          .update({ where: { id: patient.id }, data: patch })
+          .catch(() => patient);
       }
     }
     if (!patient) {
