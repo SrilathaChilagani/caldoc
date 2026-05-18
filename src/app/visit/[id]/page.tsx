@@ -48,12 +48,14 @@ export default async function VisitPage({ params, searchParams }: Props) {
 
   if (!appt) {
     return (
-      <main className="flex min-h-[calc(100vh-140px)] items-center justify-center bg-[#f7f2ea] px-4">
-        <div className="rounded-3xl border border-white/70 bg-white/80 p-8 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-sm">
-          <h1 className="font-serif text-xl font-semibold text-slate-900">Appointment not found</h1>
-          <Link className="mt-3 inline-flex text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]" href={backHref}>
-            ← Go home
-          </Link>
+      <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
+        <div className="w-full px-6 lg:px-16 xl:px-24">
+          <div className="max-w-lg rounded-2xl border border-slate-200 bg-white p-8">
+            <h1 className="text-xl font-semibold text-slate-900">Appointment not found</h1>
+            <Link className="mt-3 inline-flex text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]" href={backHref}>
+              ← Go home
+            </Link>
+          </div>
         </div>
       </main>
     );
@@ -97,11 +99,9 @@ export default async function VisitPage({ params, searchParams }: Props) {
   const patientPhoneDisplay = appt.patient?.phone ? appt.patient.phone.replace(/\s+/g, "") : null;
 
   return (
-    <main className="min-h-[calc(100vh-140px)] bg-[#f7f2ea] py-12">
-      <div className="mx-auto w-full max-w-4xl space-y-6 px-4 sm:px-6 lg:px-10">
-
-        {/* Main card */}
-        <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-sm md:p-8">
+    <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
+      <div className="w-full px-6 lg:px-16 xl:px-24">
+        <div className="max-w-3xl">
           <Link
             href={backHref}
             className="inline-flex items-center text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]"
@@ -111,7 +111,7 @@ export default async function VisitPage({ params, searchParams }: Props) {
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="font-serif text-3xl font-semibold text-slate-900">Your visit details</h1>
+              <h1 className="text-3xl font-semibold text-slate-900">Your visit details</h1>
               <p className="mt-1 text-sm text-slate-500">
                 Appointment ID:{" "}
                 <span className="font-mono text-slate-700">{appt.id}</span>
@@ -132,8 +132,8 @@ export default async function VisitPage({ params, searchParams }: Props) {
 
           {/* Provider + When cards */}
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-white/60 bg-white/60 p-5 backdrop-blur-sm">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Provider</p>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Provider</p>
               <p className="mt-1 text-lg font-semibold text-slate-900">{appt.provider?.name ?? "—"}</p>
               <p className="text-sm text-slate-500">
                 Patient: {appt.patientName || appt.patient?.name || "—"}
@@ -154,8 +154,8 @@ export default async function VisitPage({ params, searchParams }: Props) {
               </dl>
             </div>
 
-            <div className="rounded-2xl border border-white/60 bg-white/60 p-5 backdrop-blur-sm">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">When</p>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">When</p>
               <p className="mt-1 text-lg font-semibold text-slate-900">{whenIST} IST</p>
               <p className="mt-1 text-sm text-slate-500">
                 Delivery option:{" "}
@@ -177,7 +177,7 @@ export default async function VisitPage({ params, searchParams }: Props) {
                 href={fromParam ? `${videoRoom}${videoRoom.includes("?") ? "&" : "?"}from=provider` : videoRoom}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center rounded-full bg-[#2f6ea5] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#255b8b]"
+                className="inline-flex items-center justify-center rounded-xl bg-[#2f6ea5] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#255b8b]"
               >
                 Join visit
               </a>
@@ -188,14 +188,14 @@ export default async function VisitPage({ params, searchParams }: Props) {
             )}
             <Link
               href={patientPortalHref}
-              className="inline-flex min-w-[160px] items-center justify-center rounded-full border border-[#2f6ea5] px-6 py-2.5 text-sm font-semibold text-[#2f6ea5] hover:bg-[#2f6ea5] hover:text-white transition-colors"
+              className="inline-flex min-w-[160px] items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >
               Go to patient portal
             </Link>
           </div>
 
           {/* Telemedicine compliance notice */}
-          <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-800">
+          <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
             <p className="font-semibold uppercase tracking-wide">Telemedicine compliance</p>
             <p className="mt-1 leading-relaxed">
               This visit summary follows the Telemedicine Practice Guidelines (India, 2020). Emergency care is not
@@ -203,7 +203,7 @@ export default async function VisitPage({ params, searchParams }: Props) {
               emergency services immediately.
             </p>
           </div>
-        </section>
+        </div>
       </div>
     </main>
   );
