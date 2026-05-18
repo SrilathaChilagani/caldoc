@@ -153,7 +153,15 @@ export async function POST(req: NextRequest) {
         data: { isBooked: true },
       });
 
-      const nextStatus = appointment.status === "CONFIRMED" ? "CONFIRMED" : "PENDING";
+      // Auto-confirm on payment capture — no manual provider step.
+      // Preserve terminal states so a paid webhook can't resurrect a
+      // cancelled/completed/no-show appointment.
+      const nextStatus =
+        appointment.status === "COMPLETED" ||
+        appointment.status === "CANCELLED" ||
+        appointment.status === "NO_SHOW"
+          ? appointment.status
+          : "CONFIRMED";
       const statusHistoryData =
         appointment.status !== nextStatus
           ? {
@@ -162,7 +170,7 @@ export async function POST(req: NextRequest) {
                   fromStatus: appointment.status,
                   toStatus: nextStatus,
                   actorType: "SYSTEM",
-                  reason: "Payment captured, awaiting provider confirmation",
+                  reason: "Payment captured — auto-confirmed",
                 },
               },
             }
