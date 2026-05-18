@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { PATIENT_COOKIE } from "@/lib/patientAuth.server";
-import { cookies } from "next/headers";
+import { readPatientPhone } from "@/lib/patientAuth.server";
 import { formatINR } from "@/lib/format";
 import PatientMobileTabs from "@/components/PatientMobileTabs";
 import PatientBookingModal from "@/components/PatientBookingModal";
@@ -55,8 +54,8 @@ function normalizeTests(tests: unknown): Array<{ name: string; qty: number }> {
 
 export default async function PatientLabsPage(props: PageProps) {
   const sp = (await props.searchParams) || {};
-  const jar = await cookies();
-  const cookiePhone = jar.get(PATIENT_COOKIE)?.value || "";
+  // Cookie holds a signed JWT — decode it to the phone (not the raw value).
+  const cookiePhone = (await readPatientPhone()) || "";
   const urlPhone = sp.phone || "";
   const phoneSource = urlPhone || cookiePhone;
   const { last10, candidates } = buildPhoneCandidates(phoneSource);
