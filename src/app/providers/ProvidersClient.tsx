@@ -4,6 +4,7 @@ import { useState, useCallback, useTransition, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import type { MapPin } from "./MapView";
 
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
@@ -350,6 +351,22 @@ export default function ProvidersClient({
     fetchProviders({ city, specialty, mode, language, is24x7, q, page });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [city, specialty, mode, language, is24x7, page]);
+
+  // Sync filter state when the URL changes via header links
+  // (e.g. clicking a specialty in the Specialties dropdown while
+  // already on /providers — soft nav updates the URL but not our state).
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const urlSpecialty = searchParams.get("specialty") ?? "";
+    const urlCity = searchParams.get("city") ?? "";
+    const urlMode = (searchParams.get("mode") ?? "").toUpperCase();
+    const urlQ = searchParams.get("q") ?? "";
+    setSpecialty(urlSpecialty);
+    if (urlCity) setCity(urlCity);
+    setMode(urlMode);
+    setQ(urlQ);
+    setPage(1);
+  }, [searchParams]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
