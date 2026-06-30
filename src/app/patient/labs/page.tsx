@@ -5,6 +5,7 @@ import { formatINR } from "@/lib/format";
 import PatientMobileTabs from "@/components/PatientMobileTabs";
 import PatientBookingModal from "@/components/PatientBookingModal";
 import PatientPortalNav from "@/components/PatientPortalNav";
+import PatientAvatarUpload from "@/components/PatientAvatarUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -108,6 +109,13 @@ export default async function PatientLabsPage(props: PageProps) {
     );
   }
 
+  const photoToken = patient.profilePhotoKey ? encodeURIComponent(patient.profilePhotoKey) : null;
+  const photoSrc = photoToken ? `/api/patient/profile/photo?v=${photoToken}` : null;
+  const nameIsPhone = !patient.name || /^[+\d\s().\-]{6,}$/.test(patient.name.trim());
+  const displayName = nameIsPhone ? null : patient.name;
+  const avatarInitial =
+    (patient.name || "").replace(/[^a-zA-Z]/g, "").charAt(0).toUpperCase() || "P";
+
   const labOrders = await prisma.labOrder.findMany({
     where: {
       OR: [
@@ -134,18 +142,25 @@ export default async function PatientLabsPage(props: PageProps) {
     <div className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
       <div className="mx-auto max-w-5xl space-y-8 px-4">
         <div className="pb-6 border-b border-slate-200 md:pb-8">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#2f6ea5] text-2xl font-semibold text-white">
-                {(patient.name || "P").charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Patient portal</p>
-                <h1 className="font-serif text-3xl font-semibold text-slate-900">{patient.name || "Patient"}</h1>
-                <p className="text-sm font-mono text-slate-500">{patient.phone}</p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-5">
+              <PatientAvatarUpload photoSrc={photoSrc} initial={avatarInitial} />
+              <div className="pt-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Patient portal</p>
+                {displayName ? (
+                  <>
+                    <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">{displayName}</h1>
+                    <p className="text-sm font-mono text-slate-500">{patient.phone}</p>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">{patient.phone}</h1>
+                    <a href="/patient/profile" className="text-xs text-[#2f6ea5] hover:underline">Add your name →</a>
+                  </>
+                )}
               </div>
             </div>
-            <div className="flex flex-col gap-3 md:flex-row">
+            <div className="flex flex-wrap items-center gap-3">
               <PatientBookingModal
                 label="Book appointment"
                 path="/providers"
@@ -153,23 +168,14 @@ export default async function PatientLabsPage(props: PageProps) {
                 patientPhone={patient.phone}
                 className="inline-flex items-center justify-center rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b]"
               />
-              <Link
-                href="/patient/profile"
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-              >
-                Profile
-              </Link>
               <a
                 href="/api/patient/logout"
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
+                className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
               >
                 Sign out
               </a>
             </div>
           </div>
-          <p className="mt-4 text-sm text-slate-500">
-            Review lab orders, download receipts, and track home collection requests.
-          </p>
           <PatientPortalNav active="labs" phone={urlPhone || patient.phone} />
         </div>
 

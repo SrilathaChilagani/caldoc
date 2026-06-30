@@ -171,41 +171,6 @@ export default async function PatientAppointments(props: PageProps) {
     { label: "Pending", value: appointments.filter((a) => a.status === "PENDING").length },
   ];
 
-  const tabs = [
-    {
-      key: "appointments",
-      label: "Appointments",
-      href: urlPhone ? `/patient/appointments?phone=${urlPhone}` : "/patient/appointments",
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <rect x="3" y="5" width="18" height="16" rx="2" />
-          <path d="M7 3v4M17 3v4M3 11h18" />
-        </svg>
-      ),
-    },
-    {
-      key: "documents",
-      label: "Documents",
-      href: urlPhone ? `/patient/labs?phone=${urlPhone}` : "/patient/labs",
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M6 2h9l5 5v15a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" />
-          <path d="M14 2v5h5" />
-        </svg>
-      ),
-    },
-    {
-      key: "profile",
-      label: "Profile",
-      href: "/patient/profile",
-      icon: (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-        </svg>
-      ),
-    },
-  ];
 
   return (
     <div className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
@@ -250,27 +215,7 @@ export default async function PatientAppointments(props: PageProps) {
         </div>
 
         {/* Tab navigation */}
-        <div className="rounded-2xl border border-white/70 bg-white/90 p-3 ">
-          <div className="grid grid-cols-3 gap-2">
-            {tabs.map((tab) => {
-              const isActive = tab.key === "appointments";
-              return (
-                <Link
-                  key={tab.key}
-                  href={tab.href}
-                  className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-[#2f6ea5]/10 text-[#2f6ea5]"
-                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                  }`}
-                >
-                  {tab.icon}
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+        <PatientPortalNav active="appointments" phone={urlPhone || patient.phone} />
 
         {/* KPI summary cards */}
         <div className="grid gap-3 sm:grid-cols-3">
