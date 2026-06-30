@@ -82,6 +82,16 @@
 5. **Error handling inconsistency:** Some routes return raw error messages; needs a
    shared `createErrorResponse()` wrapper from `src/lib/errors.ts`.
 
+## Booking page UX rewrite — COMPLETED (2026-06-29)
+
+### What changed
+- **`src/app/book/[providerId]/ui/BookClient.tsx`** fully rewritten.
+  - Removed multi-step flow (`Step` type, `step` state, `handleBack`, scroll-on-step `useEffect`, `pay` block).
+  - **Prescription Delivery** section moved from right sidebar → left column, directly below the Visit Type selector.
+  - Right sidebar now has: Symptoms → Notes → **Live Booking Summary** → "Proceed to payment" button.
+  - Live summary updates reactively: Doctor, Slot, Patient, Visit type, Prescription delivery, Fee.
+  - `handleProceed` creates the appointment then immediately redirects to `/checkout?appointmentId=...&amount=...` — no intermediate confirmation page.
+
 ## Next Action
 P0: End-to-end booking → payment → consultation test pass.
 

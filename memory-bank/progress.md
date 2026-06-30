@@ -20,6 +20,9 @@
 - Middleware pass-through confirmed intentional and safe (App Router per-handler auth).
 - 4 foundational questions resolved (isolation, middleware, queue, compliance).
 
+## ✅ Done (added 2026-06-30)
+- **Booking page UX rewrite:** single-page flow — prescription delivery moved to left column below Visit Type; right sidebar shows live booking summary (Doctor, Slot, Patient, Visit, Delivery, Fee); "Proceed to payment" button goes directly to `/checkout` without a confirmation page.
+
 ## 🚧 In Progress
 - Sprint 01: production-readiness checklist.
 
