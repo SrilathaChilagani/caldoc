@@ -4,33 +4,47 @@ import { getErrorMessage } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
 
-const START_TIME = "09:00";
-const END_TIME = "17:00";
+const START_TIME    = "09:00";
+const END_TIME      = "17:00";
 const INTERVAL_MINS = 30;
-const DAYS_AHEAD = 30;
+const DAYS_AHEAD    = 30;
 
-function parseDateTimeISO(day: Date, time: string): Date | null {
-  const isoDate = day.toISOString().slice(0, 10);
-  const normalizedTime = time.length === 5 ? `${time}:00` : time;
-  const dt = new Date(`${isoDate}T${normalizedTime}`);
-  if (Number.isNaN(dt.getTime())) return null;
-  return dt;
+// IST = UTC+5:30 — no DST, so this offset is constant year-round
+const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
+
+/** Returns the YYYY-MM-DD calendar date in IST for a given UTC instant. */
+function istDateString(date: Date): string {
+  return new Date(date.getTime() + IST_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/**
+ * Parses a wall-clock time on an IST calendar date into a UTC Date.
+ * The explicit +05:30 suffix means the Vercel runtime's local timezone
+ * (always UTC) has no effect on the result.
+ */
+function makeISTTime(istDate: string, hhmm: string): Date | null {
+  const dt = new Date(`${istDate}T${hhmm}:00+05:30`);
+  return Number.isNaN(dt.getTime()) ? null : dt;
 }
 
 async function createSlotsForProvider(
   providerId: string,
   feePaise: number | null
 ): Promise<number> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const now = new Date();
+  // Midnight IST today, expressed as a UTC instant
+  const todayISTStr = istDateString(now);
+  const istMidnight = new Date(`${todayISTStr}T00:00:00+05:30`);
   let created = 0;
 
   for (let i = 0; i < DAYS_AHEAD; i += 1) {
-    const day = new Date(today);
-    day.setDate(today.getDate() + i);
-    const startDate = parseDateTimeISO(day, START_TIME);
-    const endDate = parseDateTimeISO(day, END_TIME);
-    if (!startDate || !endDate || !(startDate < endDate)) continue;
+    // IST has no DST → adding exactly 24 h always advances the IST calendar date by 1
+    const dayUTC  = new Date(istMidnight.getTime() + i * 24 * 60 * 60 * 1000);
+    const dateStr = istDateString(dayUTC);
+
+    const startDate = makeISTTime(dateStr, START_TIME);
+    const endDate   = makeISTTime(dateStr, END_TIME);
+    if (!startDate || !endDate || startDate >= endDate) continue;
 
     let cursor = new Date(startDate);
     while (cursor < endDate) {
@@ -41,7 +55,7 @@ async function createSlotsForProvider(
           data: {
             providerId,
             startsAt: new Date(cursor),
-            endsAt: next,
+            endsAt:   next,
             feePaise: feePaise ?? undefined,
           },
         });
