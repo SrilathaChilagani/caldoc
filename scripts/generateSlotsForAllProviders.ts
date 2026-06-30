@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
 
-dotenv.config({ path: ".env.local" });
+dotenv.config({ path: ".env.local", override: true });
 dotenv.config({ path: ".env" });
 
 import { PrismaClient } from "@prisma/client";
