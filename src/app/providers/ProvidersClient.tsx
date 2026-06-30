@@ -466,7 +466,7 @@ export default function ProvidersClient({
       <div className="flex gap-0 items-start mx-6 lg:mx-16 xl:mx-24 mt-6 mb-8">
 
         {/* ── Left: Filters sidebar ── */}
-        <aside className="hidden w-56 shrink-0 self-start sticky top-0 lg:block bg-gray-100 min-h-screen px-5 py-6">
+        <aside className="hidden w-56 shrink-0 sticky top-0 h-screen overflow-y-auto lg:block bg-gray-100 px-5 py-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-semibold text-slate-900">Filters</h2>
             {hasActiveFilters && (
