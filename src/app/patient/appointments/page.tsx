@@ -1,5 +1,4 @@
 // src/app/patient/appointments/page.tsx
-import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { readPatientPhone } from "@/lib/patientAuth.server";
@@ -7,6 +6,7 @@ import Link from "next/link";
 import PatientMobileTabs from "@/components/PatientMobileTabs";
 import PatientBookingModal from "@/components/PatientBookingModal";
 import PatientPortalNav from "@/components/PatientPortalNav";
+import PatientAvatarUpload from "@/components/PatientAvatarUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -118,6 +118,14 @@ export default async function PatientAppointments(props: PageProps) {
   const photoToken = patient.profilePhotoKey ? encodeURIComponent(patient.profilePhotoKey) : null;
   const photoSrc = photoToken ? `/api/patient/profile/photo?v=${photoToken}` : null;
 
+  // If the stored name is just the phone number (common when name wasn't collected at sign-up),
+  // treat it as absent so we don't display the phone number twice.
+  const nameIsPhone = !patient.name || /^[+\d\s().\-]{6,}$/.test(patient.name.trim());
+  const displayName = nameIsPhone ? null : patient.name;
+  // First alphabetic character for the avatar initial
+  const avatarInitial =
+    (patient.name || "").replace(/[^a-zA-Z]/g, "").charAt(0).toUpperCase() || "P";
+
   const activeFilter: FilterKey = allowedFilters.includes(filterRaw as FilterKey)
     ? (filterRaw as FilterKey)
     : "ALL";
@@ -205,25 +213,23 @@ export default async function PatientAppointments(props: PageProps) {
 
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#2f6ea5] text-2xl font-semibold text-white shadow-sm">
-              {photoSrc ? (
-                <Image
-                  src={photoSrc}
-                  alt="Profile"
-                  width={56}
-                  height={56}
-                  unoptimized
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                (patient.name || "P").charAt(0).toUpperCase()
-              )}
-            </div>
-            <div>
+          <div className="flex items-start gap-5">
+            <PatientAvatarUpload photoSrc={photoSrc} initial={avatarInitial} />
+            <div className="pt-1">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Patient portal</p>
-              <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">{patient.name || "Patient"}</h1>
-              <p className="text-sm font-mono text-slate-500">{patient.phone}</p>
+              {displayName ? (
+                <>
+                  <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">{displayName}</h1>
+                  <p className="text-sm font-mono text-slate-500">{patient.phone}</p>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">{patient.phone}</h1>
+                  <a href="/patient/profile" className="text-xs text-[#2f6ea5] hover:underline">
+                    Add your name →
+                  </a>
+                </>
+              )}
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
