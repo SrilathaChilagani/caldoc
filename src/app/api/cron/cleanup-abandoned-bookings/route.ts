@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 // How long a PENDING appointment may sit before its slot is released.
 const ABANDON_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   // Require a shared secret so only authorised callers (e.g. a cron scheduler)
   // can trigger cleanup. Set CRON_SECRET in your environment variables.
   const cronSecret = process.env.CRON_SECRET;

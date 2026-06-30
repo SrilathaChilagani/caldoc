@@ -28,18 +28,36 @@ export async function GET(req: NextRequest) {
   }
 
   const startedAt = Date.now();
-  try {
-    // Cheapest possible round-trip that forces the DB compute to wake.
-    await prisma.$queryRaw`SELECT 1`;
-    return NextResponse.json({
-      ok: true,
-      dbMs: Date.now() - startedAt,
-      at: new Date().toISOString(),
-    });
-  } catch (err) {
-    return NextResponse.json(
-      { ok: false, error: getErrorMessage(err), dbMs: Date.now() - startedAt },
-      { status: 500 }
-    );
+  // A fully scale-to-zero'd Neon compute can take a couple seconds to
+  // activate, and the first connection may time out before it's ready.
+  // Retry so a cold DB — the exact case this endpoint exists to warm —
+  // doesn't produce a spurious 500 (and a failed keep-alive run).
+  const maxAttempts = 4;
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      // Cheapest possible round-trip that forces the DB compute to wake.
+      await prisma.$queryRaw`SELECT 1`;
+      return NextResponse.json({
+        ok: true,
+        dbMs: Date.now() - startedAt,
+        attempts: attempt,
+        at: new Date().toISOString(),
+      });
+    } catch (err) {
+      lastErr = err;
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }
   }
+  return NextResponse.json(
+    {
+      ok: false,
+      error: getErrorMessage(lastErr),
+      dbMs: Date.now() - startedAt,
+      attempts: maxAttempts,
+    },
+    { status: 500 }
+  );
 }

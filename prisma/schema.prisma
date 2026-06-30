@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64"]
 }
 
 datasource db {
@@ -149,7 +150,7 @@ model Payment {
   rxOrderId     String?      @unique
   labOrderId    String?      @unique
   createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @default(now())
+  updatedAt     DateTime     @default(now()) @updatedAt
   receiptUrl    String?
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])
   rxOrder       RxOrder?     @relation("RxOrderPayment", fields: [rxOrderId], references: [id])

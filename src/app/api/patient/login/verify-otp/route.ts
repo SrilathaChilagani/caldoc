@@ -90,6 +90,7 @@ export async function POST(req: Request) {
     jar.set(PATIENT_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
       maxAge: PATIENT_MAX_AGE_DAYS * 24 * 60 * 60,
       path: "/",
     });

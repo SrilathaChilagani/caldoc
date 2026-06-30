@@ -1,0 +1,44 @@
+name: Hourly cron jobs
+
+# Vercel Hobby crons fire at most once/day, which is too infrequent for:
+#   - reminders: once-daily misses ~95% of appointments (only 30-min window covers)
+#   - cleanup:   once-daily leaves abandoned slots locked for up to 23 h 45 min
+#
+# This workflow runs both every hour. The Vercel cron entries in vercel.json
+# remain as daily fallbacks in case GitHub Actions is delayed or down.
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  reminders:
+    name: Send appointment reminders
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping reminders endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          code=$(curl -s -o /tmp/body -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            https://www.caldoc.in/api/cron/reminders)
+          echo "reminders: HTTP $code"
+          cat /tmp/body; echo
+          test "$code" = "200"
+
+  cleanup:
+    name: Release abandoned booking slots
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping cleanup endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          code=$(curl -s -o /tmp/body -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            https://www.caldoc.in/api/cron/cleanup-abandoned-bookings)
+          echo "cleanup: HTTP $code"
+          cat /tmp/body; echo
+          test "$code" = "200"

@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 const START_TIME = "09:00";
 const END_TIME = "17:00";
 const INTERVAL_MINS = 30;
-const DAYS_AHEAD = 3;
+const DAYS_AHEAD = 30;
 
 function parseDateTimeISO(day: Date, time: string) {
   const isoDate = day.toISOString().slice(0, 10);

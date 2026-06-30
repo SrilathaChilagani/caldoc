@@ -27,8 +27,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   }
 
   const { orderId } = await params;
-  const order = await prisma.labOrder.findUnique({ where: { id: orderId }, select: { id: true, status: true } });
+  const order = await prisma.labOrder.findUnique({ where: { id: orderId }, select: { id: true, status: true, labPartnerId: true } });
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+
+  // Enforce partner-scoped access: lab users may only update their own partner's orders.
+  // Admin fallback (labPartnerId === null) bypasses this check and sees all orders.
+  if (labsSess?.labPartnerId && order.labPartnerId !== labsSess.labPartnerId) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   const updateData: Record<string, unknown> = { status };
   if (collectionAgentName) updateData.collectionAgentName = collectionAgentName;

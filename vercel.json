@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/generate-slots",
+      "schedule": "30 0 * * *"
+    },
+    {
       "path": "/api/cron/cleanup-abandoned-bookings",
       "schedule": "0 2 * * *"
     },

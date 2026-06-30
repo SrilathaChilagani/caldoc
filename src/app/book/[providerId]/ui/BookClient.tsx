@@ -43,7 +43,7 @@ type Props = {
   initialMode?: "VIDEO" | "AUDIO" | "IN_PERSON";
 };
 
-type Step = "slot" | "delivery" | "pay";
+type Step = "slot" | "pay";
 
 type DeliveryForm = {
   contactName: string;
@@ -225,6 +225,17 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
       setError("Please accept the telemedicine consent to continue.");
       return;
     }
+    if (deliveryOpt === "DELIVERY") {
+      const { contactName, contactPhone, line1, city, state, postalCode } = address;
+      if (!contactName.trim() || !contactPhone.trim() || !line1.trim() || !city.trim() || !state.trim() || !postalCode.trim()) {
+        setError("Please fill in all required delivery fields: contact name, phone, address line 1, city, state, and PIN code.");
+        return;
+      }
+      if (!/^\d{6}$/.test(postalCode.trim())) {
+        setError("Please enter a valid 6-digit PIN code.");
+        return;
+      }
+    }
 
     try {
       setLoading(true);
@@ -253,37 +264,12 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
       }
       setAppointmentId(data.appointmentId);
       setAmount(data.amount || null);
-      setStep("delivery");
+      setStep("pay");
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setLoading(false);
     }
-  }
-
-  function handleDeliveryContinue() {
-    if (deliveryOpt === "DELIVERY") {
-      const { contactName, contactPhone, line1, city, state, postalCode } = address;
-      if (
-        !contactName.trim() ||
-        !contactPhone.trim() ||
-        !line1.trim() ||
-        !city.trim() ||
-        !state.trim() ||
-        !postalCode.trim()
-      ) {
-        setError(
-          "Please fill in all required delivery fields: contact name, phone, address line 1, city, state, and PIN code."
-        );
-        return;
-      }
-      if (!/^\d{6}$/.test(postalCode.trim())) {
-        setError("Please enter a valid 6-digit PIN code.");
-        return;
-      }
-    }
-    setError(null);
-    setStep("pay");
   }
 
   function handleBack(target: Step) {
@@ -576,6 +562,97 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
                 />
               </div>
 
+              {/* Prescription Delivery */}
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Prescription Delivery</p>
+                <div className="space-y-2">
+                  <label className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition-all ${deliveryOpt === "PHONE" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white"}`}>
+                    <input
+                      type="radio"
+                      name="delivery"
+                      checked={deliveryOpt === "PHONE"}
+                      onChange={() => setDeliveryOpt("PHONE")}
+                      className="mt-0.5 accent-[#2f6ea5]"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">Send to phone / WhatsApp</p>
+                      <p className="text-xs text-slate-500">Prescription link shared to patient mobile number.</p>
+                    </div>
+                  </label>
+                  <label className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition-all ${deliveryOpt === "DELIVERY" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white"}`}>
+                    <input
+                      type="radio"
+                      name="delivery"
+                      checked={deliveryOpt === "DELIVERY"}
+                      onChange={() => setDeliveryOpt("DELIVERY")}
+                      className="mt-0.5 accent-[#2f6ea5]"
+                    />
+                    <div className="w-full">
+                      <p className="text-sm font-medium text-slate-900">Request home delivery</p>
+                      <p className="text-xs text-slate-500">Courier delivery (subject to availability).</p>
+                      {deliveryOpt === "DELIVERY" && (
+                        <div className="mt-3 grid gap-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              placeholder="Contact name"
+                              value={address.contactName}
+                              onChange={(e) => setAddress((prev) => ({ ...prev, contactName: e.target.value }))}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
+                            />
+                            <input
+                              placeholder="Phone"
+                              value={address.contactPhone}
+                              onChange={(e) => setAddress((prev) => ({ ...prev, contactPhone: e.target.value }))}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
+                            />
+                          </div>
+                          <input
+                            placeholder="Address line 1"
+                            value={address.line1}
+                            onChange={(e) => setAddress((prev) => ({ ...prev, line1: e.target.value }))}
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
+                          />
+                          <input
+                            placeholder="Address line 2 (optional)"
+                            value={address.line2}
+                            onChange={(e) => setAddress((prev) => ({ ...prev, line2: e.target.value }))}
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              placeholder="City"
+                              value={address.city}
+                              onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
+                            />
+                            <input
+                              placeholder="State"
+                              value={address.state}
+                              onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              placeholder="PIN code"
+                              value={address.postalCode}
+                              onChange={(e) => setAddress((prev) => ({ ...prev, postalCode: e.target.value }))}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
+                            />
+                            <input
+                              placeholder="Instructions"
+                              value={address.instructions}
+                              onChange={(e) => setAddress((prev) => ({ ...prev, instructions: e.target.value }))}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                </div>
+              </div>
+
               {/* Continue */}
               <button
                 type="button"
@@ -583,123 +660,11 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
                 disabled={loading}
                 className="w-full rounded-xl bg-[#2f6ea5] py-2.5 text-sm font-medium text-white shadow-sm hover:bg-[#255b8b] disabled:opacity-60"
               >
-                {loading ? "Locking slot..." : "Continue"}
+                {loading ? "Locking slot..." : "Continue to payment"}
               </button>
             </aside>
           </div>
         </>
-      )}
-
-      {step === "delivery" && (
-        <section className="pt-4">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2 className="font-serif text-xl font-semibold text-slate-900">Prescription delivery preference</h2>
-              <p className="text-sm text-slate-500">
-                Choose how you would like to receive the prescription for this appointment.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <label className="flex items-start gap-3 rounded-2xl border border-slate-200 px-4 py-3">
-                <input
-                  type="radio"
-                  name="delivery"
-                  checked={deliveryOpt === "PHONE"}
-                  onChange={() => setDeliveryOpt("PHONE")}
-                />
-                <div>
-                  <p className="font-medium text-slate-900">Send to phone / WhatsApp</p>
-                  <p className="text-sm text-slate-500">Prescription link will be shared to the patient mobile number.</p>
-                </div>
-              </label>
-
-              <label className="flex items-start gap-3 rounded-2xl border border-slate-200 px-4 py-3">
-                <input
-                  type="radio"
-                  name="delivery"
-                  checked={deliveryOpt === "DELIVERY"}
-                  onChange={() => setDeliveryOpt("DELIVERY")}
-                />
-                <div className="w-full">
-                  <p className="font-medium text-slate-900">Request home delivery</p>
-                  <p className="text-sm text-slate-500">Share your address for courier delivery (subject to availability).</p>
-                  {deliveryOpt === "DELIVERY" && (
-                    <div className="mt-3 grid gap-3 md:grid-cols-2">
-                      <input
-                        placeholder="Contact name"
-                        value={address.contactName}
-                        onChange={(e) => setAddress((prev) => ({ ...prev, contactName: e.target.value }))}
-                        className="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400"
-                      />
-                      <input
-                        placeholder="Phone"
-                        value={address.contactPhone}
-                        onChange={(e) => setAddress((prev) => ({ ...prev, contactPhone: e.target.value }))}
-                        className="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400"
-                      />
-                      <input
-                        placeholder="Address line 1"
-                        value={address.line1}
-                        onChange={(e) => setAddress((prev) => ({ ...prev, line1: e.target.value }))}
-                        className="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 md:col-span-2"
-                      />
-                      <input
-                        placeholder="Address line 2"
-                        value={address.line2}
-                        onChange={(e) => setAddress((prev) => ({ ...prev, line2: e.target.value }))}
-                        className="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 md:col-span-2"
-                      />
-                      <input
-                        placeholder="City"
-                        value={address.city}
-                        onChange={(e) => setAddress((prev) => ({ ...prev, city: e.target.value }))}
-                        className="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400"
-                      />
-                      <input
-                        placeholder="State"
-                        value={address.state}
-                        onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))}
-                        className="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400"
-                      />
-                      <input
-                        placeholder="PIN code"
-                        value={address.postalCode}
-                        onChange={(e) => setAddress((prev) => ({ ...prev, postalCode: e.target.value }))}
-                        className="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400"
-                      />
-                      <input
-                        placeholder="Instructions (optional)"
-                        value={address.instructions}
-                        onChange={(e) => setAddress((prev) => ({ ...prev, instructions: e.target.value }))}
-                        className="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 md:col-span-2"
-                      />
-                    </div>
-                  )}
-                </div>
-              </label>
-            </div>
-
-            {error && <p className="text-sm text-rose-600">{error}</p>}
-
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                className="text-sm font-medium text-slate-500 hover:text-slate-700"
-                onClick={() => { setError(null); handleBack("slot"); }}
-              >
-                ← Back to slots
-              </button>
-              <button
-                type="button"
-                onClick={handleDeliveryContinue}
-                className="rounded-full bg-[#2f6ea5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#255b8b]"
-              >
-                Continue to payment
-              </button>
-            </div>
-          </div>
-        </section>
       )}
 
       {step === "pay" && appointmentId && (
@@ -756,9 +721,9 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
               <button
                 type="button"
                 className="text-sm font-medium text-slate-500 hover:text-slate-700"
-                onClick={() => handleBack("delivery")}
+                onClick={() => handleBack("slot")}
               >
-                ← Back to delivery
+                ← Back
               </button>
               <button
                 type="button"
