@@ -98,12 +98,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen -mt-16 bg-gray-100 text-slate-900">
+    <div className="flex min-h-screen bg-gray-100 text-slate-900" style={{ paddingTop: "4rem" }}>
 
       {/* ── Sidebar ── */}
-      <aside className="hidden lg:flex w-56 xl:w-60 shrink-0 flex-col sticky top-0 h-screen bg-white border-r border-slate-200 overflow-y-auto z-10">
+      {/* top-16 = 64 px = global nav height; h-[calc(100vh-4rem)] fills the rest */}
+      <aside className="hidden lg:flex w-56 xl:w-60 shrink-0 flex-col sticky top-16 h-[calc(100vh-4rem)] bg-white border-r border-slate-200 overflow-y-auto z-10">
         {/* Brand + portal label */}
-        <div className="px-5 pt-20 pb-4 border-b border-slate-100">
+        <div className="px-5 pt-5 pb-4 border-b border-slate-100">
           <p className="text-[10px] font-bold uppercase tracking-widest text-[#2f6ea5]">CalDoc</p>
           <p className="text-sm font-semibold text-slate-900 mt-0.5">Admin Portal</p>
         </div>
@@ -153,7 +154,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* ── Main content ── */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Mobile top bar (shown only on small screens where sidebar is hidden) */}
-        <div className="lg:hidden flex items-center justify-between border-b border-slate-200 bg-white px-4 pt-20 pb-3">
+        <div className="lg:hidden flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
           <p className="text-sm font-semibold text-slate-900">Admin Portal</p>
           <form action="/provider/logout" method="post">
             <button type="submit" className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600">
@@ -162,7 +163,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </form>
         </div>
 
-        <main className="flex-1 px-6 lg:px-10 pt-8 pb-10 space-y-6">
+        <main className="flex-1 px-6 lg:px-10 py-8 space-y-6">
           {children}
         </main>
       </div>
