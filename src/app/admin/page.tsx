@@ -18,21 +18,6 @@ function formatIST(date: Date) {
   });
 }
 
-const portalCards = [
-  { label: "Teleconsultations", desc: "Manage & reassign appointments", href: "/admin/appointments", bar: "bg-[#2f6ea5]" },
-  { label: "Rx Delivery", desc: "Track and fulfil prescription orders", href: "/admin/rx-orders", bar: "bg-emerald-600" },
-  { label: "Labs", desc: "Lab orders and status updates", href: "/admin/labs", bar: "bg-violet-600" },
-  { label: "NGO Bookings", desc: "Confirm or release NGO reservations", href: "/admin/ngo", bar: "bg-amber-600" },
-  { label: "Providers", desc: "Onboard, off-board, manage doctors", href: "/admin/providers", bar: "bg-slate-700" },
-  { label: "Enrollments", desc: "Review & approve provider applications", href: "/admin/enrollments", bar: "bg-orange-500" },
-  { label: "Pharmacy Team", desc: "Add or remove pharmacy users", href: "/admin/pharmacy-users", bar: "bg-teal-600" },
-  { label: "Lab Team", desc: "Add or remove lab users", href: "/admin/lab-users", bar: "bg-rose-600" },
-  { label: "Schedule Slots", desc: "Generate availability for providers", href: "/admin/slots", bar: "bg-indigo-600" },
-  { label: "WhatsApp", desc: "Diagnostics, message log & test sends", href: "/admin/whatsapp", bar: "bg-green-600" },
-  { label: "Check-in Form", desc: "Preview the patient pre-visit form", href: "/admin/checkin-preview", bar: "bg-cyan-600" },
-  { label: "Patients", desc: "Search and review registered patients", href: "/admin/patients", bar: "bg-pink-600" },
-  { label: "Audit log", desc: "System-wide action trail", href: "/admin/audit-logs", bar: "bg-slate-500" },
-];
 
 export default async function AdminDashboard() {
   const sess = await requireAdminSession();
@@ -113,26 +98,6 @@ export default async function AdminDashboard() {
             <p className="text-[11px] text-slate-400">{k.sub}</p>
           </div>
         ))}
-      </div>
-
-      {/* Portal quick-access */}
-      <div>
-        <h2 className="font-serif text-lg font-semibold text-slate-900">Portal sections</h2>
-        <p className="text-sm text-slate-500">Jump to any operational area.</p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {portalCards.map((card) => (
-            <Link
-              key={card.href}
-              href={card.href}
-              className="group relative overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-5  transition-shadow hover:shadow-[0_8px_30px_-4px_rgba(88,110,132,0.25)]"
-            >
-              <div className={`mb-3 h-1.5 w-8 rounded-full ${card.bar}`} />
-              <p className="font-semibold text-slate-900">{card.label}</p>
-              <p className="mt-0.5 text-xs text-slate-500">{card.desc}</p>
-              <span className="absolute right-4 top-4 text-slate-300 transition-colors group-hover:text-[#2f6ea5]">→</span>
-            </Link>
-          ))}
-        </div>
       </div>
 
       {/* NGO reservations */}

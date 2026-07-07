@@ -79,8 +79,6 @@ const nav: NavSection[] = [
   },
 ];
 
-const allLinks = nav.flatMap((s) => s.links);
-
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const isLoginPage = path === "/admin/login";
@@ -91,50 +89,82 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       : path === link.href || (path.startsWith(link.href + "/") && link.href !== "/admin");
   }
 
+  if (isLoginPage) {
+    return (
+      <div className="min-h-screen -mt-16 bg-gray-100 text-slate-900">
+        <div className="pt-20 pb-10 px-6">{children}</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen -mt-16 bg-gray-100 text-slate-900">
-      <div className="pt-20 pb-10">
-        {!isLoginPage && (
-          <div className="px-6 lg:px-16 xl:px-24 mb-6">
-            {/* Portal header */}
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">CalDoc</h2>
-                <h1 className="text-2xl font-semibold text-slate-900">Admin Portal</h1>
+    <div className="flex min-h-screen -mt-16 bg-gray-100 text-slate-900">
+
+      {/* ── Sidebar ── */}
+      <aside className="hidden lg:flex w-56 xl:w-60 shrink-0 flex-col sticky top-0 h-screen bg-white border-r border-slate-200 overflow-y-auto z-10">
+        {/* Brand + portal label */}
+        <div className="px-5 pt-20 pb-4 border-b border-slate-100">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#2f6ea5]">CalDoc</p>
+          <p className="text-sm font-semibold text-slate-900 mt-0.5">Admin Portal</p>
+        </div>
+
+        {/* Nav groups */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+          {nav.map((section) => (
+            <div key={section.group}>
+              <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                {section.group}
+              </p>
+              <div className="space-y-0.5">
+                {section.links.map((link) => {
+                  const active = isActive(link);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`block rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                        active
+                          ? "bg-[#2f6ea5]/10 text-[#2f6ea5]"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
               </div>
-              <form action="/provider/logout" method="post">
-                <button
-                  type="submit"
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-                >
-                  Sign out
-                </button>
-              </form>
             </div>
+          ))}
+        </nav>
 
-            {/* Horizontal scrollable nav */}
-            <div className="flex flex-wrap gap-2">
-              {allLinks.map((link) => {
-                const active = isActive(link);
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors ${
-                      active
-                        ? "bg-[#2f6ea5] text-white"
-                        : "border border-slate-200 bg-white text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Sign out */}
+        <div className="p-3 border-t border-slate-100">
+          <form action="/provider/logout" method="post">
+            <button
+              type="submit"
+              className="w-full rounded-lg px-2.5 py-2 text-left text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
+            >
+              Sign out
+            </button>
+          </form>
+        </div>
+      </aside>
 
-        <main className="px-6 lg:px-16 xl:px-24 space-y-6">{children}</main>
+      {/* ── Main content ── */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        {/* Mobile top bar (shown only on small screens where sidebar is hidden) */}
+        <div className="lg:hidden flex items-center justify-between border-b border-slate-200 bg-white px-4 pt-20 pb-3">
+          <p className="text-sm font-semibold text-slate-900">Admin Portal</p>
+          <form action="/provider/logout" method="post">
+            <button type="submit" className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600">
+              Sign out
+            </button>
+          </form>
+        </div>
+
+        <main className="flex-1 px-6 lg:px-10 pt-8 pb-10 space-y-6">
+          {children}
+        </main>
       </div>
     </div>
   );
