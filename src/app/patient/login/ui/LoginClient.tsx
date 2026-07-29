@@ -79,7 +79,14 @@ export default function LoginClient({ next, initialPhone }: Props) {
       );
       setCooldown(Number(data.cooldown || OTP_COOLDOWN_SECONDS));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send OTP");
+      const msg = err instanceof Error ? err.message : "Failed to send OTP";
+      // "Please wait Xs" means server-side cooldown — show timer instead of red error
+      const waitMatch = msg.match(/wait\s+(\d+)s/i);
+      if (waitMatch) {
+        setCooldown(Number(waitMatch[1]));
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -256,10 +263,16 @@ export default function LoginClient({ next, initialPhone }: Props) {
           <button
             type="submit"
             disabled={loading || cooldown > 0}
-            className="w-full rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60"
+            className="w-full rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
           >
-            {loading ? "Sending…" : cooldown > 0 ? `Wait ${cooldown}s` : "Send OTP"}
+            {loading ? "Sending…" : "Send OTP"}
           </button>
+          {cooldown > 0 && (
+            <p className="text-center text-xs text-slate-500">
+              Resend available in{" "}
+              <span className="font-semibold tabular-nums text-slate-700">{cooldown}s</span>
+            </p>
+          )}
         </form>
       ) : (
         <form className="space-y-4" onSubmit={verifyOtp}>
@@ -286,6 +299,23 @@ export default function LoginClient({ next, initialPhone }: Props) {
               ? "Verify & create account"
               : "Verify & continue"}
           </button>
+          <div className="text-center">
+            {cooldown > 0 ? (
+              <p className="text-xs text-slate-500">
+                Resend in{" "}
+                <span className="font-semibold tabular-nums text-slate-700">{cooldown}s</span>
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={requestOtp}
+                disabled={loading}
+                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+              >
+                Resend OTP
+              </button>
+            )}
+          </div>
         </form>
       )}
 
