@@ -76,8 +76,11 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
             </p>
           </div>
           <div className="flex flex-col items-end gap-3">
-            <Link href="/patient/appointments" className="text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]">
-              ← Back to appointments
+            <Link href="/patient/appointments" className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              Back to appointments
             </Link>
             {["PENDING", "CONFIRMED"].includes(appointment.status) && (
               <CancelAppointmentButton appointmentId={appointment.id} />

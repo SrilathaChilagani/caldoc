@@ -150,7 +150,12 @@ export default function ProviderClinicPage() {
   return (
     <div className="space-y-6 p-6 max-w-3xl">
       <div>
-        <Link href="/admin/providers" className="text-sm text-[#2f6ea5] hover:underline">← Back to providers</Link>
+        <Link href="/admin/providers" className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+          Back to providers
+        </Link>
         <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">Admin portal</p>
         <h1 className="font-serif text-2xl font-semibold text-slate-900">
           Clinic locations{providerName ? ` · ${providerName}` : ""}

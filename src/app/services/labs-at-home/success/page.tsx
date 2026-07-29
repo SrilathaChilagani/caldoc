@@ -67,8 +67,11 @@ export default async function LabsAtHomeSuccessPage({ searchParams }: { searchPa
           </dl>
           <Link
             href="/services/labs-at-home"
-            className="mt-6 inline-flex items-center rounded-full border border-emerald-200 px-5 py-2 text-sm font-semibold text-emerald-700 hover:border-emerald-300"
+            className="mt-6 inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
           >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
             Back to Labs at home
           </Link>
         </section>

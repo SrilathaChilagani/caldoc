@@ -13,9 +13,12 @@ export default async function AdminProviderOnboard() {
       <div className="flex flex-col gap-3">
         <Link
           href="/admin"
-          className="w-fit rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:border-blue-200 hover:text-blue-700"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
         >
-          ← Back to dashboard
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+          Back to dashboard
         </Link>
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Onboard a provider</h1>

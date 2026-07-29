@@ -104,9 +104,12 @@ export default async function VisitPage({ params, searchParams }: Props) {
         <div className="max-w-3xl">
           <Link
             href={backHref}
-            className="inline-flex items-center text-sm font-semibold text-[#2f6ea5] hover:text-[#255b8b]"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
           >
-            ← Back home
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            Back home
           </Link>
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

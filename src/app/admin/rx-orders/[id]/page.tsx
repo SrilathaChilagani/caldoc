@@ -79,9 +79,12 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
         <div>
           <Link
             href="/admin/rx-orders"
-            className="text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
           >
-            ← Back to Rx orders
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            Back to Rx orders
           </Link>
           <h1 className="mt-2 font-serif text-2xl font-semibold text-slate-900">
             Order details

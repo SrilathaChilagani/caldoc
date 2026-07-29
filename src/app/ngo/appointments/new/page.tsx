@@ -36,9 +36,12 @@ export default async function NgoBulkBookingPage() {
           </div>
           <Link
             href="/ngo/appointments"
-            className="inline-flex items-center gap-2 self-start rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
           >
-            <span aria-hidden="true">←</span> Back to dashboard
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            Back to dashboard
           </Link>
         </div>
         <NgoBulkBooking specialties={specialties} />

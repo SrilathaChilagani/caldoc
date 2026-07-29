@@ -87,9 +87,12 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
       <main className="mx-auto max-w-4xl space-y-4 px-4 py-10">
         <Link
           href={cameFromAdmin ? "/admin" : "/provider/appointments"}
-          className="text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
         >
-          ← Back to {cameFromAdmin ? "admin dashboard" : "appointments"}
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+          Back to {cameFromAdmin ? "admin dashboard" : "appointments"}
         </Link>
         <div className="rounded-2xl border border-red-100 bg-red-50 p-6">
           <h1 className="text-xl font-semibold text-red-700">Appointment not found</h1>
@@ -153,9 +156,12 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
       <div className="flex items-center justify-between">
         <Link
           href={cameFromAdmin ? "/admin" : "/provider/appointments"}
-          className="text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
         >
-          ← Back to {cameFromAdmin ? "admin dashboard" : "appointments"}
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+          Back to {cameFromAdmin ? "admin dashboard" : "appointments"}
         </Link>
         <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
           Status:{" "}

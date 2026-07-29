@@ -258,9 +258,12 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
     <div className="w-full px-6 lg:px-16 xl:px-24">
       <Link
         href="/providers"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-[#2f6ea5] hover:text-[#255b8b]"
+        className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
       >
-        ← Back to doctors
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+        Back to doctors
       </Link>
 
       {/* ── Page header ──────────────────────────────────── */}
