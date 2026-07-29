@@ -62,26 +62,26 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
   return (
     <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
       <div className="mx-auto max-w-5xl space-y-6 px-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Appointment details</p>
-            <h1 className="mt-1 font-serif text-3xl font-semibold text-slate-900">
-              {appointment.provider?.name || "Your doctor"}
-            </h1>
-            <p className="text-sm text-slate-500">
-              {appointment.provider?.speciality || "Teleconsultation"} · {formatIST(scheduledFor)}
-            </p>
-            <p className="text-sm text-slate-500">
-              Patient: {appointment.patientName || patient.name || "Patient"}
-            </p>
-          </div>
-          <div className="flex flex-col items-end gap-3">
-            <Link href="/patient/appointments" className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-              Back to appointments
-            </Link>
+        <div className="space-y-3">
+          <Link href="/patient/appointments" className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            Back to appointments
+          </Link>
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Appointment details</p>
+              <h1 className="mt-1 font-serif text-3xl font-semibold text-slate-900">
+                {appointment.provider?.name || "Your doctor"}
+              </h1>
+              <p className="text-sm text-slate-500">
+                {appointment.provider?.speciality || "Teleconsultation"} · {formatIST(scheduledFor)}
+              </p>
+              <p className="text-sm text-slate-500">
+                Patient: {appointment.patientName || patient.name || "Patient"}
+              </p>
+            </div>
             {["PENDING", "CONFIRMED"].includes(appointment.status) && (
               <CancelAppointmentButton appointmentId={appointment.id} />
             )}
