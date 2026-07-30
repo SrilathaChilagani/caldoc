@@ -395,8 +395,13 @@ export default async function PharmacyDashboardPage() {
                           <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase ${RX_STATUS_COLORS[order.status] ?? "bg-slate-100 text-slate-600"}`}>
                             {RX_STATUS_LABELS[order.status] ?? order.status}
                           </span>
+                          {order.status === "PAID" && (
+                            <span className="animate-pulse rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                              Action needed
+                            </span>
+                          )}
                           <Link
-                            href={`/admin/rx-orders/${order.id}`}
+                            href={`/pharmacy/rx-orders/${order.id}`}
                             className="text-xs font-semibold text-[#2f6ea5] hover:text-[#255b8b]"
                           >
                             Manage →
