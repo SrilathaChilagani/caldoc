@@ -88,6 +88,15 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
 
+    // Find a matching pharmacy partner by delivery postal code
+    const assignedPartner = await prisma.pharmacyPartner.findFirst({
+      where: {
+        isActive: true,
+        serviceAreas: { hasSome: [address.postalCode] },
+      },
+      select: { id: true },
+    });
+
     const order = await prisma.rxOrder.create({
       data: {
         patientId: patientMatch?.id || null,
@@ -105,6 +114,7 @@ export async function POST(req: NextRequest) {
         rxDocumentUploadedAt: prescription?.key ? new Date() : null,
         amountPaise,
         status: "AWAITING_PAYMENT",
+        pharmacyPartnerId: assignedPartner?.id ?? null,
       },
     });
 

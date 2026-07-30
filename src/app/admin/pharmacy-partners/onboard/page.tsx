@@ -4,9 +4,15 @@ import { requireAdminSession } from "@/lib/auth.server";
 
 export const dynamic = "force-dynamic";
 
-export default async function OnboardPharmacyPartner() {
+export default async function OnboardPharmacyPartner({
+  searchParams,
+}: {
+  searchParams: Promise<{ err?: string }>;
+}) {
   const sess = await requireAdminSession();
   if (!sess) redirect("/admin/login?next=/admin/pharmacy-partners/onboard");
+
+  const { err } = await searchParams;
 
   const inputCls = "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]/30";
   const labelCls = "block text-xs font-medium text-slate-600";
@@ -31,6 +37,12 @@ export default async function OnboardPharmacyPartner() {
           </p>
         </div>
       </div>
+
+      {err && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {err}
+        </div>
+      )}
 
       <form
         method="POST"

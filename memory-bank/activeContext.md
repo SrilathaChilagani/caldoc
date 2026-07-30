@@ -5,96 +5,53 @@
 
 ## Current Focus
 - **Sprint:** Sprint 01 — "Stabilize + Performance Foundation"
-- **Last task (2026-06-29):** Architecture review + foundational question resolution. COMPLETE.
-- **Next task:** End-to-end booking → payment → consultation test pass (P0 backlog).
+- **Last task (2026-07-29):** Pharmacy end-to-end flow fix. COMPLETE.
+- **Next task:** Rx order management UI for pharmacy portal (update status, add tracking); then P0 booking→payment→consult test pass.
 
 ---
 
-## Architecture Review — COMPLETED (2026-06-29)
+## Pharmacy End-to-End Fix — COMPLETED (2026-07-29)
 
-### Part A — Findings
+### What was broken
+1. Onboarding created a `PharmacyPartner` record but no login credentials, no notification.
+2. Login used an env-var email whitelist (`PHARMACY_ALLOWED_EMAILS`) — fragile, bypasses DB auth.
+3. Pharmacy portal showed ALL Rx orders regardless of which partner the logged-in user belongs to.
+4. Rx delivery orders were created with no pharmacy partner assigned (`pharmacyPartnerId` = null).
+5. Payment confirmation notified a hardcoded phone (`PHARMACY_ADMIN_PHONE`), not the assigned partner.
+6. Sign-out in pharmacy layout was a Link to `/pharmacy/login` — didn't clear the session cookie.
 
-**🔴 Bug: cleanup-abandoned-bookings cron never ran**
-- File: `src/app/api/cron/cleanup-abandoned-bookings/route.ts`
-- Vercel cron fires HTTP GET, but the route only exported `POST` → 405 every time.
-- **Fixed:** renamed `POST` → `GET`.
+### What was fixed
+- **`/api/admin/pharmacy-partners` (POST):**
+  - Duplicate detection: rejects duplicate email or drug license number (redirects back with error msg).
+  - Auto-creates `PharmacyUser` with `pharmacyPartnerId` linked and a random 12-char temp password.
+  - Sends WhatsApp notification to the pharmacy contact phone with portal URL + temp credentials.
+- **`/admin/pharmacy-partners/onboard/page.tsx`:** Reads `err` searchParam and shows a rose error banner above the form.
+- **`/api/pharmacy/login` (POST):** Removed env whitelist. Pure DB auth: find user → bcrypt compare → JWT. No auto-create on login.
+- **`/api/pharmacy/logout` (GET/POST):** New route. Clears `pharmacy_sess` cookie, redirects to login.
+- **`/pharmacy/layout.tsx`:** Sign-out changed from a `<Link>` to a `<form method="POST" action="/api/pharmacy/logout">`.
+- **`/pharmacy/page.tsx`:** `rxOrders` query now scoped by `sess.pharmacyPartnerId` (admin sees all when null).
+- **`/api/services/rx-delivery` (POST):** After order creation, finds an active `PharmacyPartner` whose `serviceAreas` includes the delivery postal code and assigns `pharmacyPartnerId`.
+- **`/api/rx-orders/confirm` (POST):** After payment capture, notifies the *assigned* pharmacy's WhatsApp (from `PharmacyPartner.phone`) instead of a hardcoded env var.
 
-**🔴 Bug: Reminder cron missed ~95% of appointments**
-- File: `vercel.json`
-- Schedule was `0 3 * * *` (3 AM UTC, once/day) with 30-min window.
-- Only appointments at 8:30–9:00 AM IST got reminders; all other times missed.
-- **Fixed:** changed schedule to `0 * * * *` (hourly). OutboundMessage `kind` dedup prevents double-sends.
-- Note: Vercel Pro plan required for sub-daily crons.
+### Files changed
+- `src/app/api/admin/pharmacy-partners/route.ts`
+- `src/app/admin/pharmacy-partners/onboard/page.tsx`
+- `src/app/api/pharmacy/login/route.ts`
+- `src/app/api/pharmacy/logout/route.ts` ← new file
+- `src/app/pharmacy/layout.tsx`
+- `src/app/pharmacy/page.tsx`
+- `src/app/api/services/rx-delivery/route.ts`
+- `src/app/api/rx-orders/confirm/route.ts`
 
-**🔴 Bug: Lab order status update — no partner ownership check**
-- File: `src/app/api/labs/orders/[orderId]/route.ts`
-- Any authenticated lab user could update any lab partner's orders.
-- **Fixed:** added `labPartnerId` ownership guard (admin bypass when `labPartnerId === null`).
-
-**🟡 Bug: Patient session cookie missing `secure` flag**
-- File: `src/app/api/patient/login/verify-otp/route.ts`
-- Cookie was sent over HTTP in production (no `secure: true`).
-- **Fixed:** added `secure: process.env.NODE_ENV === "production"`.
-
-**🟡 Bug: Payment.updatedAt never auto-updated**
-- File: `prisma/schema.prisma`
-- `updatedAt` had `@default(now())` but no `@updatedAt` directive.
-- **Fixed:** added `@updatedAt`.
-
-### Part A — Verified Sound
-- **Auth/session:** JWT stored httpOnly cookies ✅. Provider/admin session helpers do DB
-  verification (deleted accounts can't reuse tokens) ✅. Cookie domain logic correct ✅.
-- **Payment flow:** HMAC signature verified on webhook ✅. Idempotency via payment status
-  check before processing ✅. DB transaction covers slot lock + appointment status +
-  payment update atomically ✅. Terminal state protection (COMPLETED/CANCELLED/NO_SHOW
-  not overwritten by retried webhook) ✅.
-- **Data isolation:** Provider scoping enforced in all provider routes
-  (`appointment.providerId !== session.providerId` → 404) ✅. Lab gap fixed above.
-  Admin fallback to labs/pharmacy/frontdesk portals is intentional ✅.
-- **Schema integrity:** All money integer paise ✅. State machines logged in history
-  tables ✅. Slot double-booking prevented via `updateMany` with `isBooked:false`
-  atomic check ✅.
-- **Background jobs:** Cron secret pattern acceptable for dev/prod split ✅.
-  OutboundMessage dedup via `kind` prevents duplicate reminders ✅.
-
-### Foundational Questions — RESOLVED
-1. **Isolation (ADR-001):** App-level scoping is correct and consistent (confirmed).
-   Lab gap fixed. Accepted.
-2. **Middleware pass-through (Q2):** INTENTIONAL. App Router enforces auth per-handler
-   with DB verification. Edge middleware can't use Prisma. No unprotected sensitive
-   routes found. Acceptable for launch.
-3. **No job queue (Q3):** ACCEPTABLE FOR LAUNCH. Webhook idempotency + OutboundMessage
-   dedup + withRetry covers risks. Revisit post-launch if reminder failures > 5%.
-4. **Compliance (Q4):** Server-side canonical consent text already in `appointments/create`
-   (references Telemedicine Practice Guidelines 2020 + Schedule X). AuditLog model
-   exists. Legal pages present. Gap: AuditLog not written for all sensitive actions
-   (P1 backlog item).
-
-### Part B — Suggestions (not yet implemented — P1 backlog)
-1. **Slot timezone bug:** `generate-slots` creates `09:00–17:00` UTC = `14:30–22:30 IST`.
-   Needs IST offset (+05:30) in slot datetime construction.
-2. **Rx/Lab webhook gap:** `webhooks/razorpay` returns `ok: ignored` for Rx/Lab payments.
-   Webhook-driven confirmation missing for these flows — only client-side confirm works.
-3. **No rate limiting on OTP:** `/api/patient/login/request-otp` — no rate limit, brute-
-   forceable. Add IP rate limit (Vercel Edge Config or upstash/ratelimit).
-4. **AuditLog under-used:** Only `AuditLog` model exists; few routes write to it.
-   Critical actions (login, payment, appointment status changes) should log.
-5. **Error handling inconsistency:** Some routes return raw error messages; needs a
-   shared `createErrorResponse()` wrapper from `src/lib/errors.ts`.
-
-## Booking page UX rewrite — COMPLETED (2026-06-29)
-
-### What changed
-- **`src/app/book/[providerId]/ui/BookClient.tsx`** fully rewritten.
-  - Removed multi-step flow (`Step` type, `step` state, `handleBack`, scroll-on-step `useEffect`, `pay` block).
-  - **Prescription Delivery** section moved from right sidebar → left column, directly below the Visit Type selector.
-  - Right sidebar now has: Symptoms → Notes → **Live Booking Summary** → "Proceed to payment" button.
-  - Live summary updates reactively: Doctor, Slot, Patient, Visit type, Prescription delivery, Fee.
-  - `handleProceed` creates the appointment then immediately redirects to `/checkout?appointmentId=...&amount=...` — no intermediate confirmation page.
+### Remaining gaps (next sprint)
+- Pharmacy portal has no UI to update Rx order status (PROCESSING → DISPATCHED → DELIVERED) or add tracking number; only admin can do this today.
+- Appointment-based fulfillment queue is still unscoped (all pharmacies see all appointments) — needs a pharmacy assignment step or postal code matching.
+- No "forgot password" / password-change flow for pharmacy users.
+- `PHARMACY_ALLOWED_EMAILS` env var is now unused — can be removed from production env.
 
 ## Next Action
 P0: End-to-end booking → payment → consultation test pass.
+Then: Rx order status management UI for pharmacy portal.
 
 ## Blockers
-- None. Hourly crons run via GitHub Actions (`.github/workflows/cron-jobs.yml`) — same
-  pattern as `warm.yml`. Ensure `CRON_SECRET` is set in GitHub repo secrets.
+- None.

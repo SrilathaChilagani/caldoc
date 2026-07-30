@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 
-const PHARMACY_PHONE = process.env.PHARMACY_ADMIN_PHONE || "+15135608528";
-
 function formatItems(items: unknown) {
   if (!Array.isArray(items)) return "";
   return items.map((item) => `${item?.name || "medicine"} × ${item?.qty || 1}`).join(", ");
@@ -48,12 +46,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Payment mapping missing" }, { status: 400 });
     }
 
-    // Guard against payload tampering / mismatched order references.
     if (payment.rxOrderId !== orderId) {
       return NextResponse.json({ error: "Order mismatch" }, { status: 409 });
     }
 
-    // Idempotency: duplicate callback should return success without replaying side-effects.
     if (payment.status === "CAPTURED") {
       return NextResponse.json({ ok: true, idempotent: true });
     }
@@ -77,16 +73,42 @@ export async function POST(req: NextRequest) {
 
     const itemsLabel = formatItems(rxOrder.items);
     const addressLabel = formatAddress(rxOrder.address);
-    const adminMsg = `Ad-hoc Rx order ${rxOrder.id} paid. Patient ${rxOrder.patientName} (${rxOrder.patientPhone}). Items: ${itemsLabel}. Address: ${addressLabel}.`;
-    const patientMsg = `Hi ${rxOrder.patientName}, we received your CalDoc Rx delivery order ${rxOrder.id}. Our pharmacy will reach out shortly.`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://caldoc.in";
 
     const sends: Promise<unknown>[] = [];
-    if (PHARMACY_PHONE) {
-      sends.push(sendWhatsAppText(PHARMACY_PHONE, adminMsg).catch((err) => console.error("pharmacy WA", err)));
-    }
+
+    // Notify patient
     if (rxOrder.patientPhone) {
-      sends.push(sendWhatsAppText(rxOrder.patientPhone, patientMsg).catch((err) => console.error("patient WA", err)));
+      const patientMsg = `Hi ${rxOrder.patientName}, we received your CalDoc Rx delivery order ${rxOrder.id}. Our pharmacy will reach out shortly.`;
+      sends.push(
+        sendWhatsAppText(rxOrder.patientPhone, patientMsg).catch((e) =>
+          console.error("patient Rx WA", e),
+        ),
+      );
     }
+
+    // Notify the assigned pharmacy partner
+    if (rxOrder.pharmacyPartnerId) {
+      const partner = await prisma.pharmacyPartner.findUnique({
+        where: { id: rxOrder.pharmacyPartnerId },
+        select: { phone: true, contactName: true },
+      });
+      if (partner?.phone) {
+        const pharmacyMsg =
+          `New Rx order paid — action required!\n\n` +
+          `Order: ${rxOrder.id}\n` +
+          `Patient: ${rxOrder.patientName} (${rxOrder.patientPhone})\n` +
+          `Items: ${itemsLabel}\n` +
+          `Delivery address: ${addressLabel}\n\n` +
+          `Log in to ${appUrl}/pharmacy to process this order.`;
+        sends.push(
+          sendWhatsAppText(partner.phone, pharmacyMsg).catch((e) =>
+            console.error("pharmacy Rx notify WA", e),
+          ),
+        );
+      }
+    }
+
     await Promise.all(sends);
 
     return NextResponse.json({ ok: true });

@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 
 export default function PharmacyLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -16,12 +15,14 @@ export default function PharmacyLayout({ children }: { children: React.ReactNode
               <h2 className="text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">CalDoc</h2>
               <h1 className="text-2xl font-semibold text-slate-900">Pharmacy Portal</h1>
             </div>
-            <Link
-              href="/pharmacy/login"
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
-            >
-              Sign out
-            </Link>
+            <form method="POST" action="/api/pharmacy/logout">
+              <button
+                type="submit"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
+              >
+                Sign out
+              </button>
+            </form>
           </div>
         )}
         <main className="space-y-6">{children}</main>

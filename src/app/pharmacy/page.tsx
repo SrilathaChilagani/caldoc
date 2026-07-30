@@ -90,6 +90,7 @@ export default async function PharmacyDashboardPage() {
       take: 150,
     }),
     prisma.rxOrder.findMany({
+      where: sess.pharmacyPartnerId ? { pharmacyPartnerId: sess.pharmacyPartnerId } : {},
       orderBy: { createdAt: "desc" },
       take: 100,
       include: {

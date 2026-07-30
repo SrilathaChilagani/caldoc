@@ -23,6 +23,9 @@
 ## ✅ Done (added 2026-06-30)
 - **Booking page UX rewrite:** single-page flow — prescription delivery moved to left column below Visit Type; right sidebar shows live booking summary (Doctor, Slot, Patient, Visit, Delivery, Fee); "Proceed to payment" button goes directly to `/checkout` without a confirmation page.
 
+## ✅ Done (added 2026-07-29)
+- **Pharmacy end-to-end flow:** Onboarding now auto-creates `PharmacyUser` (linked by `pharmacyPartnerId`) with temp password and WhatsApp notification. Duplicate email/drug-license detection added. Login uses pure DB auth (env whitelist removed). Pharmacy portal scopes Rx orders to logged-in partner. Rx delivery orders auto-assigned to matching pharmacy by delivery postal code. Payment confirmation notifies the assigned pharmacy's WhatsApp. Sign-out properly clears session cookie via new `/api/pharmacy/logout` route.
+
 ## 🚧 In Progress
 - Sprint 01: production-readiness checklist.
 
@@ -32,6 +35,9 @@
 - AuditLog model under-used — sensitive actions (login, payment, status change) not consistently logged. (P1)
 - Error handling not consistent across all API routes. (P0)
 - Vercel Pro plan required for hourly reminder cron (`0 * * * *`) — confirm plan before deploy. (blocker)
+- Pharmacy portal: no UI to update Rx order status (PROCESSING→DISPATCHED→DELIVERED) or add tracking — only admin can do this today. (P1)
+- Appointment fulfillment queue still unscoped — all pharmacy users see all appointments. (P1)
+- No password-change or forgot-password flow for pharmacy users. (P1)
 
 ## 📋 Next Up (P0 first)
 - [ ] **P0:** End-to-end booking → payment → consultation test pass
@@ -51,4 +57,4 @@
 - [ ] **M1:** Production-ready v1 (booking+checkout reliable, portals stable, perf, ops readiness).
 
 ---
-_Last updated: 2026-06-29 by Claude Code_
+_Last updated: 2026-07-29 by Claude Code_
