@@ -125,8 +125,15 @@ export default async function PatientLabsPage(props: PageProps) {
       ],
     },
     orderBy: { createdAt: "desc" },
-    include: {
-      payment: true,
+    select: {
+      id: true,
+      status: true,
+      tests: true,
+      amountPaise: true,
+      createdAt: true,
+      notes: true,
+      resultsPdfKey: true,
+      payment: { select: { receiptUrl: true } },
     },
     take: 100,
   });
@@ -134,8 +141,23 @@ export default async function PatientLabsPage(props: PageProps) {
   const statusClasses: Record<string, string> = {
     PENDING: "bg-amber-50 text-amber-700",
     AWAITING_PAYMENT: "bg-amber-50 text-amber-700",
-    CONFIRMED: "bg-emerald-50 text-emerald-700",
+    CONFIRMED: "bg-blue-50 text-blue-700",
+    SAMPLE_COLLECTED: "bg-indigo-50 text-indigo-700",
+    PROCESSING: "bg-violet-50 text-violet-700",
+    REPORTS_READY: "bg-teal-50 text-teal-700",
+    COMPLETED: "bg-emerald-50 text-emerald-700",
     CANCELLED: "bg-rose-50 text-rose-700",
+  };
+
+  const statusLabels: Record<string, string> = {
+    PENDING: "Pending",
+    AWAITING_PAYMENT: "Awaiting payment",
+    CONFIRMED: "Confirmed",
+    SAMPLE_COLLECTED: "Sample collected",
+    PROCESSING: "Processing",
+    REPORTS_READY: "Results ready",
+    COMPLETED: "Completed",
+    CANCELLED: "Cancelled",
   };
 
   return (
@@ -200,7 +222,7 @@ export default async function PatientLabsPage(props: PageProps) {
                         statusClasses[order.status] || "bg-slate-100 text-slate-700"
                       }`}
                     >
-                      {order.status}
+                      {statusLabels[order.status] ?? order.status}
                     </span>
                   </div>
 
@@ -227,6 +249,19 @@ export default async function PatientLabsPage(props: PageProps) {
                         className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
                       >
                         Receipt
+                      </a>
+                    )}
+                    {order.resultsPdfKey && (
+                      <a
+                        href={`/api/patient/lab-orders/results/${order.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-teal-300 bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-100"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                          <path d="M4 16v4h16v-4M12 4v12M8 12l4 4 4-4" />
+                        </svg>
+                        Download results
                       </a>
                     )}
                   </div>

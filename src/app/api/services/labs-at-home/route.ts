@@ -62,12 +62,18 @@ export async function POST(req: NextRequest) {
     }
 
     const { last10, candidates } = buildPhoneCandidates(patientPhone);
-    const patientMatch = await prisma.patient.findFirst({
-      where: {
-        OR: [{ phone: { contains: last10 } }, { phone: { in: candidates } }],
-      },
-      select: { id: true },
-    });
+    const [patientMatch, labPartner] = await Promise.all([
+      prisma.patient.findFirst({
+        where: {
+          OR: [{ phone: { contains: last10 } }, { phone: { in: candidates } }],
+        },
+        select: { id: true },
+      }),
+      prisma.labPartner.findFirst({
+        where: { isActive: true, homeCollection: true },
+        select: { id: true },
+      }),
+    ]);
 
     const order = await prisma.labOrder.create({
       data: {
@@ -82,6 +88,7 @@ export async function POST(req: NextRequest) {
         address,
         amountPaise,
         source: "ADHOC",
+        labPartnerId: labPartner?.id || null,
       },
     });
 

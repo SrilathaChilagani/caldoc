@@ -386,6 +386,7 @@ model LabOrder {
   source               String      @default("APPOINTMENT")
   collectionAgentName  String?
   collectionAgentPhone String?
+  resultsPdfKey        String?
   labPartnerId         String?
   labPartner           LabPartner? @relation(fields: [labPartnerId], references: [id])
   createdAt            DateTime    @default(now())

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { notifyLabOrderConfirmation } from "@/lib/sendLabOrderConfirmation";
 
-const LAB_ADMIN_PHONE = process.env.LABS_ADMIN_PHONE || "+15135608528";
+const LAB_ADMIN_PHONE_FALLBACK = process.env.LABS_ADMIN_PHONE || "";
 
 function formatTests(tests: unknown): string {
   if (!Array.isArray(tests)) return "";
@@ -85,13 +85,23 @@ export async function POST(req: NextRequest) {
 
     const testsLabel = formatTests(labOrder.tests);
     const addressLabel = formatAddress(labOrder.address);
+
+    let labPartnerPhone: string | null = null;
+    if (labOrder.labPartnerId) {
+      const partner = await prisma.labPartner.findUnique({
+        where: { id: labOrder.labPartnerId },
+        select: { phone: true },
+      });
+      labPartnerPhone = partner?.phone || null;
+    }
+
     await notifyLabOrderConfirmation({
       orderId: labOrder.id,
       patientName: labOrder.patientName,
       patientPhone: labOrder.patientPhone,
       patientTestsLabel: testsLabel,
       patientAddressLabel: addressLabel,
-      adminPhone: LAB_ADMIN_PHONE,
+      adminPhone: labPartnerPhone || LAB_ADMIN_PHONE_FALLBACK || null,
     });
 
     return NextResponse.json({ ok: true });

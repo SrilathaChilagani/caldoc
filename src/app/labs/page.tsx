@@ -260,6 +260,11 @@ export default async function LabsDashboardPage() {
                         <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase ${STATUS_COLORS[order.status] ?? "bg-slate-100 text-slate-600"}`}>
                           {STATUS_LABELS[order.status] ?? order.status}
                         </span>
+                        {["PENDING", "CONFIRMED"].includes(order.status) && (
+                          <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700 animate-pulse">
+                            Action needed
+                          </span>
+                        )}
                         <LabOrderActions
                           orderId={order.id}
                           currentStatus={order.status}
@@ -270,10 +275,10 @@ export default async function LabsDashboardPage() {
                           <UploadResultsButton orderId={order.id} />
                         )}
                         <Link
-                          href={`/admin/labs/${order.id}`}
+                          href={`/labs/orders/${order.id}`}
                           className="block text-[11px] font-semibold text-[#2f6ea5] hover:text-[#255b8b]"
                         >
-                          Full timeline →
+                          Manage →
                         </Link>
                       </div>
                     </td>

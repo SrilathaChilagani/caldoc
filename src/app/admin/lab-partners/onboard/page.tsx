@@ -4,9 +4,16 @@ import { requireAdminSession } from "@/lib/auth.server";
 
 export const dynamic = "force-dynamic";
 
-export default async function OnboardLabPartner() {
+type Props = {
+  searchParams: Promise<{ err?: string }>;
+};
+
+export default async function OnboardLabPartner({ searchParams }: Props) {
   const sess = await requireAdminSession();
   if (!sess) redirect("/admin/login?next=/admin/lab-partners/onboard");
+
+  const sp = await searchParams;
+  const errorMsg = sp.err ? decodeURIComponent(sp.err) : null;
 
   const inputCls = "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]/30";
   const labelCls = "block text-xs font-medium text-slate-600";
@@ -31,6 +38,12 @@ export default async function OnboardLabPartner() {
           </p>
         </div>
       </div>
+
+      {errorMsg && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {errorMsg}
+        </div>
+      )}
 
       <form
         method="POST"

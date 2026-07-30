@@ -1,6 +1,9 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
+import { sendWhatsAppText } from "@/lib/whatsapp";
 
 export async function POST(req: NextRequest) {
   const sess = await requireAdminSession();
@@ -25,13 +28,22 @@ export async function POST(req: NextRequest) {
   const homeCollection = homeCollectionRaw === "on" || homeCollectionRaw === "true";
   const notes = (fd.get("notes") as string | null)?.trim() || null;
 
+  const redirectErr = (msg: string) =>
+    NextResponse.redirect(
+      new URL(`/admin/lab-partners/onboard?err=${encodeURIComponent(msg)}`, req.url),
+      303,
+    );
+
   if (!name || !contactName || !email || !phone || !addressLine1 || !city || !state || !pincode) {
-    return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
+    return redirectErr("Please fill in all required fields.");
   }
 
   const testCategories = testCategoriesRaw
     ? testCategoriesRaw.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
+
+  const dupEmail = await prisma.labPartner.findUnique({ where: { email }, select: { id: true } });
+  if (dupEmail) return redirectErr("A lab partner with this email is already registered.");
 
   const partner = await prisma.labPartner.create({
     data: {
@@ -53,7 +65,23 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  const tempPassword = crypto.randomBytes(6).toString("hex");
+  const passwordHash = await bcrypt.hash(tempPassword, 10);
+  await prisma.labUser.create({
+    data: {
+      email,
+      passwordHash,
+      role: "LAB_ADMIN",
+      labPartnerId: partner.id,
+    },
+  });
+
+  const portalOrigin = new URL(req.url).origin;
+  const waMsg =
+    `Welcome to CalDoc!\nYour lab partner portal account is ready.\n\nLab: ${name}\nEmail: ${email}\nPassword: ${tempPassword}\nPortal: ${portalOrigin}/labs/login\n\nPlease log in and change your password after first sign-in.`;
+  sendWhatsAppText(phone, waMsg).catch((e) => console.error("lab onboard WA", e));
+
   return NextResponse.redirect(
-    new URL(`/admin/lab-partners?created=${partner.id}`, req.url)
+    new URL(`/admin/lab-partners?created=${partner.id}`, req.url),
   );
 }
