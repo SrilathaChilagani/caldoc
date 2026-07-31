@@ -102,7 +102,7 @@ export default async function LabsDashboardPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Lab portal</p>
-            <h1 className="font-serif text-2xl font-semibold text-slate-900">Lab Orders</h1>
+            <h1 className="font-serif text-2xl text-slate-900">Lab Orders</h1>
             <p className="text-sm text-slate-500">
               Track lab orders, assign collection agents, and manage results.
             </p>
@@ -130,7 +130,7 @@ export default async function LabsDashboardPage() {
       {/* Orders table */}
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6  space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-serif text-lg font-semibold text-slate-900">Lab orders</h2>
+          <h2 className="font-serif text-lg text-slate-900">Lab orders</h2>
           <p className="text-xs text-slate-500">Showing {orders.length} orders</p>
         </div>
 

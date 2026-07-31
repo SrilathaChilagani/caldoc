@@ -86,7 +86,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
             </svg>
             Back to Rx orders
           </Link>
-          <h1 className="mt-2 font-serif text-2xl font-semibold text-slate-900">
+          <h1 className="mt-2 font-serif text-2xl text-slate-900">
             Order details
           </h1>
           <p className="font-mono text-xs text-slate-400">{order.id}</p>
@@ -103,7 +103,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
         <div className="space-y-6 lg:col-span-2">
           {/* Patient info */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Patient</h2>
+            <h2 className="font-serif text-lg text-slate-900">Patient</h2>
             <dl className="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Name</dt>
@@ -128,7 +128,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
 
           {/* Delivery address */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Delivery address</h2>
+            <h2 className="font-serif text-lg text-slate-900">Delivery address</h2>
             {addressIssues.length > 0 && (
               <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                 <p className="text-xs font-semibold text-amber-700">Address validation warnings</p>
@@ -194,7 +194,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
           {/* Items */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-lg font-semibold text-slate-900">Items</h2>
+              <h2 className="font-serif text-lg text-slate-900">Items</h2>
               <span className="text-sm font-semibold text-slate-900">{formatINR(order.amountPaise)}</span>
             </div>
             {items.length === 0 ? (
@@ -225,7 +225,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
 
           {/* Supply chain timeline */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Order timeline</h2>
+            <h2 className="font-serif text-lg text-slate-900">Order timeline</h2>
             <p className="text-sm text-slate-500">All status transitions and notes for this order.</p>
 
             {order.events.length === 0 ? (
@@ -278,7 +278,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
         {/* Right column: update status */}
         <div className="space-y-6">
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Update order</h2>
+            <h2 className="font-serif text-lg text-slate-900">Update order</h2>
             <p className="mb-4 text-sm text-slate-500">Change status, add tracking info, or leave an internal note.</p>
             <RxOrderActions orderId={order.id} currentStatus={order.status} />
           </section>
@@ -286,7 +286,7 @@ export default async function AdminRxOrderDetailPage({ params }: PageProps) {
           {/* Rx document */}
           {order.rxDocumentKey && (
             <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
-              <h2 className="font-serif text-lg font-semibold text-slate-900">Prescription document</h2>
+              <h2 className="font-serif text-lg text-slate-900">Prescription document</h2>
               <p className="mt-1 text-sm text-slate-500">{order.rxDocumentName ?? "Attached file"}</p>
               <Link
                 href={`/api/admin/rx-orders/${order.id}/document`}

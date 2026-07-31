@@ -55,7 +55,7 @@ export default async function FrontDeskLabs({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl font-semibold text-slate-900">Lab orders</h1>
+      <h1 className="font-serif text-3xl text-slate-900">Lab orders</h1>
 
       {/* Filters */}
       <div className="rounded-2xl border border-white/70 bg-white/90 px-5 py-4 shadow-sm space-y-3">

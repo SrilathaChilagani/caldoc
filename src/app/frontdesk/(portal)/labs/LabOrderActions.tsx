@@ -75,7 +75,7 @@ export default function LabOrderActions({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between">
-              <h2 className="font-serif text-lg font-semibold text-slate-900">Manage lab order</h2>
+              <h2 className="font-serif text-lg text-slate-900">Manage lab order</h2>
               <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
 

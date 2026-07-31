@@ -65,7 +65,7 @@ export default async function PatientLabsPage(props: PageProps) {
     return (
       <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
         <div className="mx-auto max-w-3xl space-y-4 px-4 text-slate-700">
-          <h1 className="font-serif text-3xl font-semibold text-slate-900">Patient portal</h1>
+          <h1 className="font-serif text-3xl text-slate-900">Patient portal</h1>
           <p>
             To view your lab orders, please{" "}
             <Link href="/patient/login" className="text-[#2f6ea5]">sign in</Link>{" "}
@@ -95,7 +95,7 @@ export default async function PatientLabsPage(props: PageProps) {
     return (
       <main className="min-h-screen -mt-16 bg-gray-100 pt-20 pb-10">
         <div className="mx-auto max-w-3xl space-y-4 px-4 text-slate-700">
-          <h1 className="font-serif text-3xl font-semibold text-slate-900">Patient portal</h1>
+          <h1 className="font-serif text-3xl text-slate-900">Patient portal</h1>
           <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             We couldn&apos;t find a patient with that phone number.
           </p>

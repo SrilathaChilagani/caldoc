@@ -31,7 +31,7 @@ export default function SpecialtiesPage() {
       <div className="mx-auto w-full max-w-6xl space-y-8 px-4 sm:px-6 lg:px-10">
         <div className="border-b border-slate-200 pb-8">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Specialties</p>
-          <h1 className="mt-2 font-serif text-3xl font-semibold text-slate-900">Explore CalDoc’s specialty network</h1>
+          <h1 className="mt-2 font-serif text-3xl text-slate-900">Explore CalDoc’s specialty network</h1>
           <p className="mt-3 text-sm text-slate-600">
             Every online visit is staffed by specialists registered in India. Browse the most-requested departments below.
           </p>

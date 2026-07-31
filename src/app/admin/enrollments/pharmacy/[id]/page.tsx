@@ -57,7 +57,7 @@ export default async function PharmacyEnrollmentDetailPage({
       </div>
 
       <div>
-        <h1 className="font-serif text-2xl font-semibold text-slate-900">{enrollment.pharmacyName}</h1>
+        <h1 className="font-serif text-2xl text-slate-900">{enrollment.pharmacyName}</h1>
         <p className="text-sm text-slate-500">
           {enrollment.city}, {enrollment.state}
         </p>

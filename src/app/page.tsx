@@ -229,7 +229,7 @@ export default async function Home() {
         <div className="container mx-auto px-6 lg:px-16">
           <div className="text-center mb-12">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#2f6ea5] mb-2">Why Choose Us</p>
-            <h2 className="font-serif text-3xl font-semibold text-slate-900 md:text-4xl">Healthcare where comfort meets care</h2>
+            <h2 className="font-serif text-3xl text-slate-900 md:text-4xl">Healthcare where comfort meets care</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="rounded-2xl border border-white/70 bg-white/90 p-8 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
@@ -239,7 +239,7 @@ export default async function Home() {
                   <path d="M16 10l5-3v10l-5-3" />
                 </svg>
               </div>
-              <h3 className="font-serif text-xl font-semibold text-slate-900 mb-2">Video Consultations</h3>
+              <h3 className="font-serif text-xl text-slate-900 mb-2">Video Consultations</h3>
               <p className="text-sm leading-relaxed text-slate-600">
                 HD video calls with registered doctors from the comfort of your home. No waiting rooms, no commute.
               </p>
@@ -250,7 +250,7 @@ export default async function Home() {
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
               </div>
-              <h3 className="font-serif text-xl font-semibold text-slate-900 mb-2">Safe &amp; Secure</h3>
+              <h3 className="font-serif text-xl text-slate-900 mb-2">Safe &amp; Secure</h3>
               <p className="text-sm leading-relaxed text-slate-600">
                 Your health data is encrypted end-to-end. All doctors are NMC-registered with verified credentials.
               </p>
@@ -262,7 +262,7 @@ export default async function Home() {
                   <path d="M12 6v6l4 2" />
                 </svg>
               </div>
-              <h3 className="font-serif text-xl font-semibold text-slate-900 mb-2">Available 24/7</h3>
+              <h3 className="font-serif text-xl text-slate-900 mb-2">Available 24/7</h3>
               <p className="text-sm leading-relaxed text-slate-600">
                 Book appointments any time of day. Doctors available across time zones for rural and urban patients alike.
               </p>
@@ -275,7 +275,7 @@ export default async function Home() {
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="mb-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Browse by specialty</p>
-            <h2 className="mt-2 font-serif text-3xl font-semibold text-slate-900 md:text-4xl">Find the right care team</h2>
+            <h2 className="mt-2 font-serif text-3xl text-slate-900 md:text-4xl">Find the right care team</h2>
             <p className="mt-2 text-sm text-slate-600">
               Choose a specialty to explore doctors that match your needs.
             </p>
@@ -342,7 +342,7 @@ export default async function Home() {
       <section id="doctors" className="bg-[#f7f2ea]">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="mb-10 text-center">
-            <h2 className="font-serif text-3xl font-semibold text-slate-900 md:text-4xl">Meet Our Doctors</h2>
+            <h2 className="font-serif text-3xl text-slate-900 md:text-4xl">Meet Our Doctors</h2>
             <p className="mt-2 text-sm text-slate-600">
               Expert healthcare professionals dedicated to your wellbeing
             </p>
@@ -372,10 +372,10 @@ export default async function Home() {
                   className="group rounded-3xl border border-white/60 bg-white/80 p-6 shadow-[0_25px_60px_-15px_rgba(88,110,132,0.2)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_-18px_rgba(88,110,132,0.28)]"
                 >
                   <div className={`mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient}`}>
-                    <span className="font-serif text-3xl font-semibold text-white">{initials}</span>
+                    <span className="font-serif text-3xl text-white">{initials}</span>
                   </div>
                   <div className="text-center">
-                    <h3 className="font-serif text-xl font-semibold text-slate-900">{provider.name}</h3>
+                    <h3 className="font-serif text-xl text-slate-900">{provider.name}</h3>
                     <p className="text-sm font-medium text-[#2f6ea5]">{provider.speciality}</p>
                     {provider.qualification && (
                       <p className="text-xs text-slate-500">{provider.qualification}</p>
@@ -408,7 +408,7 @@ export default async function Home() {
       <section id="how-it-works" className="bg-[#f7f2ea]">
         <div className="container mx-auto grid gap-12 px-4 py-12 md:grid-cols-2 md:gap-16 md:py-16">
           <div>
-            <h2 className="font-serif text-3xl font-semibold text-slate-900 md:text-4xl">
+            <h2 className="font-serif text-3xl text-slate-900 md:text-4xl">
               Your journey to better health, <span className="text-[#2f6ea5]">simplified.</span>
             </h2>
             <p className="mt-4 text-base leading-relaxed text-slate-600">
@@ -470,7 +470,7 @@ export default async function Home() {
                 <div className="pt-1">
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-semibold tracking-[0.2em] text-[#2f6ea5]/70">{x.step}</span>
-                    <h3 className="font-serif text-xl font-semibold text-slate-900">{x.title}</h3>
+                    <h3 className="font-serif text-xl text-slate-900">{x.title}</h3>
                   </div>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600">{x.desc}</p>
                 </div>
@@ -483,7 +483,7 @@ export default async function Home() {
       <section id="testimonials" className="bg-[#f7f2ea]">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="mb-10 text-center">
-            <h2 className="font-serif text-3xl font-semibold text-slate-900 md:text-4xl">What Our Patients Say</h2>
+            <h2 className="font-serif text-3xl text-slate-900 md:text-4xl">What Our Patients Say</h2>
             <p className="mt-2 text-sm text-slate-600">Real stories from people who found care with CalDoc</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">

@@ -25,7 +25,7 @@ export default async function RxDeliverySuccessPage({ searchParams }: { searchPa
       <div className="mx-auto max-w-2xl space-y-8 px-6 text-center">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">Payment successful</p>
-          <h1 className="font-serif text-3xl font-semibold text-slate-900">Thank you! We&apos;re processing your order.</h1>
+          <h1 className="font-serif text-3xl text-slate-900">Thank you! We&apos;re processing your order.</h1>
           <p className="text-sm text-slate-500">
             Order <span className="font-mono text-slate-700">{rxOrder.id}</span>. Our pharmacy team will confirm dispatch over WhatsApp.
           </p>

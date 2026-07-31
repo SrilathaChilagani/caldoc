@@ -74,7 +74,7 @@ export default function LabStatusAction({
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Update lab order status</h2>
+            <h2 className="font-serif text-lg text-slate-900">Update lab order status</h2>
             <div className="mt-4 space-y-2">
               {STATUSES.map((s) => (
                 <label key={s} className="flex cursor-pointer items-center gap-3 rounded-xl p-2 hover:bg-slate-50">

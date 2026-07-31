@@ -99,7 +99,7 @@ export default async function AdminAppointmentsPage({
     <>
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">Admin portal</p>
-        <h1 className="font-serif text-3xl font-semibold text-slate-900">All appointments</h1>
+        <h1 className="font-serif text-3xl text-slate-900">All appointments</h1>
         <p className="mt-1 text-sm text-slate-500">
           View, cancel, or reassign any appointment across all providers.
         </p>

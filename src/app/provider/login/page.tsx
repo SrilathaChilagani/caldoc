@@ -77,7 +77,7 @@ export default async function ProviderLoginPage({
       <div className="w-full max-w-md space-y-6 rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
         <div className="space-y-1 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">{copy.badge}</p>
-          <h1 className="font-serif text-2xl font-semibold text-slate-900">{copy.headline}</h1>
+          <h1 className="font-serif text-2xl text-slate-900">{copy.headline}</h1>
           <p className="text-sm text-slate-500">{copy.body}</p>
         </div>
         <LoginForm nextUrl={next} loggedOut={loggedOut} errorMessage={errorMessage} defaultEmail={lastEmail} />

@@ -105,7 +105,7 @@ export default async function LabOrderDetailPage({ params }: PageProps) {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Lab portal</p>
-            <h1 className="font-serif text-2xl font-semibold text-slate-900">Lab Order</h1>
+            <h1 className="font-serif text-2xl text-slate-900">Lab Order</h1>
             <p className="font-mono text-sm text-slate-500">#{order.id.slice(-12)}</p>
           </div>
           <span

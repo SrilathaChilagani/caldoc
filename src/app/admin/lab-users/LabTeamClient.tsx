@@ -67,7 +67,7 @@ export default function LabTeamClient({ initialUsers }: { initialUsers: User[] }
     <>
       {/* Add form */}
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
-        <h2 className="font-serif text-lg font-semibold text-slate-900">Add lab user</h2>
+        <h2 className="font-serif text-lg text-slate-900">Add lab user</h2>
         <p className="text-sm text-slate-500">
           Create login credentials for a lab team member.
         </p>
@@ -104,7 +104,7 @@ export default function LabTeamClient({ initialUsers }: { initialUsers: User[] }
       {/* Users list */}
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_4px_24px_-4px_rgba(88,110,132,0.15)]">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-serif text-lg font-semibold text-slate-900">Team members</h2>
+          <h2 className="font-serif text-lg text-slate-900">Team members</h2>
           <span className="rounded-full bg-rose-100 px-3 py-0.5 text-xs font-semibold text-rose-700">
             {users.length} member{users.length !== 1 ? "s" : ""}
           </span>

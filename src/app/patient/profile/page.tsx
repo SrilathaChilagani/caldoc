@@ -56,7 +56,7 @@ export default async function PatientProfilePage() {
             </Link>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Profile</p>
-              <h1 className="font-serif text-3xl font-semibold text-slate-900">Manage your info</h1>
+              <h1 className="font-serif text-3xl text-slate-900">Manage your info</h1>
               <p className="text-sm text-slate-500">Update contact details, address, and your profile picture.</p>
             </div>
           </div>

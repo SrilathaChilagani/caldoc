@@ -119,7 +119,7 @@ function RescheduleModal({
       <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Reschedule appointment</h2>
+            <h2 className="font-serif text-lg text-slate-900">Reschedule appointment</h2>
             <p className="mt-0.5 text-sm text-slate-500">{appt.patientName} · Dr. {providerName}</p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>

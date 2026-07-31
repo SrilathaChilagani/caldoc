@@ -123,7 +123,7 @@ export default function AdminAppointmentActions({
       {open === "cancel" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Cancel appointment?</h2>
+            <h2 className="font-serif text-lg text-slate-900">Cancel appointment?</h2>
             <p className="mt-2 text-sm text-slate-500">
               This will cancel the appointment and release the slot back to the pool.
             </p>
@@ -152,7 +152,7 @@ export default function AdminAppointmentActions({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-lg font-semibold text-slate-900">Reassign appointment</h2>
+              <h2 className="font-serif text-lg text-slate-900">Reassign appointment</h2>
               <button onClick={() => setOpen(null)} className="text-sm text-slate-500 hover:text-slate-800">
                 Close
               </button>

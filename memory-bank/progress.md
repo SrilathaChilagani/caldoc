@@ -25,6 +25,7 @@
 
 ## ✅ Done (added 2026-07-29)
 - **Pharmacy end-to-end flow:** Onboarding now auto-creates `PharmacyUser` (linked by `pharmacyPartnerId`) with temp password and WhatsApp notification. Duplicate email/drug-license detection added. Login uses pure DB auth (env whitelist removed). Pharmacy portal scopes Rx orders to logged-in partner. Rx delivery orders auto-assigned to matching pharmacy by delivery postal code. Payment confirmation notifies the assigned pharmacy's WhatsApp. Sign-out properly clears session cookie via new `/api/pharmacy/logout` route.
+- **Labs end-to-end flow + Lab CRM:** Same fixes applied to labs — onboarding auto-creates `LabUser` with `labPartnerId`, temp password, WhatsApp notification, duplicate email detection. Login env whitelist removed (pure DB auth). Labs-at-home orders auto-assign first active `homeCollection: true` lab partner. Payment confirmation notifies assigned lab partner phone. Results upload now saves `resultsPdfKey` on `LabOrder` and WhatsApp-notifies patient + prescribing doctor. New lab CRM detail page (`/labs/orders/[id]`) with step-by-step workflow, agent assignment, results upload. Patient portal shows "Download results" button. Schema migration: `resultsPdfKey String?` added to `LabOrder`.
 
 ## 🚧 In Progress
 - Sprint 01: production-readiness checklist.
@@ -35,9 +36,9 @@
 - AuditLog model under-used — sensitive actions (login, payment, status change) not consistently logged. (P1)
 - Error handling not consistent across all API routes. (P0)
 - Vercel Pro plan required for hourly reminder cron (`0 * * * *`) — confirm plan before deploy. (blocker)
-- Pharmacy portal: no UI to update Rx order status (PROCESSING→DISPATCHED→DELIVERED) or add tracking — only admin can do this today. (P1)
-- Appointment fulfillment queue still unscoped — all pharmacy users see all appointments. (P1)
-- No password-change or forgot-password flow for pharmacy users. (P1)
+- No password-change or forgot-password flow for pharmacy or lab users. (P1)
+- Labs: no `serviceAreas` on `LabPartner` — routing uses first active homeCollection lab. Multi-lab postal code matching not yet implemented. (P1)
+- `LABS_ALLOWED_EMAILS` + `LABS_PORTAL_DEFAULT_PASSWORD` env vars now unused — remove from prod. (housekeeping)
 
 ## 📋 Next Up (P0 first)
 - [ ] **P0:** End-to-end booking → payment → consultation test pass
@@ -57,4 +58,4 @@
 - [ ] **M1:** Production-ready v1 (booking+checkout reliable, portals stable, perf, ops readiness).
 
 ---
-_Last updated: 2026-07-29 by Claude Code_
+_Last updated: 2026-07-29 by Claude Code (labs CRM session)_

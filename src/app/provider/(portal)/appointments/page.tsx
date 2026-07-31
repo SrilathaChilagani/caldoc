@@ -61,7 +61,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
   if (!sess) {
     return (
       <main className="rounded-3xl border border-white/70 bg-white/90 p-10 text-center ">
-        <h1 className="font-serif text-xl font-semibold text-rose-600">Please sign in as a doctor</h1>
+        <h1 className="font-serif text-xl text-rose-600">Please sign in as a doctor</h1>
         <p className="mt-2 text-sm text-slate-500">Use your doctor credentials to access the portal.</p>
         <Link
           href="/provider/login?next=/provider/appointments"
@@ -237,7 +237,7 @@ export default async function ProviderAppointments({ searchParams }: PageProps) 
                 <Image src={photoUrl} alt={providerName} fill className="object-cover" sizes="48px" />
               </div>
               <div>
-                <h1 className="font-serif text-3xl font-semibold text-slate-900">Hello, Dr. {providerName}</h1>
+                <h1 className="font-serif text-3xl text-slate-900">Hello, Dr. {providerName}</h1>
                 <p className="text-sm text-slate-500">
                   Manage today&apos;s teleconsultations, confirm bookings, and share prescriptions from one place.
                 </p>

@@ -86,7 +86,7 @@ export default function ProviderSchedule() {
         </svg>
         Back to appointments
       </Link>
-      <h1 className="font-serif text-2xl font-semibold text-slate-900">Schedule builder</h1>
+      <h1 className="font-serif text-2xl text-slate-900">Schedule builder</h1>
 
       <div className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <div className="grid grid-cols-1 gap-4">

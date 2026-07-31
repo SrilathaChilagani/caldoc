@@ -83,7 +83,7 @@ export default async function AdminDashboard() {
     <>
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">Admin portal</p>
-        <h1 className="font-serif text-3xl font-semibold text-slate-900">Dashboard</h1>
+        <h1 className="font-serif text-3xl text-slate-900">Dashboard</h1>
         <p className="mt-1 text-sm text-slate-500">
           Unified operations view — teleconsultations, pharmacy, labs, NGO, and providers.
         </p>
@@ -104,7 +104,7 @@ export default async function AdminDashboard() {
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Recent NGO bookings</h2>
+            <h2 className="font-serif text-lg text-slate-900">Recent NGO bookings</h2>
             <p className="text-xs text-slate-500">
               Latest 10 ·{" "}
               <Link href="/admin/ngo" className="text-[#2f6ea5] hover:underline">View all</Link>
@@ -160,7 +160,7 @@ export default async function AdminDashboard() {
       {/* Telephonic queue */}
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <div className="mb-4">
-          <h2 className="font-serif text-lg font-semibold text-slate-900">Telephonic queue</h2>
+          <h2 className="font-serif text-lg text-slate-900">Telephonic queue</h2>
           <p className="text-xs text-slate-500">Unresolved offline requests from low-bandwidth patients.</p>
         </div>
         <div className="overflow-x-auto">

@@ -62,7 +62,7 @@ export default async function AdminProvidersPage({
     <>
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">Admin portal</p>
-        <h1 className="font-serif text-3xl font-semibold text-slate-900">Providers</h1>
+        <h1 className="font-serif text-3xl text-slate-900">Providers</h1>
         <p className="mt-1 text-sm text-slate-500">
           Manage all doctors on the platform — onboard, activate, deactivate.
         </p>

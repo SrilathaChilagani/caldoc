@@ -70,7 +70,7 @@ export default async function FrontDeskAppointments({ searchParams }: PageProps)
 
   return (
     <div className="space-y-6">
-      <h1 className="font-serif text-3xl font-semibold text-slate-900">Appointments</h1>
+      <h1 className="font-serif text-3xl text-slate-900">Appointments</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/70 bg-white/90 px-5 py-4 shadow-sm">

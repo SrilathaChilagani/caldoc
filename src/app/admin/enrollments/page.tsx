@@ -80,7 +80,7 @@ export default async function AdminEnrollmentsPage({
         <p className="text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">
           Enrollment applications
         </p>
-        <h1 className="font-serif text-2xl font-semibold text-slate-900">Provider Enrollments</h1>
+        <h1 className="font-serif text-2xl text-slate-900">Provider Enrollments</h1>
         <p className="mt-1 text-sm text-slate-500">
           Review and approve provider applications. Approving creates a portal account and notifies
           the provider.

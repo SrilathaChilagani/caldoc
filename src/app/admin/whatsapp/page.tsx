@@ -72,7 +72,7 @@ export default async function WhatsAppDiagnosticsPage() {
       <div className="mx-auto w-full max-w-4xl space-y-6 px-4 sm:px-6 lg:px-10">
 
         <div>
-          <h1 className="font-serif text-3xl font-semibold text-slate-900">WhatsApp Diagnostics</h1>
+          <h1 className="font-serif text-3xl text-slate-900">WhatsApp Diagnostics</h1>
           <p className="mt-1 text-sm text-slate-500">Check configuration, review message history, and send test messages.</p>
         </div>
 

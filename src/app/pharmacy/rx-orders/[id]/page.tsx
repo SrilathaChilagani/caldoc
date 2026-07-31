@@ -101,7 +101,7 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
             </svg>
             Back to dashboard
           </Link>
-          <h1 className="mt-2 font-serif text-2xl font-semibold text-slate-900">Rx delivery order</h1>
+          <h1 className="mt-2 font-serif text-2xl text-slate-900">Rx delivery order</h1>
           <p className="font-mono text-xs text-slate-400">{order.id}</p>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase ${STATUS_COLORS[order.status] ?? "bg-slate-100 text-slate-600"}`}>
@@ -122,7 +122,7 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
 
           {/* Patient */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Patient</h2>
+            <h2 className="font-serif text-lg text-slate-900">Patient</h2>
             <dl className="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
               <div>
                 <dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">Name</dt>
@@ -147,7 +147,7 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
 
           {/* Delivery address */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Delivery address</h2>
+            <h2 className="font-serif text-lg text-slate-900">Delivery address</h2>
             {addressIssues.length > 0 && (
               <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                 <p className="text-xs font-semibold text-amber-700">Address warnings</p>
@@ -207,7 +207,7 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
           {/* Items */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-lg font-semibold text-slate-900">Medicine items</h2>
+              <h2 className="font-serif text-lg text-slate-900">Medicine items</h2>
               <span className="text-sm font-semibold text-slate-900">{formatINR(order.amountPaise)}</span>
             </div>
             {items.length === 0 ? (
@@ -238,7 +238,7 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
 
           {/* Timeline */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Order timeline</h2>
+            <h2 className="font-serif text-lg text-slate-900">Order timeline</h2>
             <p className="text-sm text-slate-500">All status updates for this order.</p>
             {order.events.length === 0 ? (
               <p className="mt-4 text-sm text-slate-400">No events yet.</p>
@@ -291,13 +291,13 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
         <div className="space-y-6">
           {canUpdate ? (
             <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
-              <h2 className="font-serif text-lg font-semibold text-slate-900">Update order</h2>
+              <h2 className="font-serif text-lg text-slate-900">Update order</h2>
               <p className="mb-4 text-sm text-slate-500">Move this order through the fulfilment pipeline.</p>
               <RxOrderActions orderId={order.id} currentStatus={order.status} />
             </section>
           ) : (
             <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
-              <h2 className="font-serif text-lg font-semibold text-slate-900">Order status</h2>
+              <h2 className="font-serif text-lg text-slate-900">Order status</h2>
               <p className="mt-2 text-sm text-slate-500">
                 {order.status === "DELIVERED"
                   ? "This order has been delivered — no further action needed."
@@ -310,7 +310,7 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
 
           {/* Prescription document */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Prescription</h2>
+            <h2 className="font-serif text-lg text-slate-900">Prescription</h2>
             {order.rxDocumentKey ? (
               <>
                 <p className="mt-1 text-sm text-slate-500">{order.rxDocumentName ?? "Attached file"}</p>
@@ -333,7 +333,7 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
 
           {/* Quick contact */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Contact patient</h2>
+            <h2 className="font-serif text-lg text-slate-900">Contact patient</h2>
             <p className="mt-1 text-sm text-slate-500">Call or WhatsApp if you need clarification on the order.</p>
             <a
               href={`tel:${order.patientPhone}`}

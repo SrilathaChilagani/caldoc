@@ -48,7 +48,7 @@ export default async function FrontDeskDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-serif text-3xl font-semibold text-slate-900">Good day</h1>
+        <h1 className="font-serif text-3xl text-slate-900">Good day</h1>
         <p className="mt-1 text-sm text-slate-500">
           {now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" })}
         </p>

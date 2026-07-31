@@ -72,7 +72,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#2f6ea5]">Appointment details</p>
-              <h1 className="mt-1 font-serif text-3xl font-semibold text-slate-900">
+              <h1 className="mt-1 font-serif text-3xl text-slate-900">
                 {appointment.provider?.name || "Your doctor"}
               </h1>
               <p className="text-sm text-slate-500">
@@ -146,7 +146,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
         <section className="border-b border-slate-200 pb-6">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="font-serif text-xl font-semibold text-slate-900">Patient documents</h2>
+              <h2 className="font-serif text-xl text-slate-900">Patient documents</h2>
               <p className="text-sm text-slate-500">
                 Upload lab reports, scans, or any supporting files for this appointment.
               </p>
@@ -181,7 +181,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
         </section>
 
         <section className="border-b border-slate-200 pb-6">
-          <h2 className="font-serif text-xl font-semibold text-slate-900">Doctor&apos;s notes</h2>
+          <h2 className="font-serif text-xl text-slate-900">Doctor&apos;s notes</h2>
           {appointment.visitNote ? (
             <p className="mt-3 whitespace-pre-line text-sm text-slate-600">{appointment.visitNote.text}</p>
           ) : (
@@ -190,7 +190,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
         </section>
 
         <section className="pt-2">
-          <h2 className="font-serif text-xl font-semibold text-slate-900">Provider credentials</h2>
+          <h2 className="font-serif text-xl text-slate-900">Provider credentials</h2>
           <dl className="mt-3 grid gap-4 sm:grid-cols-2 text-sm text-slate-600">
             <div>
               <dt className="text-xs uppercase tracking-wide text-slate-500">Qualification</dt>

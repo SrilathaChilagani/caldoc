@@ -87,7 +87,7 @@ export default async function LabEnrollmentsPage({
         <p className="text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">
           Partner applications
         </p>
-        <h1 className="font-serif text-2xl font-semibold text-slate-900">Lab Enrollments</h1>
+        <h1 className="font-serif text-2xl text-slate-900">Lab Enrollments</h1>
         <p className="mt-1 text-sm text-slate-500">
           Review and approve diagnostic lab partner applications.
         </p>

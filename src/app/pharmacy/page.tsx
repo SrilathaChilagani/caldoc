@@ -160,7 +160,7 @@ export default async function PharmacyDashboardPage() {
       {/* Appointment fulfillment section */}
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 ">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">Pharmacy portal</p>
-        <h1 className="font-serif text-2xl font-semibold text-slate-900">Fulfilment Queue</h1>
+        <h1 className="font-serif text-2xl text-slate-900">Fulfilment Queue</h1>
         <p className="text-sm text-slate-500">
           Track every appointment with the information you need to pack and dispatch prescriptions.
         </p>
@@ -183,7 +183,7 @@ export default async function PharmacyDashboardPage() {
 
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6  space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-serif text-lg font-semibold text-slate-900">Recent appointments</h2>
+          <h2 className="font-serif text-lg text-slate-900">Recent appointments</h2>
           <p className="text-xs text-slate-500">Showing the last {appointmentRows.length} bookings.</p>
         </div>
 
@@ -285,7 +285,7 @@ export default async function PharmacyDashboardPage() {
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6  space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-serif text-lg font-semibold text-slate-900">Ad-hoc Rx delivery orders</h2>
+            <h2 className="font-serif text-lg text-slate-900">Ad-hoc Rx delivery orders</h2>
             <p className="text-sm text-slate-500">Patient-submitted prescription delivery orders with supply chain tracking.</p>
           </div>
           <p className="text-xs text-slate-500">Showing {rxOrders.length} orders</p>

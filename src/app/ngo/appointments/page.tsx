@@ -170,7 +170,7 @@ export default async function NgoAppointmentsPage({ searchParams }: PageProps) {
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 pb-8 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f6ea5]">NGO portal</p>
-          <h1 className="mt-0.5 font-serif text-3xl font-semibold text-slate-900">{ngo?.name || "Your NGO"}</h1>
+          <h1 className="mt-0.5 font-serif text-3xl text-slate-900">{ngo?.name || "Your NGO"}</h1>
           <p className="mt-1 text-sm text-slate-600">Track every appointment booked under your programmes.</p>
           <p className="mt-0.5 text-xs text-slate-500">Showing reservations between {rangeLabel}</p>
         </div>

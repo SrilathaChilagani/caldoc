@@ -65,7 +65,7 @@ export default async function EnrollmentDetailPage({
       </div>
 
       <div>
-        <h1 className="font-serif text-2xl font-semibold text-slate-900">{enrollment.fullName}</h1>
+        <h1 className="font-serif text-2xl text-slate-900">{enrollment.fullName}</h1>
         <p className="text-sm text-slate-500">
           {enrollment.qualification} · {enrollment.speciality} · {enrollment.city}, {enrollment.state}
         </p>

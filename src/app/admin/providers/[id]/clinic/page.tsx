@@ -157,7 +157,7 @@ export default function ProviderClinicPage() {
           Back to providers
         </Link>
         <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">Admin portal</p>
-        <h1 className="font-serif text-2xl font-semibold text-slate-900">
+        <h1 className="font-serif text-2xl text-slate-900">
           Clinic locations{providerName ? ` · ${providerName}` : ""}
         </h1>
         <p className="mt-1 text-sm text-slate-500">

@@ -40,7 +40,7 @@ export default async function RxDeliveryPayPage({ searchParams }: { searchParams
         <BackButton />
         <div className="space-y-2 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#2f6ea5]">Checkout</p>
-          <h1 className="font-serif text-3xl font-semibold text-slate-900">Pay for your Rx delivery</h1>
+          <h1 className="font-serif text-3xl text-slate-900">Pay for your Rx delivery</h1>
           <p className="text-sm text-slate-500">
             Order ID {rxOrder.id}. After completing payment you&apos;ll receive a WhatsApp confirmation.
           </p>

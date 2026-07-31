@@ -40,7 +40,7 @@ export default async function LabsAtHomePayPage({ searchParams }: { searchParams
         <BackButton />
         <div className="space-y-2 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#2f6ea5]">Checkout</p>
-          <h1 className="font-serif text-3xl font-semibold text-slate-900">Confirm your lab order</h1>
+          <h1 className="font-serif text-3xl text-slate-900">Confirm your lab order</h1>
           <p className="text-sm text-slate-500">
             Order ID {labOrder.id}. Complete the payment to schedule doorstep sample collection.
           </p>

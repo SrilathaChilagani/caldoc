@@ -56,7 +56,7 @@ export default async function AuditLogsPage({ searchParams }: PageProps) {
     <>
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-[#2f6ea5]">Admin</p>
-        <h1 className="font-serif text-3xl font-semibold text-slate-900">Audit log</h1>
+        <h1 className="font-serif text-3xl text-slate-900">Audit log</h1>
         <p className="mt-1 text-sm text-slate-500">
           System-wide action trail — {total.toLocaleString("en-IN")} entries total.
         </p>
