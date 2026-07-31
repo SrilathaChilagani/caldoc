@@ -277,7 +277,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
           </button>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Doctor</p>
           <p className="mt-0.5 text-sm font-semibold text-slate-900">{provider.name}</p>
@@ -290,6 +290,13 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
           </p>
         </div>
         <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Patient</p>
+          <p className="mt-0.5 text-sm font-semibold text-slate-900">
+            {patientName.trim() || <span className="font-normal text-slate-400">—</span>}
+          </p>
+          <p className="text-xs font-mono text-slate-500">{patientPhone.trim()}</p>
+        </div>
+        <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Visit</p>
           <p className="mt-0.5 text-sm font-semibold text-slate-900">{visitModeLabel}</p>
           <p className="text-xs text-slate-500">{deliverySummary}</p>
@@ -299,9 +306,6 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
           <p className="mt-0.5 text-sm font-bold text-slate-900">
             {selectedSlotFeeLabel ?? <span className="font-normal text-slate-400">—</span>}
           </p>
-          {patientName.trim() && (
-            <p className="text-xs text-slate-500">{patientName.trim()}</p>
-          )}
         </div>
       </div>
     </div>
