@@ -338,9 +338,6 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
         )}
       </div>
 
-      {/* Live booking summary at top */}
-      <BookingRecap editable={true} />
-
       {/* Single-column form */}
       <div className="space-y-6 max-w-3xl">
 
