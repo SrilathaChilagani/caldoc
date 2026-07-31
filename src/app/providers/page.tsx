@@ -61,7 +61,7 @@ const getCachedProvidersList = unstable_cache(
           where: { isBooked: false, startsAt: { gte: now, lt: windowEnd } },
           orderBy: { startsAt: "asc" },
           select: { id: true, startsAt: true },
-          take: 35,
+          take: 200,
         },
       },
     });
@@ -73,7 +73,7 @@ const getCachedProvidersList = unstable_cache(
       generatedAt: now.toISOString(),
     };
   },
-  ["providers-list-v1"],
+  ["providers-list-v2"],
   { revalidate: 60 }
 );
 
