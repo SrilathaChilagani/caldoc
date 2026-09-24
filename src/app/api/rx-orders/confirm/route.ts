@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendWhatsAppText } from "@/lib/whatsapp";
+import { dispatchRxOrder } from "@/lib/pharmacy";
 
 function formatItems(items: unknown) {
   if (!Array.isArray(items)) return "";
@@ -110,6 +111,10 @@ export async function POST(req: NextRequest) {
     }
 
     await Promise.all(sends);
+
+    // Dispatch to pharmacy API (fire-and-forget; failures recorded on the order,
+    // retried by /api/cron/retry-pharmacy-dispatch)
+    dispatchRxOrder(rxOrder.id).catch((e) => console.error("pharmacy dispatch error", e));
 
     return NextResponse.json({ ok: true });
   } catch (err) {

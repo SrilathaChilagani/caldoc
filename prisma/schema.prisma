@@ -454,6 +454,10 @@ model RxOrder {
   trackingNumber        String?
   courierName           String?
   pharmacyPartnerId     String?
+  externalOrderId       String?
+  dispatchStatus        String           @default("PENDING")
+  dispatchError         String?
+  dispatchedAt          DateTime?
   payment               Payment?         @relation("RxOrderPayment")
   events                RxOrderEvent[]
   createdAt             DateTime         @default(now())
@@ -527,6 +531,11 @@ model PharmacyPartner {
   serviceAreas      String[]
   isActive          Boolean        @default(true)
   notes             String?
+  apiType           String?
+  apiBaseUrl        String?
+  apiKeyEnvVar      String?
+  apiSecretEnvVar   String?
+  webhookSecret     String?
   users             PharmacyUser[]
   rxOrders          RxOrder[]
   createdAt         DateTime @default(now())

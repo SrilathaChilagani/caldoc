@@ -5,6 +5,10 @@
       "schedule": "30 0 * * *"
     },
     {
+      "path": "/api/cron/retry-pharmacy-dispatch",
+      "schedule": "0 */4 * * *"
+    },
+    {
       "path": "/api/cron/cleanup-abandoned-bookings",
       "schedule": "0 2 * * *"
     },
