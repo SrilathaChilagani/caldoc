@@ -388,6 +388,10 @@ model LabOrder {
   collectionAgentPhone String?
   resultsPdfKey        String?
   labPartnerId         String?
+  externalOrderId      String?
+  dispatchStatus       String      @default("PENDING")
+  dispatchError        String?
+  dispatchedAt         DateTime?
   labPartner           LabPartner? @relation(fields: [labPartnerId], references: [id])
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
@@ -574,6 +578,11 @@ model LabPartner {
   homeCollection  Boolean    @default(true)
   isActive        Boolean    @default(true)
   notes           String?
+  apiType         String?
+  apiBaseUrl      String?
+  apiKeyEnvVar    String?
+  apiSecretEnvVar String?
+  webhookSecret   String?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
   users           LabUser[]

@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { notifyLabOrderConfirmation } from "@/lib/sendLabOrderConfirmation";
+import { dispatchLabOrder } from "@/lib/lab";
 
 const LAB_ADMIN_PHONE_FALLBACK = process.env.LABS_ADMIN_PHONE || "";
 
@@ -103,6 +104,10 @@ export async function POST(req: NextRequest) {
       patientAddressLabel: addressLabel,
       adminPhone: labPartnerPhone || LAB_ADMIN_PHONE_FALLBACK || null,
     });
+
+    // Dispatch to lab API (fire-and-forget; failures recorded on the order,
+    // retried by /api/cron/retry-lab-dispatch)
+    dispatchLabOrder(labOrder.id).catch((e) => console.error("lab dispatch error", e));
 
     return NextResponse.json({ ok: true });
   } catch (err) {
