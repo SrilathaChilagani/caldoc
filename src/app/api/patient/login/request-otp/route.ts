@@ -8,7 +8,7 @@ import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS, signPatientSession } from "@/lib/
 
 const OTP_TTL_MINUTES = Number(process.env.PATIENT_OTP_TTL_MINUTES || 10);
 const RESEND_WINDOW_SECONDS = Number(process.env.PATIENT_OTP_RESEND_SECONDS || 60);
-const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true";
+const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true" && process.env.NODE_ENV !== "production";
 
 export async function POST(req: Request) {
   try {
@@ -46,11 +46,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, skip: true, redirect: nextPath });
     }
 
-    // Rate-limit using the most recent send attempt logged in OutboundMessage
-    const lastSend = await prisma.outboundMessage.findFirst({
-      where: { channel: "SMS", kind: "OTP", toPhone: meta.canonical },
+    // Rate-limit: 60s cooldown between sends
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const recentSends = await prisma.outboundMessage.findMany({
+      where: { channel: "SMS", kind: "OTP", toPhone: meta.canonical, createdAt: { gte: oneDayAgo } },
       orderBy: { createdAt: "desc" },
+      take: 11,
     });
+    if (recentSends.length >= 10) {
+      return NextResponse.json(
+        { error: "Too many OTP requests. Try again after 24 hours." },
+        { status: 429 },
+      );
+    }
+    const lastSend = recentSends[0];
     if (lastSend) {
       const secondsSinceLast = (Date.now() - lastSend.createdAt.getTime()) / 1000;
       if (secondsSinceLast < RESEND_WINDOW_SECONDS) {

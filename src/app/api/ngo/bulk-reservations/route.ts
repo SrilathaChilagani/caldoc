@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { requireNgoSession } from "@/lib/auth.server";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 
+export const maxDuration = 30;
+
 export const dynamic = "force-dynamic";
 
 function makeFriendlyId(providerName: string) {

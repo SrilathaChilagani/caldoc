@@ -7,7 +7,7 @@ import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS, signPatientSession } from "@/lib/
 import { getErrorMessage } from "@/lib/errors";
 
 const PATIENT_REDIRECT = "/patient/appointments";
-const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true";
+const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true" && process.env.NODE_ENV !== "production";
 
 export async function POST(req: Request) {
   try {

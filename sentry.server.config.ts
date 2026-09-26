@@ -8,7 +8,7 @@ Sentry.init({
   dsn: "https://2cb9d7ee534e3f02ff15c174f52d9995@o4510435135324160.ingest.us.sentry.io/4510435172286464",
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1,
 
   // Enable logs to be sent to Sentry
   enableLogs: true,

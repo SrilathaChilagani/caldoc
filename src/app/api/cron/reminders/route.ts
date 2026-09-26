@@ -107,14 +107,13 @@ async function logOutboundMessage(opts: {
 }
 
 export async function GET(req: NextRequest) {
-  // Require CRON_SECRET so only Vercel Cron (or authorised callers) can trigger reminders.
-  // Vercel automatically injects `Authorization: Bearer <CRON_SECRET>` on cron invocations.
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const authHeader = req.headers.get("authorization") || "";
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!cronSecret) {
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
+  }
+  const authHeader = req.headers.get("authorization") || "";
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const results = [];

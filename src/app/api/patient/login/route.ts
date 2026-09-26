@@ -5,7 +5,7 @@ import { checkVerificationCode } from "@/lib/twilioVerify";
 import { getErrorMessage } from "@/lib/errors";
 import { signPatientMobileToken } from "@/lib/patientMobileToken";
 
-const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true";
+const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true" && process.env.NODE_ENV !== "production";
 
 export async function POST(req: Request) {
   try {

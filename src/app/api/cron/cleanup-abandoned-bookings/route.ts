@@ -5,14 +5,13 @@ import { prisma } from "@/lib/db";
 const ABANDON_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 
 export async function GET(req: NextRequest) {
-  // Require a shared secret so only authorised callers (e.g. a cron scheduler)
-  // can trigger cleanup. Set CRON_SECRET in your environment variables.
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const authHeader = req.headers.get("authorization") || "";
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!cronSecret) {
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
+  }
+  const authHeader = req.headers.get("authorization") || "";
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {

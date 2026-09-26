@@ -4,6 +4,7 @@ import { uploadToS3 } from "@/lib/s3";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 function appBaseUrl() {
   return process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://caldoc.in";

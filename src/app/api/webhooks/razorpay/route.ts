@@ -5,6 +5,10 @@ import { notifyProviderOfBooking } from "@/lib/sendProviderBookingNotification";
 import { sendPatientAudioConfirmation } from "@/lib/sendPatientAudioConfirmation";
 import { ensureVideoRoomIfNeeded } from "@/lib/videoLinkHelpers";
 import { sendCheckinFormLink } from "@/lib/sendCheckinFormLink";
+import { sendWhatsAppText } from "@/lib/whatsapp";
+import { notifyLabOrderConfirmation } from "@/lib/sendLabOrderConfirmation";
+import { dispatchRxOrder } from "@/lib/pharmacy";
+import { dispatchLabOrder } from "@/lib/lab";
 import { getErrorMessage } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
@@ -71,23 +75,86 @@ export async function POST(req: NextRequest) {
     // ── Idempotency guard ─────────────────────────────────────────────────
     const payment = await prisma.payment.findUnique({
       where: { orderId },
-      select: { status: true, appointmentId: true },
+      select: { id: true, status: true, appointmentId: true, rxOrderId: true, labOrderId: true },
     });
 
     if (!payment) {
-      // Could be an Rx/Lab order payment — not handled here yet, return 200 to prevent retries
       console.warn("[rzp-webhook] No payment record found for orderId:", orderId);
       return NextResponse.json({ ok: true, ignored: true });
     }
 
     if (payment.status === "CAPTURED") {
-      // Already processed by the client-side confirm — safe to ack
+      return NextResponse.json({ ok: true });
+    }
+
+    // ── Rx order payment ──────────────────────────────────────────────────
+    if (payment.rxOrderId) {
+      await prisma.$transaction([
+        prisma.rxOrder.updateMany({
+          where: { id: payment.rxOrderId, status: "AWAITING_PAYMENT" },
+          data: { status: "PAID" },
+        }),
+        prisma.payment.update({
+          where: { id: payment.id },
+          data: { status: "CAPTURED", paymentRef: paymentId },
+        }),
+      ]);
+      const rxOrder = await prisma.rxOrder.findUniqueOrThrow({ where: { id: payment.rxOrderId } });
+      if (rxOrder.patientPhone) {
+        sendWhatsAppText(
+          rxOrder.patientPhone,
+          `Hi ${rxOrder.patientName}, your CalDoc Rx delivery order ${rxOrder.id} is confirmed. Our pharmacy will reach out shortly.`,
+        ).catch((e) => console.error("[rzp-webhook] rx patient notify failed:", e));
+      }
+      dispatchRxOrder(rxOrder.id).catch((e) => console.error("[rzp-webhook] rx dispatch failed:", e));
+      return NextResponse.json({ ok: true });
+    }
+
+    // ── Lab order payment ─────────────────────────────────────────────────
+    if (payment.labOrderId) {
+      await prisma.$transaction([
+        prisma.labOrder.updateMany({
+          where: { id: payment.labOrderId, status: "AWAITING_PAYMENT" },
+          data: { status: "PENDING" },
+        }),
+        prisma.payment.update({
+          where: { id: payment.id },
+          data: { status: "CAPTURED", paymentRef: paymentId },
+        }),
+      ]);
+      const labOrder = await prisma.labOrder.findUniqueOrThrow({ where: { id: payment.labOrderId } });
+      let labPartnerPhone: string | null = null;
+      if (labOrder.labPartnerId) {
+        const partner = await prisma.labPartner.findUnique({
+          where: { id: labOrder.labPartnerId },
+          select: { phone: true },
+        });
+        labPartnerPhone = partner?.phone || null;
+      }
+      const testsArr = Array.isArray(labOrder.tests) ? labOrder.tests as Array<{ name?: string }> : [];
+      const testsLabel = testsArr.map((t) => (typeof t === "string" ? t : t?.name || "test")).join(", ");
+      const addr = labOrder.address as Record<string, unknown> | null;
+      const addressLabel = addr
+        ? [addr.line1, addr.line2, addr.city, addr.state, addr.postalCode]
+            .map((p) => String(p ?? "").trim())
+            .filter(Boolean)
+            .join(", ")
+        : "";
+      notifyLabOrderConfirmation({
+        orderId: labOrder.id,
+        patientName: labOrder.patientName,
+        patientPhone: labOrder.patientPhone,
+        patientTestsLabel: testsLabel,
+        patientAddressLabel: addressLabel,
+        adminPhone: labPartnerPhone || process.env.LABS_ADMIN_PHONE || null,
+      }).catch((e) => console.error("[rzp-webhook] lab notify failed:", e));
+      dispatchLabOrder(labOrder.id).catch((e) => console.error("[rzp-webhook] lab dispatch failed:", e));
       return NextResponse.json({ ok: true });
     }
 
     const appointmentId = payment.appointmentId;
     if (!appointmentId) {
-      // Rx or Lab order — not handled here yet
+      console.warn("[rzp-webhook] Unknown payment type for orderId:", orderId);
       return NextResponse.json({ ok: true, ignored: true });
     }
 
