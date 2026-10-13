@@ -197,6 +197,11 @@ export async function POST(req: NextRequest) {
       });
     });
 
+    Sentry.captureMessage("[checkout] payment captured", {
+      level: "info",
+      extra: { appointmentId, orderId, paymentId },
+    });
+
     // Provider booking notification — retried up to 3 times with back-off
     if (appointment.provider?.phone && appointment.slot?.startsAt) {
       withRetry(() =>

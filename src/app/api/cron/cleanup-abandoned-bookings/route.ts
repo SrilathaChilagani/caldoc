@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireCronAuth } from "@/lib/cronAuth";
+import * as Sentry from "@sentry/nextjs";
 
 // How long a PENDING appointment may sit before its slot is released.
 const ABANDON_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
@@ -45,8 +46,9 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    console.log(
-      `[cleanup-abandoned-bookings] Released ${slotIds.length} slot(s), expired ${appointmentIds.length} appointment(s)`
+    Sentry.captureMessage(
+      `[cron] cleanup: released ${slotIds.length} slot(s), expired ${appointmentIds.length} appointment(s)`,
+      { level: "info", extra: { slotIds, appointmentIds } },
     );
 
     // Purge expired OTP records (older than 24 hours past expiry to be safe)
@@ -61,9 +63,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (otpDeleted > 0 || resetDeleted > 0) {
-      console.log(
-        `[cleanup-abandoned-bookings] Purged ${otpDeleted} expired OTP(s), ${resetDeleted} expired reset token(s)`
-      );
+      console.error(`[cron] cleanup: purged ${otpDeleted} OTP(s), ${resetDeleted} reset token(s)`);
     }
 
     return NextResponse.json({

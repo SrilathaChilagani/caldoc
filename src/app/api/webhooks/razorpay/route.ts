@@ -108,6 +108,10 @@ export async function POST(req: NextRequest) {
         ).catch((e) => console.error("[rzp-webhook] rx patient notify failed:", e));
       }
       dispatchRxOrder(rxOrder.id).catch((e) => console.error("[rzp-webhook] rx dispatch failed:", e));
+      Sentry.captureMessage("[rzp-webhook] rx payment captured", {
+        level: "info",
+        extra: { rxOrderId: payment.rxOrderId, orderId, paymentId },
+      });
       return NextResponse.json({ ok: true });
     }
 
@@ -150,6 +154,10 @@ export async function POST(req: NextRequest) {
         adminPhone: labPartnerPhone || process.env.LABS_ADMIN_PHONE || null,
       }).catch((e) => console.error("[rzp-webhook] lab notify failed:", e));
       dispatchLabOrder(labOrder.id).catch((e) => console.error("[rzp-webhook] lab dispatch failed:", e));
+      Sentry.captureMessage("[rzp-webhook] lab payment captured", {
+        level: "info",
+        extra: { labOrderId: payment.labOrderId, orderId, paymentId },
+      });
       return NextResponse.json({ ok: true });
     }
 
@@ -299,6 +307,11 @@ export async function POST(req: NextRequest) {
         Sentry.captureException(err, { extra: { appointmentId, stage: "checkinLink" } });
       });
     }
+
+    Sentry.captureMessage("[rzp-webhook] appointment payment captured", {
+      level: "info",
+      extra: { appointmentId, orderId, paymentId },
+    });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
