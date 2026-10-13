@@ -22,6 +22,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid dates" }, { status: 400 });
   }
 
+  const MAX_RANGE_MS = 90 * 24 * 60 * 60 * 1000;
+  if (toDate.getTime() - fromDate.getTime() > MAX_RANGE_MS) {
+    return NextResponse.json({ error: "Date range must not exceed 90 days" }, { status: 400 });
+  }
+
   const appointments = await prisma.appointment.findMany({
     where: {
       providerId: sess.pid,

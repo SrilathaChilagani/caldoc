@@ -115,7 +115,7 @@ const getCachedSearch = unstable_cache(
               startsAt: { gte: nowIST, lt: windowEnd },
             },
             orderBy: { startsAt: "asc" },
-            select: { id: true, startsAt: true, feePaise: true },
+            select: { id: true, startsAt: true },
             take: 100,
           },
         },
