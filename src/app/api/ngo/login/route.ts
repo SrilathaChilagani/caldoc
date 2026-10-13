@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { NGO_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+
+const LOGIN_RATE_LIMIT = { maxRequests: 10, windowMs: 60_000 };
 
 const allowedEmails = (process.env.NGO_ALLOWED_EMAILS || "")
   .split(",")
@@ -48,6 +51,14 @@ async function bootstrapNgoAccount(email: string, password: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const rl = checkRateLimit(getClientIp(req.headers), LOGIN_RATE_LIMIT);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
+
   try {
     const { email, password, nextUrl } = await readCredentials(req);
     if (!email || !password) {

@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { ADMIN_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
+
+// 10 attempts / 60 s per IP — brute-force protection
+const LOGIN_RATE_LIMIT = { maxRequests: 10, windowMs: 60_000 };
 
 const allowedEmails = (process.env.ADMIN_ALLOWED_EMAILS || "srilatha.chilagani@telemed.local")
   .split(",")
@@ -29,6 +33,14 @@ async function readCredentials(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const rl = checkRateLimit(getClientIp(req.headers), LOGIN_RATE_LIMIT);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
+
   const { email, password, nextUrl } = await readCredentials(req);
   const redirectWithError = (code: string) =>
     NextResponse.redirect(

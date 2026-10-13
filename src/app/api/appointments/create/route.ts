@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+
+// 20 req/min per IP — prevents slot enumeration while allowing normal booking retries
+const BOOKING_RATE_LIMIT = { maxRequests: 20, windowMs: 60_000 };
 
 export const maxDuration = 30;
 import { Prisma } from "@prisma/client";
@@ -138,6 +142,14 @@ type CreateAppointmentPayload = {
 };
 
 export async function POST(req: Request) {
+  const rl = checkRateLimit(getClientIp(req.headers), BOOKING_RATE_LIMIT);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
+
   try {
     const body = (await req.json()) as CreateAppointmentPayload;
     const providerId = body.providerId?.trim();
