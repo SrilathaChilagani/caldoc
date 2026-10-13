@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getErrorMessage } from "@/lib/errors";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+
+// 20 requests / 60 s per IP — search can trigger expensive DB queries
+// across many unique filter combos, so use a tighter limit than the
+// simpler providers list endpoint.
+const RATE_LIMIT = { maxRequests: 20, windowMs: 60_000 };
 
 // IST offset in ms
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
@@ -171,6 +177,15 @@ const getCachedSearch = unstable_cache(
  *   - 7-day slot availability buckets (counts per day in IST)
  */
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req.headers);
+  const rl = checkRateLimit(ip, RATE_LIMIT);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const key: SearchKey = {
@@ -186,7 +201,10 @@ export async function GET(req: NextRequest) {
 
     const { providers, total, days } = await getCachedSearch(key);
 
-    return NextResponse.json({ providers, total, page: key.page, pageSize: key.pageSize, days });
+    return NextResponse.json(
+      { providers, total, page: key.page, pageSize: key.pageSize, days },
+      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" } },
+    );
   } catch (err) {
     return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 });
   }
