@@ -5,6 +5,8 @@ import { buildPatientPhoneMeta } from "@/lib/phone";
 import { getErrorMessage } from "@/lib/errors";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 
+export const maxDuration = 30;
+
 // Default emergency fee: ₹499
 const EMERGENCY_FEE_PAISE = Number(process.env.EMERGENCY_FEE_PAISE || 49900);
 
