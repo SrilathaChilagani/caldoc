@@ -27,7 +27,7 @@
 - **IDs:** cuid (`@default(cuid())`).
 - **State machines** tracked via history tables: `AppointmentStatusHistory`, `LabOrderEvent`, `RxOrderEvent`.
 - **Idempotency/dedupe:** `WebhookEvent.eventId` and `OutboundMessage.messageId` are unique.
-- **`middleware.ts` is currently a pass-through** (matches `/:path*`, returns `next()`). Auth is enforced inside routes/server components, not in middleware. `src/middleware_disabled.ts` exists (older/disabled variant).
+- **`middleware.ts` enforces portal auth guards** (Edge runtime, `jose` JWT verify). Protects `/admin/*`, `/provider/*`, `/ngo/*`, `/labs/*`, `/pharmacy/*`, `/frontdesk/*`, `/patient/*`. Unauthenticated requests redirect to the portal login page. API routes (`/api/*`) are excluded from the matcher and continue to enforce auth in the route handler. `src/middleware_disabled.ts` is an obsolete provider-only variant (can be deleted).
 
 ## Security Guidelines
 - **AuthN:** per-role tables with `passwordHash` (bcrypt); patients also use phone OTP (Twilio Verify) and `PatientOtp` (hashed OTP, attempts, expiry). Password resets via `PatientPasswordReset` tokens.
