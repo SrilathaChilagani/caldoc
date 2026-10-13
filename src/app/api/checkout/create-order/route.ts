@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { fetchWithBackoff } from "@/lib/fetchWithBackoff";
+
+const createOrderSchema = z.object({
+  appointmentId: z.string().min(1, "appointmentId is required"),
+});
 
 function basicAuthHeader(key: string, secret: string) {
   const token = Buffer.from(`${key}:${secret}`).toString("base64");
@@ -9,12 +14,12 @@ function basicAuthHeader(key: string, secret: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const appointmentId: string = body?.appointmentId;
-
-    if (!appointmentId) {
-      return NextResponse.json({ error: "Missing appointmentId" }, { status: 400 });
+    const parsed = createOrderSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      const msg = parsed.error.issues.map((i) => i.message).join("; ");
+      return NextResponse.json({ error: msg }, { status: 400 });
     }
+    const { appointmentId } = parsed.data;
 
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },

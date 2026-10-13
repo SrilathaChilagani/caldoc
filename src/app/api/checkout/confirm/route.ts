@@ -1,6 +1,15 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/db";
+
+const confirmSchema = z.object({
+  appointmentId:       z.string().min(1, "appointmentId is required"),
+  razorpay_order_id:   z.string().min(1, "razorpay_order_id is required"),
+  razorpay_payment_id: z.string().min(1, "razorpay_payment_id is required"),
+  // SHA-256 HMAC → 64 lowercase hex chars
+  razorpay_signature:  z.string().regex(/^[0-9a-f]{64}$/, "razorpay_signature must be a 64-char hex string"),
+});
 import { notifyProviderOfBooking } from "@/lib/sendProviderBookingNotification";
 import { sendPatientAudioConfirmation } from "@/lib/sendPatientAudioConfirmation";
 import { getErrorMessage } from "@/lib/errors";
@@ -38,15 +47,17 @@ async function withRetry<T>(
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const appointmentId: string = body?.appointmentId;
-    const orderId: string = body?.razorpay_order_id;
-    const paymentId: string = body?.razorpay_payment_id;
-    const signature: string = body?.razorpay_signature;
-
-    if (!appointmentId || !orderId || !paymentId || !signature) {
-      return NextResponse.json({ error: "Missing payment fields" }, { status: 400 });
+    const parsed = confirmSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      const msg = parsed.error.issues.map((i) => i.message).join("; ");
+      return NextResponse.json({ error: msg }, { status: 400 });
     }
+    const {
+      appointmentId,
+      razorpay_order_id:   orderId,
+      razorpay_payment_id: paymentId,
+      razorpay_signature:  signature,
+    } = parsed.data;
 
     const secret = process.env.RZP_SECRET;
     if (!secret) {
