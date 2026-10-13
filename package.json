@@ -31,6 +31,7 @@
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.1",
     "eas-cli": "^0.0.0",
+    "jose": "^6.2.12",
     "jsonwebtoken": "^9.0.2",
     "leaflet": "^1.9.4",
     "next": "^16.0.7",
