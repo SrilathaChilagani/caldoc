@@ -10,6 +10,7 @@ import { notifyLabOrderConfirmation } from "@/lib/sendLabOrderConfirmation";
 import { dispatchRxOrder } from "@/lib/pharmacy";
 import { dispatchLabOrder } from "@/lib/lab";
 import { getErrorMessage } from "@/lib/errors";
+import * as Sentry from "@sentry/nextjs";
 
 export const dynamic = "force-dynamic";
 
@@ -232,7 +233,10 @@ export async function POST(req: NextRequest) {
           patientName: appointment.patientName || appointment.patient?.name || "Patient",
           slotStartsAt: appointment.slot!.startsAt,
         })
-      ).catch((err) => console.error("[rzp-webhook] provider notify failed:", err));
+      ).catch((err) => {
+        console.error("[rzp-webhook] provider notify failed:", err);
+        Sentry.captureException(err, { extra: { appointmentId, stage: "providerNotify" } });
+      });
     }
 
     if (
@@ -248,7 +252,10 @@ export async function POST(req: NextRequest) {
           providerName: appointment.provider?.name || "Doctor",
           slotStartsAt: appointment.slot!.startsAt,
         })
-      ).catch((err) => console.error("[rzp-webhook] audio confirm failed:", err));
+      ).catch((err) => {
+        console.error("[rzp-webhook] audio confirm failed:", err);
+        Sentry.captureException(err, { extra: { appointmentId, stage: "audioConfirm" } });
+      });
     }
 
     if (appointment.visitMode !== "AUDIO") {
@@ -263,7 +270,20 @@ export async function POST(req: NextRequest) {
           },
           appBaseUrl(),
         )
-      ).catch((err) => console.error("[rzp-webhook] video room setup failed:", err));
+      ).catch((err) => {
+        console.error("[rzp-webhook] video room setup failed:", err);
+        Sentry.captureException(err, { extra: { appointmentId, stage: "videoRoomSetup" } });
+        // Video room setup has no internal DB logging — persist here so failures are queryable
+        prisma.outboundMessage.create({
+          data: {
+            appointmentId,
+            channel: "SYSTEM",
+            kind: "VIDEO_ROOM_SETUP_FAILED",
+            status: "FAILED",
+            error: err instanceof Error ? err.message : String(err),
+          },
+        }).catch(() => {});
+      });
     }
 
     if (appointment.patient?.phone && appointment.slot?.startsAt) {
@@ -274,7 +294,10 @@ export async function POST(req: NextRequest) {
           patientName: appointment.patientName || appointment.patient?.name || "Patient",
           slotStartsAt: appointment.slot!.startsAt,
         })
-      ).catch((err) => console.error("[rzp-webhook] checkin link failed:", err));
+      ).catch((err) => {
+        console.error("[rzp-webhook] checkin link failed:", err);
+        Sentry.captureException(err, { extra: { appointmentId, stage: "checkinLink" } });
+      });
     }
 
     return NextResponse.json({ ok: true });

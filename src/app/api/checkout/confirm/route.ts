@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import * as Sentry from "@sentry/nextjs";
 
 const confirmSchema = z.object({
   appointmentId:       z.string().min(1, "appointmentId is required"),
@@ -207,9 +208,10 @@ export async function POST(req: NextRequest) {
           patientName: appointment.patientName || appointment.patient?.name || "Patient",
           slotStartsAt: appointment.slot!.startsAt,
         })
-      ).catch((err) =>
-        console.error("[confirm] provider notify failed after retries:", err)
-      );
+      ).catch((err) => {
+        console.error("[confirm] provider notify failed after retries:", err);
+        Sentry.captureException(err, { extra: { appointmentId, stage: "providerNotify" } });
+      });
     }
 
     // Patient audio confirmation — retried up to 3 times
@@ -226,9 +228,10 @@ export async function POST(req: NextRequest) {
           providerName: appointment.provider?.name || "Doctor",
           slotStartsAt: appointment.slot!.startsAt,
         })
-      ).catch((err) =>
-        console.error("[confirm] patient audio notify failed after retries:", err)
-      );
+      ).catch((err) => {
+        console.error("[confirm] patient audio notify failed after retries:", err);
+        Sentry.captureException(err, { extra: { appointmentId, stage: "audioConfirm" } });
+      });
     }
 
     // Video room setup — retried up to 3 times, non-blocking
@@ -245,9 +248,19 @@ export async function POST(req: NextRequest) {
           },
           baseUrl,
         )
-      ).catch((err) =>
-        console.error("[confirm] video room setup failed after retries:", err)
-      );
+      ).catch((err) => {
+        console.error("[confirm] video room setup failed after retries:", err);
+        Sentry.captureException(err, { extra: { appointmentId, stage: "videoRoomSetup" } });
+        prisma.outboundMessage.create({
+          data: {
+            appointmentId,
+            channel: "SYSTEM",
+            kind: "VIDEO_ROOM_SETUP_FAILED",
+            status: "FAILED",
+            error: err instanceof Error ? err.message : String(err),
+          },
+        }).catch(() => {});
+      });
     }
 
     // Patient check-in form link — non-blocking
@@ -259,9 +272,10 @@ export async function POST(req: NextRequest) {
           patientName: appointment.patientName || appointment.patient?.name || "Patient",
           slotStartsAt: appointment.slot!.startsAt,
         })
-      ).catch((err) =>
-        console.error("[confirm] checkin link send failed after retries:", err)
-      );
+      ).catch((err) => {
+        console.error("[confirm] checkin link send failed after retries:", err);
+        Sentry.captureException(err, { extra: { appointmentId, stage: "checkinLink" } });
+      });
     }
 
     return NextResponse.json({ ok: true });
