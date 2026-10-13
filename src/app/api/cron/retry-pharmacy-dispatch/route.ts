@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getErrorMessage } from "@/lib/errors";
 import { dispatchRxOrder } from "@/lib/pharmacy";
+import { requireCronAuth } from "@/lib/cronAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -9,14 +10,8 @@ export const dynamic = "force-dynamic";
 const RETRY_WINDOW_MS = 48 * 60 * 60 * 1000;
 
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-  }
-  const auth = req.headers.get("authorization") || "";
-  if (auth !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   try {
     const since = new Date(Date.now() - RETRY_WINDOW_MS);

@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireCronAuth } from "@/lib/cronAuth";
 
 // How long a PENDING appointment may sit before its slot is released.
 const ABANDON_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-  }
-  const authHeader = req.headers.get("authorization") || "";
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   try {
     const cutoff = new Date(Date.now() - ABANDON_TIMEOUT_MS);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getErrorMessage } from "@/lib/errors";
+import { requireCronAuth } from "@/lib/cronAuth";
 
 // Keep this handler from being statically optimised — it must run on every hit.
 export const dynamic = "force-dynamic";
@@ -19,14 +20,8 @@ export const dynamic = "force-dynamic";
  * must send `Authorization: Bearer <CRON_SECRET>`.
  */
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-  }
-  const authHeader = req.headers.get("authorization") || "";
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   const startedAt = Date.now();
   // A fully scale-to-zero'd Neon compute can take a couple seconds to

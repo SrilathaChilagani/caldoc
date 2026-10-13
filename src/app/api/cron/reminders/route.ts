@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp";
 import { getErrorMessage } from "@/lib/errors";
 import { sendCheckinFormLink } from "@/lib/sendCheckinFormLink";
+import { requireCronAuth } from "@/lib/cronAuth";
 
 const WINDOW_MINUTES = Number(process.env.APPOINTMENT_REMINDER_WINDOW_MIN || 30);
 const REMINDER_LANG = process.env.WHATSAPP_LANG || "en_US";
@@ -107,14 +108,8 @@ async function logOutboundMessage(opts: {
 }
 
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-  }
-  const authHeader = req.headers.get("authorization") || "";
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   const results = [];
 
