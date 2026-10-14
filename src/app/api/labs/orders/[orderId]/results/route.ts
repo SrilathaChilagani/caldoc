@@ -28,12 +28,18 @@ export async function POST(
         appointmentId: true,
         appointment: {
           select: {
-            provider: { select: { phone: true, name: true } },
+            provider: { select: { phone: true, name: true, slug: true, id: true } },
           },
         },
       },
     });
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+
+    // We need the provider slug for the follow-up booking link
+    const providerSlug = order.appointment?.provider
+      ? (order.appointment.provider as { slug?: string; id?: string }).slug ||
+        (order.appointment.provider as { slug?: string; id?: string }).id
+      : null;
 
     if (sess.labPartnerId && order.labPartnerId !== sess.labPartnerId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -75,7 +81,11 @@ export async function POST(
 
     // Notify patient
     if (order.patientPhone) {
-      const patientMsg = `Hi ${order.patientName || "there"}, your CalDoc lab results are ready! You can download them from your patient portal at caldoc.in/patient/labs`;
+      const doctorName = order.appointment?.provider?.name;
+      let patientMsg = `Hi ${order.patientName || "there"}, your CalDoc lab results are ready! Download them from your patient portal: caldoc.in/patient/labs`;
+      if (providerSlug && doctorName) {
+        patientMsg += `\n\nNeed a follow-up with ${doctorName}? Book now: caldoc.in/book/${encodeURIComponent(providerSlug)}`;
+      }
       sendWhatsAppText(order.patientPhone, patientMsg).catch((e) =>
         console.error("lab results patient notify WA", e),
       );

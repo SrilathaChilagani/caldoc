@@ -132,6 +132,7 @@ model Appointment {
   prescription            Prescription?
   visitNote               VisitNote?
   labOrders               LabOrder[]
+  rxOrders                RxOrder[]
   checkInForm             CheckInForm?
 
   @@index([providerId, createdAt])
@@ -459,6 +460,7 @@ model RxOrder {
   trackingNumber        String?
   courierName           String?
   pharmacyPartnerId     String?
+  appointmentId         String?
   externalOrderId       String?
   dispatchStatus        String           @default("PENDING")
   dispatchError         String?
@@ -469,9 +471,11 @@ model RxOrder {
   updatedAt             DateTime         @updatedAt
   patient               Patient?         @relation(fields: [patientId], references: [id], onDelete: SetNull)
   pharmacyPartner       PharmacyPartner? @relation(fields: [pharmacyPartnerId], references: [id], onDelete: SetNull)
+  appointment           Appointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
 
   @@index([patientId])
   @@index([pharmacyPartnerId])
+  @@index([appointmentId])
   @@index([status, createdAt])
 }
 

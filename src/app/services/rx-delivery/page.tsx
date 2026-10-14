@@ -79,7 +79,7 @@ const popularMeds = [
 ];
 
 type RxDeliveryPageProps = {
-  searchParams?: { add?: string | string[] };
+  searchParams?: { add?: string | string[]; appointmentId?: string };
 };
 
 const getCachedMeds = unstable_cache(
@@ -96,6 +96,7 @@ const getCachedMeds = unstable_cache(
 export default async function RxDeliveryPage({ searchParams }: RxDeliveryPageProps) {
   const addParam = searchParams?.add;
   const initialItemName = Array.isArray(addParam) ? addParam[0] : addParam;
+  const appointmentId = searchParams?.appointmentId || undefined;
   const meds = await getCachedMeds();
   const options = meds.map((m) => ({ name: m.name, category: m.category }));
 
@@ -233,7 +234,7 @@ export default async function RxDeliveryPage({ searchParams }: RxDeliveryPagePro
             </p>
           </div>
           <div>
-            <RxDeliveryForm options={options} initialItemName={initialItemName} />
+            <RxDeliveryForm options={options} initialItemName={initialItemName} appointmentId={appointmentId} />
           </div>
         </div>
       </section>

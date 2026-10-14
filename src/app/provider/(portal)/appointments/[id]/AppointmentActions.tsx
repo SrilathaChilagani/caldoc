@@ -37,7 +37,7 @@ export default function AppointmentActions({
 }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const [busy, setBusy] = useState<null | "CONFIRM" | "CANCEL" | "NO_SHOW">(null);
+  const [busy, setBusy] = useState<null | "CONFIRM" | "CANCEL" | "NO_SHOW" | "COMPLETE">(null);
   const [error, setError] = useState<string | null>(null);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [reslotId, setReslotId] = useState(availableSlots[0]?.id ?? "");
@@ -46,7 +46,7 @@ export default function AppointmentActions({
   const [followupBusy, setFollowupBusy] = useState(false);
   const [followupMessage, setFollowupMessage] = useState<string | null>(null);
 
-  async function handleAction(action: "CONFIRM" | "CANCEL" | "NO_SHOW") {
+  async function handleAction(action: "CONFIRM" | "CANCEL" | "NO_SHOW" | "COMPLETE") {
     try {
       setBusy(action);
       setError(null);
@@ -158,6 +158,23 @@ export default function AppointmentActions({
           className="inline-flex items-center rounded-full border border-amber-300 px-5 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-50 disabled:opacity-50"
         >
           {busy === "NO_SHOW" ? "Updating…" : currentStatus === "NO_SHOW" ? "Marked no-show" : "Mark no-show"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleAction("COMPLETE")}
+          disabled={busy !== null || currentStatus === "COMPLETED"}
+          className={`inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold shadow-sm ${
+            currentStatus === "COMPLETED"
+              ? "bg-emerald-600 text-white"
+              : "bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+          }`}
+        >
+          {busy === "COMPLETE"
+            ? "Completing…"
+            : currentStatus === "COMPLETED"
+            ? "Consultation complete"
+            : "End consultation"}
         </button>
 
         <button

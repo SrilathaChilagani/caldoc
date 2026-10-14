@@ -7,6 +7,7 @@ import {
   notifyVideoLinks,
   sendPatientVideoConfirmation,
 } from "@/lib/videoLinkHelpers";
+import { sendWhatsAppText } from "@/lib/whatsapp";
 
 type RouteContext = {
   params: Promise<{ appointmentId: string }>;
@@ -43,6 +44,8 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
       patient: true,
       provider: true,
       slot: { select: { startsAt: true } },
+      prescription: { select: { id: true } },
+      labOrders: { select: { id: true, tests: true, status: true } },
     },
   });
 
@@ -200,6 +203,65 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
         );
       }
       return NextResponse.json({ ok: true, status: "RESCHEDULED" });
+    }
+    case "COMPLETE": {
+      if (appointment.status === "COMPLETED") {
+        return NextResponse.json({ ok: true, status: "COMPLETED" });
+      }
+
+      await prisma.appointment.update({
+        where: { id: appointmentId },
+        data: {
+          status: "COMPLETED",
+          statusHistory: {
+            create: {
+              fromStatus: appointment.status,
+              toStatus: "COMPLETED",
+              actorType: "PROVIDER",
+              actorId: session.userId,
+            },
+          },
+        },
+      });
+
+      // Post-consult WhatsApp to patient
+      const patientPhone = appointment.patient?.phone;
+      if (patientPhone) {
+        const baseUrl = appBaseUrl();
+        const docName = appointment.provider?.name || "your doctor";
+        const providerSlug = appointment.provider?.slug || appointment.provider?.id;
+        const hasPrescription = !!appointment.prescription;
+        const labOrderCount = appointment.labOrders?.length ?? 0;
+        const normalizeTests = (tests: unknown): string => {
+          if (!Array.isArray(tests)) return "";
+          return tests
+            .map((t) => String((t as { name?: string })?.name || t || "").trim())
+            .filter(Boolean)
+            .join(", ");
+        };
+
+        let msg = `Hi${appointment.patient?.name ? " " + appointment.patient.name : ""}! Your consultation with ${docName} is complete.\n\n`;
+
+        if (hasPrescription) {
+          msg += `💊 Your prescription is ready. Order your medicines at: ${baseUrl}/services/rx-delivery?appointmentId=${appointmentId}\n\n`;
+        }
+        if (labOrderCount > 0) {
+          const testNames = appointment.labOrders
+            .map((o) => normalizeTests(o.tests))
+            .filter(Boolean)
+            .join(", ");
+          msg += `🔬 Lab test${labOrderCount > 1 ? "s" : ""} ordered${testNames ? ": " + testNames : ""}. View & pay at: ${baseUrl}/patient/labs\n\n`;
+        }
+        if (providerSlug) {
+          msg += `📅 Need a follow-up? Book with ${docName}: ${baseUrl}/book/${encodeURIComponent(providerSlug)}`;
+        }
+
+        sendWhatsAppText(patientPhone, msg.trim()).catch((e) =>
+          console.error("post-consult patient WA", e),
+        );
+      }
+
+      return NextResponse.json({ ok: true, status: "COMPLETED" });
     }
     default:
       return NextResponse.json(

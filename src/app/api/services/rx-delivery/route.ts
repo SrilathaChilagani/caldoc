@@ -97,6 +97,12 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
 
+    // Optional: link this Rx order back to the appointment that issued the prescription
+    const appointmentId = body?.appointmentId ? String(body.appointmentId).trim() : null;
+    const linkedAppt = appointmentId
+      ? await prisma.appointment.findUnique({ where: { id: appointmentId }, select: { id: true } })
+      : null;
+
     const order = await prisma.rxOrder.create({
       data: {
         patientId: patientMatch?.id || null,
@@ -115,6 +121,7 @@ export async function POST(req: NextRequest) {
         amountPaise,
         status: "AWAITING_PAYMENT",
         pharmacyPartnerId: assignedPartner?.id ?? null,
+        appointmentId: linkedAppt?.id ?? null,
       },
     });
 

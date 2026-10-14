@@ -24,6 +24,7 @@ type Props = {
   initialItems?: { name: string; qty: number }[];
   onItemsChange?: (items: Item[]) => void;
   showItemsSection?: boolean;
+  appointmentId?: string;
 };
 
 const EMPTY_ITEM = (): Item => ({ id: crypto.randomUUID(), name: "", qty: 1 });
@@ -34,6 +35,7 @@ export default function RxDeliveryForm({
   initialItems,
   onItemsChange,
   showItemsSection = true,
+  appointmentId,
 }: Props) {
   const router = useRouter();
   const [items, setItems] = useState<Item[]>(() => {
@@ -126,7 +128,7 @@ export default function RxDeliveryForm({
           setUploading(false);
         }
       }
-      const payload = {
+      const payload: Record<string, unknown> = {
         patientName,
         patientPhone,
         patientEmail,
@@ -137,6 +139,7 @@ export default function RxDeliveryForm({
           .map((item) => ({ name: item.name.trim(), qty: item.qty }))
           .filter((item) => item.name && item.qty > 0),
       };
+      if (appointmentId) payload.appointmentId = appointmentId;
       const res = await fetch("/api/services/rx-delivery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

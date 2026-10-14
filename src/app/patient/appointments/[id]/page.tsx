@@ -246,7 +246,7 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
             <div className="flex flex-wrap gap-3">
               {appointment.prescription && (
                 <a
-                  href="/services/rx-delivery"
+                  href={`/services/rx-delivery?appointmentId=${appointment.id}`}
                   className="inline-flex items-center gap-2 rounded-full bg-[#2f6ea5] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#255b8b]"
                 >
                   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">

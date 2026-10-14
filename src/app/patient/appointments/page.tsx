@@ -138,17 +138,50 @@ export default async function PatientAppointments(props: PageProps) {
   else if (activeFilter === "NO_SHOW") statusFilter = { status: "NO_SHOW" };
   else if (activeFilter === "UPCOMING") statusFilter = { status: { in: ["CONFIRMED", "PENDING"] } };
 
-  const appointments = await prisma.appointment.findMany({
-    where: { ...whereBase, ...statusFilter },
-    orderBy: { createdAt: "desc" },
-    include: {
-      provider: true,
-      prescription: true,
-      payment: true,
-      slot: true,
-    },
-    take: 100,
-  });
+  const [appointments, actionLabOrders] = await Promise.all([
+    prisma.appointment.findMany({
+      where: { ...whereBase, ...statusFilter },
+      orderBy: { createdAt: "desc" },
+      include: {
+        provider: true,
+        prescription: true,
+        payment: true,
+        slot: true,
+      },
+      take: 100,
+    }),
+    // Fetch lab orders that need patient action (any status from all appointments)
+    prisma.labOrder.findMany({
+      where: {
+        patientId: patient.id,
+        status: { in: ["AWAITING_PAYMENT", "REPORTS_READY"] },
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        tests: true,
+        status: true,
+        resultsPdfKey: true,
+        appointment: {
+          select: {
+            id: true,
+            provider: { select: { name: true, slug: true, id: true } },
+          },
+        },
+      },
+    }),
+  ]);
+
+  // Normalise test names for display
+  function normalizeLabTests(tests: unknown): string {
+    if (!Array.isArray(tests)) return "Tests";
+    return (
+      tests
+        .map((t) => String((t as { name?: string })?.name || t || "").trim())
+        .filter(Boolean)
+        .join(", ") || "Tests"
+    );
+  }
 
   const mkFilterHref = (f?: FilterKey) => {
     const qp = new URLSearchParams();
@@ -236,6 +269,76 @@ export default async function PatientAppointments(props: PageProps) {
             </div>
           ))}
         </div>
+
+        {/* Next Steps action panel */}
+        {actionLabOrders.length > 0 && (
+          <div className="rounded-3xl border border-[#2f6ea5]/20 bg-[#e7edf3] p-5">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2f6ea5] text-[10px] font-bold text-white">
+                {actionLabOrders.length}
+              </span>
+              <p className="text-sm font-semibold text-[#1a4a72]">Actions needed</p>
+            </div>
+            <div className="space-y-2">
+              {actionLabOrders.map((order) => {
+                const testNames = normalizeLabTests(order.tests);
+                const providerName = order.appointment?.provider?.name;
+                const providerSlug = order.appointment?.provider?.slug || order.appointment?.provider?.id;
+                const followUpPath = providerSlug
+                  ? `/book/${encodeURIComponent(providerSlug)}?followUpNote=${encodeURIComponent(`Follow-up after lab results`)}`
+                  : null;
+
+                if (order.status === "AWAITING_PAYMENT") {
+                  return (
+                    <div key={order.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">Lab test pending payment</p>
+                        <p className="text-xs text-slate-500">{testNames}{providerName ? ` · Ordered by ${providerName}` : ""}</p>
+                      </div>
+                      <Link
+                        href="/patient/labs"
+                        className="rounded-full bg-[#2f6ea5] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#255b8b]"
+                      >
+                        Pay now →
+                      </Link>
+                    </div>
+                  );
+                }
+
+                if (order.status === "REPORTS_READY") {
+                  return (
+                    <div key={order.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3">
+                      <div>
+                        <p className="text-sm font-semibold text-emerald-700">Lab results ready</p>
+                        <p className="text-xs text-slate-500">{testNames}{providerName ? ` · ${providerName}` : ""}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <a
+                          href={`/api/patient/lab-orders/results/${order.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                        >
+                          Download →
+                        </a>
+                        {followUpPath && (
+                          <Link
+                            href={followUpPath}
+                            className="rounded-full border border-[#2f6ea5]/30 px-4 py-1.5 text-xs font-medium text-[#2f6ea5] hover:border-[#2f6ea5]"
+                          >
+                            Book follow-up
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+
+                return null;
+              })}
+            </div>
+          </div>
+        )}
 
         {err === "notfound" && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">

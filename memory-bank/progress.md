@@ -104,4 +104,14 @@
 - **`src/app/patient/health/page.tsx`** (NEW) — patient health timeline page at `/patient/health`. Shows all appointments chronologically with nested lab orders (status + results download), prescription links, "Order medicines" and "Book follow-up" CTAs per appointment. Standalone Rx orders shown separately. Quick links section at bottom.
 - **`src/components/PatientPortalNav.tsx`** — added "Health Record" tab.
 
-_Last updated: 2026-10-13 by Claude Code (P1 connected patient journey session)_
+## ✅ Done (added 2026-10-13 — P1 connected patient journey phase 2)
+- **`prisma/schema.prisma` + migration `20261013000002_rxorder_appointment_link`** — `appointmentId String?` added to `RxOrder`; `rxOrders RxOrder[]` back-relation added to `Appointment`. Enables tracing medicine orders to the prescription consultation.
+- **`src/app/api/provider/appointments/[appointmentId]/status/route.ts`** — new `COMPLETE` action: sets status to `COMPLETED`, records status history, fires post-consult WhatsApp to patient with prescription CTA, lab orders summary, and follow-up booking link.
+- **`src/app/provider/(portal)/appointments/[id]/AppointmentActions.tsx`** — added "End consultation" button (emerald, calls COMPLETE action). Now shows green "Consultation complete" when already done.
+- **`src/app/api/labs/orders/[orderId]/results/route.ts`** — also selects `slug` + `id` on provider; patient WhatsApp now appends "Need a follow-up with Dr. X? Book now: caldoc.in/book/{slug}" when order is linked to an appointment.
+- **`src/app/patient/appointments/page.tsx`** — added `actionLabOrders` query (AWAITING_PAYMENT + REPORTS_READY lab orders); "Actions needed" panel above appointment list shows pay-now / download-results / book-follow-up CTAs.
+- **`src/app/services/rx-delivery/page.tsx`** + **`RxDeliveryForm.tsx`** — accept `?appointmentId=` URL param; pass `appointmentId` in POST body so the created `RxOrder` is linked back to the originating appointment.
+- **`src/app/api/services/rx-delivery/route.ts`** — reads `body.appointmentId`, verifies the appointment exists, stores `appointmentId` on the new `RxOrder`.
+- **`src/app/patient/appointments/[id]/page.tsx`** + **`src/app/patient/health/page.tsx`** — "Order medicines" CTA now includes `?appointmentId=` param so the Rx order is traceable.
+
+_Last updated: 2026-10-13 by Claude Code (P1 connected patient journey phase 2)_

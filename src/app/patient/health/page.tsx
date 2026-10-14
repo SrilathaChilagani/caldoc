@@ -278,7 +278,7 @@ export default async function PatientHealthPage(props: PageProps) {
                       )}
                       {appt.prescription && (
                         <a
-                          href="/services/rx-delivery"
+                          href={`/services/rx-delivery?appointmentId=${appt.id}`}
                           className="rounded-full border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-700 hover:border-[#2f6ea5] hover:text-[#2f6ea5]"
                         >
                           Order medicines

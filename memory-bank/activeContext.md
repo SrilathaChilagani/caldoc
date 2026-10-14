@@ -5,7 +5,7 @@
 
 ## Current Focus
 - **Sprint:** Sprint 01 — "Stabilize + Performance Foundation"
-- **Last task (2026-10-13):** P1 Connected patient journey — appointment care summary, follow-up context, health timeline. COMPLETE.
+- **Last task (2026-10-13):** P1 Connected patient journey — phase 2. Added COMPLETE action on appointments, post-consult WhatsApp, lab results follow-up link, RxOrder→Appointment FK, patient "Next Steps" panel. COMPLETE.
 - **Next task:** P0 booking→payment→consult test pass; error-handling consistency.
 
 ---
