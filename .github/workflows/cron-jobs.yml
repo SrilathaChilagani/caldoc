@@ -1,11 +1,12 @@
-name: Hourly cron jobs
+name: Cron jobs
 
-# Vercel Hobby crons fire at most once/day, which is too infrequent for:
-#   - reminders: once-daily misses ~95% of appointments (only 30-min window covers)
-#   - cleanup:   once-daily leaves abandoned slots locked for up to 23 h 45 min
+# Vercel Hobby crons are limited to once per day. This workflow provides
+# the higher-frequency schedules that production needs. Vercel cron entries
+# in vercel.json serve as daily fallbacks if GitHub Actions is delayed.
 #
-# This workflow runs both every hour. The Vercel cron entries in vercel.json
-# remain as daily fallbacks in case GitHub Actions is delayed or down.
+# Schedules:
+#   - reminders / cleanup: every hour (30-min appointment window coverage)
+#   - pharmacy / lab retry: every 4 hours (re-dispatch failed external orders)
 
 on:
   schedule:
@@ -40,5 +41,45 @@ jobs:
             -H "Authorization: Bearer ${CRON_SECRET}" \
             https://www.caldoc.in/api/cron/cleanup-abandoned-bookings)
           echo "cleanup: HTTP $code"
+          cat /tmp/body; echo
+          test "$code" = "200"
+
+  retry-pharmacy:
+    name: Retry failed pharmacy dispatches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping pharmacy retry endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          hour=$(date -u +%H)
+          if [ $((10#$hour % 4)) -ne 0 ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            echo "Skipping — not a 4-hour boundary (hour=$hour)"
+            exit 0
+          fi
+          code=$(curl -s -o /tmp/body -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            https://www.caldoc.in/api/cron/retry-pharmacy-dispatch)
+          echo "retry-pharmacy: HTTP $code"
+          cat /tmp/body; echo
+          test "$code" = "200"
+
+  retry-lab:
+    name: Retry failed lab dispatches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping lab retry endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          hour=$(date -u +%H)
+          if [ $((10#$hour % 4)) -ne 0 ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            echo "Skipping — not a 4-hour boundary (hour=$hour)"
+            exit 0
+          fi
+          code=$(curl -s -o /tmp/body -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            https://www.caldoc.in/api/cron/retry-lab-dispatch)
+          echo "retry-lab: HTTP $code"
           cat /tmp/body; echo
           test "$code" = "200"
