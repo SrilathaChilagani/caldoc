@@ -9,14 +9,12 @@ import {
   type DrugCategory,
   type Medicine,
 } from "@/lib/medication";
+import { DRUG_CATEGORY_RULES } from "@/config/drugCategories";
 
-const CATEGORY_OPTIONS: { value: DrugCategory; label: string }[] = [
-  { value: "OTC", label: "OTC (general)" },
-  { value: "LIST_O", label: "List O" },
-  { value: "LIST_A", label: "List A" },
-  { value: "LIST_B", label: "List B" },
-  { value: "SCHEDULE_X", label: "Schedule X" },
-];
+// Only prescribable categories — Schedule X is excluded (cannot be prescribed via telemedicine).
+const CATEGORY_OPTIONS = DRUG_CATEGORY_RULES
+  .filter((r) => r.prescribableViaTelemed)
+  .map((r) => ({ value: r.value, label: r.label }));
 
 type Props = {
   appointmentId: string;

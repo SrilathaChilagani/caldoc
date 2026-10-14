@@ -23,7 +23,10 @@ type SearchKey = {
   mode: string;
   q: string;
   language: string;
-  is24x7: boolean;
+  gender: string;
+  minFeePaise: number;
+  maxFeePaise: number;
+  avail: string; // "any" | "today" | "week" | "24x7"
   page: number;
   pageSize: number;
 };
@@ -43,6 +46,7 @@ const getCachedSearch = unstable_cache(
         OR: [
           { name: { contains: k.q, mode: "insensitive" } },
           { speciality: { contains: k.q, mode: "insensitive" } },
+          { qualification: { contains: k.q, mode: "insensitive" } },
         ],
       });
     }
@@ -55,8 +59,35 @@ const getCachedSearch = unstable_cache(
     if (k.language) {
       andClauses.push({ languages: { has: k.language } });
     }
-    if (k.is24x7) {
+    if (k.gender) {
+      andClauses.push({ gender: k.gender });
+    }
+    if (k.minFeePaise > 0) {
+      andClauses.push({ defaultFeePaise: { gte: k.minFeePaise } });
+    }
+    if (k.maxFeePaise > 0) {
+      andClauses.push({ defaultFeePaise: { lte: k.maxFeePaise } });
+    }
+
+    // 7-day window — computed here so all filter-path branches share nowIST/windowEnd
+    const nowIST = new Date(Date.now());
+    const windowEnd = new Date(nowIST.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    if (k.avail === "24x7") {
       andClauses.push({ is24x7: true });
+    }
+    if (k.avail === "today") {
+      // End of today in IST — parse as IST midnight then add 24h - 1ms
+      const istNow = new Date(nowIST.getTime() + IST_OFFSET_MS);
+      const todayEndIST = new Date(`${istNow.toISOString().slice(0, 10)}T23:59:59.999+05:30`);
+      andClauses.push({
+        slots: { some: { isBooked: false, startsAt: { gte: nowIST, lte: todayEndIST } } },
+      });
+    }
+    if (k.avail === "week") {
+      andClauses.push({
+        slots: { some: { isBooked: false, startsAt: { gte: nowIST, lt: windowEnd } } },
+      });
     }
 
     // Clinic sub-query: only filter by city for the clinic addresses we show on cards/map.
@@ -71,11 +102,6 @@ const getCachedSearch = unstable_cache(
 
     const whereClause = { AND: andClauses };
 
-    // 7-day window for slot buckets — anchored inside the cached entry so
-    // all viewers of a given cache entry see the same day buckets.
-    const nowIST = new Date(Date.now());
-    const windowEnd = new Date(nowIST.getTime() + 7 * 24 * 60 * 60 * 1000);
-
     const [providers, total] = await Promise.all([
       prisma.provider.findMany({
         where: whereClause,
@@ -88,6 +114,8 @@ const getCachedSearch = unstable_cache(
           name: true,
           speciality: true,
           qualification: true,
+          registrationNumber: true,
+          councilName: true,
           languages: true,
           is24x7: true,
           defaultFeePaise: true,
@@ -145,6 +173,8 @@ const getCachedSearch = unstable_cache(
         name: p.name,
         speciality: p.speciality,
         qualification: p.qualification,
+        registrationNumber: p.registrationNumber,
+        councilName: p.councilName,
         languages: p.languages,
         is24x7: p.is24x7,
         defaultFeePaise: p.defaultFeePaise,
@@ -158,7 +188,7 @@ const getCachedSearch = unstable_cache(
 
     return { providers: result, total, days };
   },
-  ["providers-search-v1"],
+  ["providers-search-v2"],
   { revalidate: 60 }
 );
 
@@ -168,13 +198,13 @@ const getCachedSearch = unstable_cache(
  *   city       - city name to filter clinics (default: Hyderabad)
  *   specialty  - specialty filter (partial match)
  *   mode       - IN_PERSON | VIDEO | AUDIO | "" (any)
- *   q          - name / specialty text search
+ *   q          - name / specialty / qualification text search
+ *   language   - 2-letter language code
+ *   gender     - "Male" | "Female" | "" (any)
+ *   feeRange   - "under500" | "mid" | "over1000" | "" (any)
+ *   avail      - "today" | "week" | "24x7" | "any"
  *   page       - page number (default 1)
  *   pageSize   - results per page (default 12)
- *
- * Returns providers with:
- *   - clinic locations (lat/lng for map)
- *   - 7-day slot availability buckets (counts per day in IST)
  */
 export async function GET(req: NextRequest) {
   const ip = getClientIp(req.headers);
@@ -188,13 +218,23 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
+    const feeRange = searchParams.get("feeRange")?.trim() || "";
+    let minFeePaise = 0;
+    let maxFeePaise = 0;
+    if (feeRange === "under500") maxFeePaise = 49900;
+    if (feeRange === "mid") { minFeePaise = 50000; maxFeePaise = 100000; }
+    if (feeRange === "over1000") minFeePaise = 100100;
+
     const key: SearchKey = {
       city: searchParams.get("city")?.trim() || "",
       specialty: searchParams.get("specialty")?.trim() || "",
       mode: searchParams.get("mode")?.trim().toUpperCase() || "",
       q: searchParams.get("q")?.trim() || "",
       language: searchParams.get("language")?.trim().toLowerCase() || "",
-      is24x7: searchParams.get("is24x7") === "true",
+      gender: searchParams.get("gender")?.trim() || "",
+      minFeePaise,
+      maxFeePaise,
+      avail: searchParams.get("avail")?.trim() || "any",
       page: Math.max(1, Number(searchParams.get("page") || 1)),
       pageSize: Math.min(24, Math.max(1, Number(searchParams.get("pageSize") || 12))),
     };

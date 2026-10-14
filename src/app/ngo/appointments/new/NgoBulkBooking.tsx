@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LANGUAGE_OPTIONS, formatLanguage } from "@/config/languages";
 
 type SlotInfo = {
   id: string;
@@ -49,16 +50,6 @@ function formatFee(paise?: number | null) {
     minimumFractionDigits: 2,
   }).format(paise / 100);
 }
-
-const languageOptions = [
-  { value: "en", label: "English" },
-  { value: "hi", label: "Hindi" },
-  { value: "te", label: "Telugu" },
-  { value: "ta", label: "Tamil" },
-  { value: "ur", label: "Urdu" },
-  { value: "bn", label: "Bengali" },
-  { value: "mr", label: "Marathi" },
-];
 
 const availabilityOptions = [
   { value: "next30", label: "Available in next 30 mins" },
@@ -371,7 +362,7 @@ export default function NgoBulkBooking({ specialties }: Props) {
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Languages</p>
         <div className="mt-2 flex flex-col gap-2">
-          {languageOptions.map((option) => (
+          {LANGUAGE_OPTIONS.map((option) => (
             <label key={option.value} className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -533,7 +524,7 @@ export default function NgoBulkBooking({ specialties }: Props) {
                       <p className="text-sm text-slate-500">{provider.speciality || "General practice"}</p>
                       {provider.languages.length > 0 && (
                         <p className="text-xs uppercase tracking-wide text-slate-400">
-                          Languages: {provider.languages.join(", ")}
+                          Languages: {provider.languages.map(formatLanguage).join(", ")}
                         </p>
                       )}
                     </div>

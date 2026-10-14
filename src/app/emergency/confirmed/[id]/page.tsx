@@ -34,7 +34,7 @@ export default async function EmergencyConfirmedPage({ params }: PageProps) {
 
           <h1 className="text-3xl font-semibold text-slate-900">Booking Confirmed!</h1>
           <p className="mt-2 text-lg text-slate-600">
-            Hi {patientName}, your emergency consultation is booked.
+            Hi {patientName}, your urgent consultation is booked.
           </p>
 
           {/* 5-minute promise */}
@@ -55,7 +55,7 @@ export default async function EmergencyConfirmedPage({ params }: PageProps) {
           <div className="mt-5 grid grid-cols-2 gap-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Status</p>
-              <p className="mt-1 text-sm font-medium text-slate-800">Emergency — Pending doctor assignment</p>
+              <p className="mt-1 text-sm font-medium text-slate-800">Urgent — Pending doctor assignment</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">What happens next</p>

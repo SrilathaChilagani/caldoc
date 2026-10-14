@@ -4,6 +4,7 @@ import { requireAdminSession } from "@/lib/auth.server";
 import { prisma } from "@/lib/db";
 import { getSignedS3Url } from "@/lib/s3";
 import EnrollmentActions from "./EnrollmentActions";
+import { formatLanguage } from "@/config/languages";
 
 export const dynamic = "force-dynamic";
 
@@ -110,7 +111,7 @@ export default async function EnrollmentDetailPage({
         <Row label="Sub-speciality" value={enrollment.subSpeciality} />
         <Row label="Experience" value={enrollment.experienceYears ? `${enrollment.experienceYears} years` : null} />
         <Row label="Hospital / Clinic" value={enrollment.currentHospital} />
-        <Row label="Languages" value={enrollment.languages.join(", ")} />
+        <Row label="Languages" value={enrollment.languages.map(formatLanguage).join(", ")} />
         <Row label="Consultation modes" value={enrollment.visitModes.join(", ")} />
         <Row label="Consultation fee" value={enrollment.feePaise ? `₹${enrollment.feePaise / 100}` : null} />
       </div>

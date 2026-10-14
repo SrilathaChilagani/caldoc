@@ -165,6 +165,16 @@ export default async function PatientAppointments(props: PageProps) {
     NO_SHOW: "bg-slate-100 text-slate-700",
   };
 
+  const statusLabels: Record<string, string> = {
+    CONFIRMED: "Confirmed",
+    PENDING: "Pending",
+    COMPLETED: "Completed",
+    CANCELED: "Cancelled",
+    CANCELLED: "Cancelled",
+    NO_SHOW: "No Show",
+    IN_PROGRESS: "In Progress",
+  };
+
   const summary = [
     { label: "All appointments", value: appointments.length },
     { label: "Confirmed", value: appointments.filter((a) => a.status === "CONFIRMED").length },
@@ -290,7 +300,7 @@ export default async function PatientAppointments(props: PageProps) {
                         statusClasses[appt.status] || "bg-slate-100 text-slate-700"
                       }`}
                     >
-                      {appt.status === "CANCELED" ? "CANCELLED" : appt.status.replace("_", " ")}
+                      {statusLabels[appt.status] ?? appt.status.replace(/_/g, " ")}
                     </span>
                   </div>
 

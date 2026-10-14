@@ -45,6 +45,7 @@ model Provider {
   profilePhotoKey    String?
   registrationDocKey String?
   phone              String?
+  gender             String?
   defaultFeePaise    Int              @default(100)
   visitModes         String[]         @default([])
   appointments       Appointment[]

@@ -10,6 +10,7 @@ import CopyRoomLinkButton from "./CopyRoomLinkButton";
 import LabOrderForm from "./LabOrderForm";
 import { formatINR } from "@/lib/format";
 import CallPatientButton from "./CallPatientButton";
+import { getDrugCategoryRule } from "@/config/drugCategories";
 import CheckInFormViewer from "./CheckInFormViewer";
 import { normalizeDrugCategory, type Medicine } from "@/lib/medication";
 
@@ -27,19 +28,9 @@ type RawPrescriptionMed = {
   category?: string;
 };
 
-function categoryLabel(value: unknown) {
-  switch (value) {
-    case "LIST_O":
-      return "List O";
-    case "LIST_A":
-      return "List A";
-    case "LIST_B":
-      return "List B";
-    case "SCHEDULE_X":
-      return "Schedule X";
-    default:
-      return "OTC";
-  }
+function categoryLabel(value: unknown): string {
+  if (typeof value !== "string") return "OTC";
+  return getDrugCategoryRule(value as import("@/config/drugCategories").DrugCategory)?.tpgLabel ?? value;
 }
 
 function formatIST(date: Date | null | undefined) {

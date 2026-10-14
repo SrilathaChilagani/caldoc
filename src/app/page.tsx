@@ -5,6 +5,7 @@ import OfflineRequestForm from "@/components/OfflineRequestForm";
 import HeroSearchForm from "./HeroSearchForm";
 import { prisma } from "@/lib/db";
 import { IMAGES, HERO_DOCTOR_IMAGES, getDailyHeroImage } from "@/lib/imagePaths";
+import { formatLanguage } from "@/config/languages";
 
 export const revalidate = 3600;
 
@@ -16,21 +17,6 @@ const specialties = [
   { name: "Orthopedics", slug: "orthopedics", img: IMAGES.SPEC_ORTHO },
   { name: "Psychiatry", slug: "psychiatry", img: IMAGES.SPEC_PSYCH },
 ];
-
-const languageLabels: Record<string, string> = {
-  en: "English",
-  hi: "Hindi",
-  te: "Telugu",
-  ta: "Tamil",
-  ur: "Urdu",
-  bn: "Bengali",
-  mr: "Marathi",
-};
-
-function formatLanguage(code: string) {
-  const key = code.toLowerCase();
-  return languageLabels[key] || code;
-}
 
 type ProviderCard = {
   id: string;
@@ -190,7 +176,7 @@ export default async function Home() {
                 href="/emergency"
                 className="inline-flex h-11 items-center justify-center rounded-xl border border-white/60 bg-white/70 px-8 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white"
               >
-                Emergency Appointment
+                Urgent Consultation
               </Link>
             </div>
 

@@ -1,3 +1,5 @@
+import { DRUG_CATEGORY_RULES } from "@/config/drugCategories";
+
 export const metadata = {
   title: "Compliance — TPG 2020 & DPDP Act | CalDoc India",
 };
@@ -30,8 +32,9 @@ export default function CompliancePage() {
           <ul className="space-y-3 text-sm text-slate-700">
             <li>
               <strong>Registered Medical Practitioners only.</strong> Every provider listed on CalDoc holds a valid
-              NMC or State Medical Council registration. Registration numbers and council names are displayed on every
-              booking page and appointment record.
+              NMC or State Medical Council registration. Where provided by the practitioner, their registration
+              number and medical council are displayed on the booking page. Practitioners who have not yet supplied
+              their registration details are shown with a &ldquo;pending verification&rdquo; notice.
             </li>
             <li>
               <strong>Patient identification.</strong> Patients provide their name and mobile number during booking;
@@ -46,9 +49,10 @@ export default function CompliancePage() {
               not used as the sole mode for first-time consultations involving clinical assessment.
             </li>
             <li>
-              <strong>Prescription compliance.</strong> RMPs may prescribe OTC and Schedule H medicines via
-              telemedicine. Schedule X (narcotic/psychotropic) drugs cannot be prescribed via telemedicine under any
-              circumstances — the platform technically restricts this category.
+              <strong>Prescription compliance.</strong> RMPs may prescribe List O, List A, and (in follow-up
+              consultations) List B medicines per TPG 2020. Schedule X (narcotic/psychotropic and controlled
+              substances) cannot be prescribed via telemedicine under any circumstances — the platform enforces
+              this restriction at the API level.
             </li>
             <li>
               <strong>Medical records.</strong> All consultation notes, prescriptions, and consent records are retained
@@ -98,44 +102,52 @@ export default function CompliancePage() {
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
           <h2 className="text-xl font-semibold text-slate-900">3. Prescription &amp; Drug Schedule Compliance</h2>
           <p className="text-sm text-slate-600">
-            CalDoc follows the Drugs and Cosmetics Act, 1940, and the TPG 2020 prescription rules:
+            CalDoc follows the <strong>Telemedicine Practice Guidelines 2020 (TPG 2020)</strong> issued by the
+            Ministry of Health &amp; Family Welfare and the National Medical Commission. The TPG 2020 defines
+            four drug lists for telemedicine prescribing:
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-slate-700 border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-900">
-                  <th className="py-2 pr-4 font-semibold">Drug Category</th>
-                  <th className="py-2 pr-4 font-semibold">Can be prescribed via telemedicine?</th>
+                  <th className="py-2 pr-4 font-semibold w-36">TPG 2020 Category</th>
+                  <th className="py-2 pr-4 font-semibold w-44">Prescribable via telemedicine?</th>
                   <th className="py-2 font-semibold">Notes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                <tr>
-                  <td className="py-2 pr-4">OTC (Over-the-counter)</td>
-                  <td className="py-2 pr-4 text-emerald-700 font-medium">Yes</td>
-                  <td className="py-2">For any patient, first-time or follow-up</td>
-                </tr>
-                <tr>
-                  <td className="py-2 pr-4">Schedule H</td>
-                  <td className="py-2 pr-4 text-amber-700 font-medium">Yes, with conditions</td>
-                  <td className="py-2">Clinically appropriate; valid digital prescription issued</td>
-                </tr>
-                <tr>
-                  <td className="py-2 pr-4">Schedule H1</td>
-                  <td className="py-2 pr-4 text-amber-700 font-medium">Follow-up only</td>
-                  <td className="py-2">Requires prior in-person diagnosis; RMP discretion applies</td>
-                </tr>
-                <tr>
-                  <td className="py-2 pr-4">Schedule X (controlled)</td>
-                  <td className="py-2 pr-4 text-red-700 font-medium">No — prohibited</td>
-                  <td className="py-2">In-person consultation mandatory per TPG 2020</td>
-                </tr>
+                {DRUG_CATEGORY_RULES.map((rule) => {
+                  const statusColor = !rule.prescribableViaTelemed
+                    ? "text-red-700"
+                    : rule.requiresFollowUp
+                      ? "text-amber-700"
+                      : "text-emerald-700";
+                  const statusLabel = !rule.prescribableViaTelemed
+                    ? "No — prohibited"
+                    : rule.requiresFollowUp
+                      ? "Yes — follow-up only"
+                      : "Yes";
+                  return (
+                    <tr key={rule.value}>
+                      <td className="py-2 pr-4 font-medium">{rule.tpgLabel}</td>
+                      <td className={`py-2 pr-4 font-medium ${statusColor}`}>{statusLabel}</td>
+                      <td className="py-2 text-slate-600">{rule.complianceNote}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
           <p className="text-xs text-slate-500">
-            Rx delivery orders for Schedule H medicines require a valid prescription upload. Schedule X medicines
-            cannot be dispensed through the CalDoc Rx delivery service.
+            Rx delivery orders for medicines requiring a prescription (List A, List B) require a valid
+            prescription upload. Schedule X medicines cannot be prescribed or dispensed through the CalDoc
+            platform under any circumstances. The platform blocks Schedule X submissions at the API level.
+          </p>
+          <p className="text-xs text-amber-700">
+            <strong>Note on List B enforcement:</strong> TPG 2020 restricts List B medicines to follow-up
+            consultations. Platform-level enforcement of this restriction requires first/follow-up tracking
+            on appointment records, which is planned for a future release. Until then, the RMP&apos;s
+            clinical judgement and the patient consent acknowledgement serve as the primary safeguards.
           </p>
         </section>
 

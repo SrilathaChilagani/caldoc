@@ -5,7 +5,7 @@
 
 ## Current Focus
 - **Sprint:** Sprint 01 — "Stabilize + Performance Foundation"
-- **Last task (2026-07-29):** Labs end-to-end flow fix + Lab CRM. COMPLETE.
+- **Last task (2026-10-13):** Improve doctor search — symptom chips, fee/gender/avail filters. COMPLETE.
 - **Next task:** P0 booking→payment→consult test pass; error-handling consistency.
 
 ---

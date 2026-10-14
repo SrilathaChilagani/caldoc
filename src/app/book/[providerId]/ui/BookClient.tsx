@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { BOOKING_SYMPTOMS } from "@/config/redFlagSymptoms";
+import { useRedFlagGuard, RedFlagBanner } from "@/components/RedFlagSymptomGuard";
+import { formatLanguage } from "@/config/languages";
 
 const CONSENT_TEXT =
   "I confirm that I have read the disclaimer and terms, understand that this is a telemedicine consultation with limitations that may not replace in-person care, consent to a teleconsultation with a registered medical practitioner (NMC/State Medical Council registered), and acknowledge that Schedule X controlled drugs cannot be prescribed via telemedicine.";
@@ -13,7 +16,8 @@ type SlotInfo = {
   feePaise?: number;
 };
 
-const SYMPTOM_OPTIONS = ["Fever", "Headache", "Dizziness", "Chest pain", "Sore throat", "Cough", "Cold"];
+// Imported from src/config/redFlagSymptoms.ts — edit that file to change the list.
+// Red-flag symptoms (chest pain, breathing difficulty, etc.) are intentionally absent.
 
 type ClinicInfo = {
   id: string;
@@ -34,6 +38,7 @@ type Props = {
     qualification?: string | null;
     registrationNumber?: string | null;
     councilName?: string | null;
+    languages?: string[];
     defaultFeePaise?: number | null;
     visitModes?: string[];
     clinics?: ClinicInfo[];
@@ -117,6 +122,10 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
   const [bookerPhone, setBookerPhone] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [otherSymptom, setOtherSymptom] = useState("");
+  const { isBlocked: redFlagBlocked, triggeredSymptoms } = useRedFlagGuard(
+    selectedSymptoms,
+    [otherSymptom, notes].join(" "),
+  );
   const [address, setAddress] = useState<DeliveryForm>({
     contactName: "",
     contactPhone: "",
@@ -332,12 +341,35 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
           <span className="text-base font-normal text-slate-500">· {provider.speciality}</span>
         </h1>
         {provider.qualification && (
-          <p className="text-sm text-slate-500">{provider.qualification}</p>
+          <p className="mt-0.5 text-sm text-slate-500">{provider.qualification}</p>
         )}
-        {provider.registrationNumber && (
-          <p className="text-xs text-slate-500">
-            Reg. No: <span className="font-mono text-slate-900">{provider.registrationNumber}</span>
-            {provider.councilName && <> ({provider.councilName})</>}
+
+        {/* Registration — always shown; explicit pending state when absent */}
+        {provider.registrationNumber ? (
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-emerald-700">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            Reg. No:&nbsp;<span className="font-mono text-slate-900">{provider.registrationNumber}</span>
+            {provider.councilName && <span className="text-slate-500">&nbsp;·&nbsp;{provider.councilName}</span>}
+          </p>
+        ) : (
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-amber-600">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <path d="M12 9v4M12 17h.01" />
+            </svg>
+            Registration: Pending verification
+          </p>
+        )}
+
+        {/* Languages */}
+        {(provider.languages?.length ?? 0) > 0 && (
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
+            </svg>
+            {provider.languages!.map(formatLanguage).join(", ")}
           </p>
         )}
       </div>
@@ -617,6 +649,9 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
 
       <div className="space-y-6 max-w-3xl">
 
+        {/* Red-flag guard — monitors free text for dangerous keywords */}
+        <RedFlagBanner triggeredSymptoms={triggeredSymptoms} className="rounded-2xl" />
+
         {/* Common Symptoms */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
           <div className="mb-4">
@@ -624,7 +659,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
             <p className="mt-1 text-xs text-slate-500">Select all that apply.</p>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {SYMPTOM_OPTIONS.map((symptom) => {
+            {BOOKING_SYMPTOMS.map((symptom) => {
               const isActive = selectedSymptoms.includes(symptom);
               return (
                 <label
@@ -653,6 +688,19 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
               )}
             </label>
           </div>
+
+          {/* Static callout — always visible, non-blocking */}
+          <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
+            <svg viewBox="0 0 24 24" className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <path d="M12 9v4M12 17h.01" />
+            </svg>
+            <span>
+              For chest pain, breathing difficulty, or any life-threatening symptoms — call{" "}
+              <a href="tel:112" className="font-bold underline underline-offset-2">112</a> immediately or use our{" "}
+              <a href="/emergency" className="font-semibold underline underline-offset-2">Urgent Consultation</a> service.
+            </span>
+          </div>
         </div>
 
         {/* Notes */}
@@ -671,15 +719,21 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
           <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
         )}
 
-        {/* Proceed to payment */}
+        {/* Proceed to payment — blocked when red-flag symptoms detected in free text */}
         <button
           type="button"
           onClick={handleProceed}
-          disabled={loading}
-          className="w-full rounded-xl bg-[#2f6ea5] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b] disabled:opacity-60 transition-colors"
+          disabled={loading || redFlagBlocked}
+          title={redFlagBlocked ? "Please address the safety warning above before proceeding" : undefined}
+          className="w-full rounded-xl bg-[#2f6ea5] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? "Creating booking…" : "Proceed to payment →"}
         </button>
+        {redFlagBlocked && (
+          <p className="text-center text-xs text-rose-600">
+            Please call 112 or remove the life-threatening symptoms above to continue.
+          </p>
+        )}
       </div>
     </div>
   );

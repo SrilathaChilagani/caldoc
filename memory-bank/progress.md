@@ -27,6 +27,19 @@
 - **Pharmacy end-to-end flow:** Onboarding now auto-creates `PharmacyUser` (linked by `pharmacyPartnerId`) with temp password and WhatsApp notification. Duplicate email/drug-license detection added. Login uses pure DB auth (env whitelist removed). Pharmacy portal scopes Rx orders to logged-in partner. Rx delivery orders auto-assigned to matching pharmacy by delivery postal code. Payment confirmation notifies the assigned pharmacy's WhatsApp. Sign-out properly clears session cookie via new `/api/pharmacy/logout` route.
 - **Labs end-to-end flow + Lab CRM:** Same fixes applied to labs — onboarding auto-creates `LabUser` with `labPartnerId`, temp password, WhatsApp notification, duplicate email detection. Login env whitelist removed (pure DB auth). Labs-at-home orders auto-assign first active `homeCollection: true` lab partner. Payment confirmation notifies assigned lab partner phone. Results upload now saves `resultsPdfKey` on `LabOrder` and WhatsApp-notifies patient + prescribing doctor. New lab CRM detail page (`/labs/orders/[id]`) with step-by-step workflow, agent assignment, results upload. Patient portal shows "Download results" button. Schema migration: `resultsPdfKey String?` added to `LabOrder`.
 
+## ✅ Done (added 2026-10-12)
+- **Production-hardening audit (ChatGPT / self-review):**
+  - `src/lib/cronAuth.ts` — centralised CRON_SECRET auth helper; rejects unset secret and "dev-please-change" placeholder in production; used by all 6 cron routes.
+  - `src/app/api/provider/calendar/route.ts` — 90-day max date range guard.
+  - `src/app/api/providers/search/route.ts` — removed unused `feePaise` from slots select.
+  - `src/app/api/appointments/emergency/route.ts` — added `export const maxDuration = 30`.
+  - Structured logging: `Sentry.captureMessage("info")` on every payment capture in `checkout/confirm/route.ts` and `webhooks/razorpay/route.ts`; all fire-and-forget `.catch()` handlers call `Sentry.captureException`.
+  - API route unit tests: `checkout/__tests__/confirm.test.ts` (9 tests), `appointments/__tests__/create.test.ts` (7 tests), `webhooks/__tests__/razorpay.test.ts` (9 tests).
+- **Emergency flow safety redesign (P0 compliance):**
+  - `src/app/emergency/page.tsx` — renamed to "Urgent Consultation", 3-state triage flow (triage → emergency → form), `RED_FLAG_SYMPTOMS` list (chest pain, breathing difficulty, stroke, etc.) triggers safety routing to 112, `URGENT_SYMPTOMS` list for booking form, prominent `<a href="tel:112">` call-to-action.
+  - `src/app/emergency/confirmed/[id]/page.tsx` — "emergency consultation" → "urgent consultation", "Emergency — Pending" → "Urgent — Pending".
+  - `src/app/page.tsx` — homepage button "Emergency Appointment" → "Urgent Consultation".
+
 ## 🚧 In Progress
 - Sprint 01: production-readiness checklist.
 
@@ -58,4 +71,30 @@
 - [ ] **M1:** Production-ready v1 (booking+checkout reliable, portals stable, perf, ops readiness).
 
 ---
-_Last updated: 2026-07-29 by Claude Code (labs CRM session)_
+## ✅ Done (added 2026-10-12 — red-flag safety layer)
+- **`src/config/redFlagSymptoms.ts`** — single clinical config file. Exports `RED_FLAG_RULES` (with keyword arrays for free-text detection), `RED_FLAG_SYMPTOMS`, `URGENT_SYMPTOMS`, `BOOKING_SYMPTOMS`, `detectRedFlagsInText()`, `hasRedFlagSymptom()`. Clinical team edits this file; no component code changes needed.
+- **`src/components/RedFlagSymptomGuard.tsx`** — reusable safety layer. Exports `useRedFlagGuard(selectedSymptoms, freeText)` hook, `RedFlagBanner` component, `RedFlagSymptomGuard` wrapper. Works across booking, urgent consultation, future symptom search.
+- **`src/app/book/[providerId]/ui/BookClient.tsx`** — removed "Chest pain" from symptom picker (`SYMPTOM_OPTIONS` → `BOOKING_SYMPTOMS` from config). Added `useRedFlagGuard` to monitor "Other" free-text field. Wired `RedFlagBanner` above symptom section; "Proceed to payment" button disabled when guard is triggered. Added persistent amber callout: "For chest pain… call 112 or Urgent Consultation".
+- **`src/app/emergency/page.tsx`** — replaced inline `RED_FLAG_SYMPTOMS`/`URGENT_SYMPTOMS` constants with imports from config.
+
+## ✅ Done (added 2026-10-13 — language display fix + status labels)
+- **`src/config/languages.ts`** — new single source of truth. `LANGUAGE_CODES` map (all 13 Indian languages: en→English through as→Assamese), `LANGUAGE_OPTIONS` array for dropdowns/filters, `formatLanguage(code)` that handles 2-letter codes, full stored names, and unknown values gracefully.
+- **`src/app/providers/ProvidersClient.tsx`** — removed local 7-language `languageLabels` map; imports `formatLanguage` + `LANGUAGE_OPTIONS`; provider card and search summary use `formatLanguage`; language filter sidebar now shows all 13 languages (was 7).
+- **`src/app/book/[providerId]/ui/BookClient.tsx`** — removed inline 7-language map; uses `formatLanguage` from config.
+- **`src/app/page.tsx`** — removed local `languageLabels` + `formatLanguage`; imports from config.
+- **`src/app/enroll/EnrollmentFormClient.tsx`** — `CheckboxList` upgraded to support `string[] | {value, label}[]` options; enrollment form now stores 2-letter language codes (was full display names) so new enrollments are consistent with the filter system.
+- **`src/app/ngo/appointments/new/NgoBulkBooking.tsx`** — replaced 7-language `languageOptions` local array with `LANGUAGE_OPTIONS` from config (now all 13 languages); provider card shows formatted language names.
+- **`src/app/admin/enrollments/[id]/page.tsx`** — `enrollment.languages.join(", ")` → `.map(formatLanguage).join(", ")`.
+- **`src/app/patient/appointments/page.tsx`** — added `statusLabels` map (`NO_SHOW` → "No Show", `IN_PROGRESS` → "In Progress", etc.); replaced `appt.status.replace("_", " ")` with label map lookup; raw uppercase status codes no longer shown to patients.
+
+## ✅ Done (added 2026-10-13 — availability messaging fix)
+- **`src/app/providers/ProvidersClient.tsx`** — added `computeAvailability(allSlots, is24x7)` and `AvailabilityLabel` component. The "Available 24×7" emerald badge (which conflicted with "No slots open") replaced with a subdued indigo "24×7" capability chip (same style as In-person/Video). "Next Availability" section replaced with smarter labels: "in X min" (emerald, < 90 min), "Today at HH:MM" (emerald), "Tomorrow at HH:MM" (blue), "Fri, 17 Oct at HH:MM" (slate), "No upcoming slots" (muted) or "No upcoming slots · Accepts 24×7 bookings" (amber sublabel when is24x7 + no slots). All IST-correct via `Asia/Kolkata` locale. Client-side stale-slot filter guards against 60 s cache skew.
+
+## ✅ Done (added 2026-10-13 — improve doctor search)
+- **`src/config/symptomSpecialtyMap.ts`** — new `SYMPTOM_QUICK_PICKS` array (12 patient-friendly condition labels → specialty mappings). Used in the hero area of the providers page as clickable chips.
+- **`prisma/schema.prisma`** — added `gender String?` to `Provider` model. Migration: `20261013000001_add_provider_gender`. Prisma client regenerated.
+- **`src/app/api/admin/enrollments/[id]/approve/route.ts`** — copies `enrollment.gender` to the new Provider on approval.
+- **`src/app/api/providers/search/route.ts`** — SearchKey extended with `gender`, `minFeePaise`, `maxFeePaise`, `avail`; `is24x7` boolean replaced with `avail` string (`"any"|"today"|"week"|"24x7"`); text search extended to include `qualification`; fee range parsed from `feeRange` param; `avail=today/week` filters via Prisma EXISTS sub-query on slots; cache tag bumped to `providers-search-v2`.
+- **`src/app/providers/ProvidersClient.tsx`** — `is24x7` state replaced with `avail/gender/feeRange` state; sidebar has 4 new availability options, fee range (4 buckets), doctor gender (Male/Female/Any); hero section shows 12 symptom condition quick-pick chips that set `specialty` filter; filter summary line shows avail/gender/fee labels; `clearAllFilters` resets all new state.
+
+_Last updated: 2026-10-13 by Claude Code (doctor search improvement session)_

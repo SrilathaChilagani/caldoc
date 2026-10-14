@@ -6,6 +6,8 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import type { MapPin } from "./MapView";
+import { formatLanguage, LANGUAGE_OPTIONS } from "@/config/languages";
+import { SYMPTOM_QUICK_PICKS } from "@/config/symptomSpecialtyMap";
 
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
 
@@ -31,6 +33,8 @@ type Provider = {
   name: string;
   speciality: string;
   qualification?: string | null;
+  registrationNumber?: string | null;
+  councilName?: string | null;
   languages: string[];
   is24x7: boolean;
   defaultFeePaise: number;
@@ -55,11 +59,6 @@ type Props = {
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────
-const languageLabels: Record<string, string> = {
-  en: "English", hi: "Hindi", te: "Telugu", ta: "Tamil",
-  ur: "Urdu", bn: "Bengali", mr: "Marathi",
-};
-
 function formatFee(paise?: number | null) {
   if (!paise || paise <= 0) return null;
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(paise / 100);
@@ -77,6 +76,81 @@ function formatSlotTime(isoStr: string) {
   return new Date(isoStr).toLocaleTimeString("en-IN", {
     hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata",
   });
+}
+
+// ── Availability computation ──────────────────────────────────────────
+type AvailInfo = {
+  status: "soon" | "today" | "tomorrow" | "later" | "no_slots";
+  headline: string;
+  subline?: string;
+};
+
+function computeAvailability(allSlots: SlotInfo[], is24x7: boolean): AvailInfo {
+  const now = Date.now();
+  // Client-side filter guards against stale 60 s cache entries
+  const upcoming = allSlots.filter((s) => new Date(s.startsAt).getTime() > now);
+
+  if (upcoming.length === 0) {
+    return {
+      status: "no_slots",
+      headline: "No upcoming slots",
+      subline: is24x7 ? "Accepts 24×7 bookings" : undefined,
+    };
+  }
+
+  const next = upcoming[0];
+  const nextMs = new Date(next.startsAt).getTime();
+  const diffMin = Math.round((nextMs - now) / 60_000);
+
+  const timeStr = new Date(next.startsAt).toLocaleTimeString("en-IN", {
+    hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata",
+  });
+
+  // Within next 90 minutes → show countdown
+  if (diffMin <= 90) {
+    const countdownLabel = diffMin <= 1 ? "in < 1 min" : diffMin < 60 ? `in ${diffMin} min` : "in ~1 hr";
+    return { status: "soon", headline: countdownLabel, subline: timeStr };
+  }
+
+  const locale = "en-CA"; // gives YYYY-MM-DD format
+  const todayIST = new Date(now).toLocaleDateString(locale, { timeZone: "Asia/Kolkata" });
+  const tomorrowIST = new Date(now + 86_400_000).toLocaleDateString(locale, { timeZone: "Asia/Kolkata" });
+  const nextDayIST = new Date(nextMs).toLocaleDateString(locale, { timeZone: "Asia/Kolkata" });
+
+  if (nextDayIST === todayIST) {
+    return { status: "today", headline: "Today", subline: `at ${timeStr}` };
+  }
+  if (nextDayIST === tomorrowIST) {
+    return { status: "tomorrow", headline: "Tomorrow", subline: `at ${timeStr}` };
+  }
+
+  const dayLabel = new Date(nextMs).toLocaleDateString("en-IN", {
+    weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Kolkata",
+  });
+  return { status: "later", headline: dayLabel, subline: `at ${timeStr}` };
+}
+
+function AvailabilityLabel({ avail }: { avail: AvailInfo }) {
+  if (avail.status === "no_slots") {
+    return (
+      <>
+        <p className="mt-0.5 text-sm text-slate-400">{avail.headline}</p>
+        {avail.subline && <p className="text-[10px] text-amber-600">{avail.subline}</p>}
+      </>
+    );
+  }
+  const headlineColor =
+    avail.status === "soon" || avail.status === "today"
+      ? "text-emerald-700"
+      : avail.status === "tomorrow"
+        ? "text-[#2f6ea5]"
+        : "text-slate-700";
+  return (
+    <>
+      <p className={`mt-0.5 text-sm font-semibold ${headlineColor}`}>{avail.headline}</p>
+      {avail.subline && <p className="text-xs text-slate-500">{avail.subline}</p>}
+    </>
+  );
 }
 
 const POPULAR_CITIES = ["Hyderabad", "Bangalore", "Mumbai", "Delhi", "Chennai", "Pune", "Kolkata"];
@@ -127,8 +201,7 @@ function ProviderCard({
   const allSlots = provider.days
     .flatMap((d) => provider.slotsByDay[d] ?? [])
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-  const nextSlot = allSlots[0];
-  const nextSlotLabel = nextSlot ? formatSlotTime(nextSlot.startsAt) : null;
+  const avail = computeAvailability(allSlots, provider.is24x7);
 
   function withPrefill(href: string) {
     if (!patientName && !patientPhone && !embed) return href;
@@ -169,12 +242,23 @@ function ProviderCard({
           {provider.qualification && (
             <p className="mt-0.5 text-xs text-slate-500">{provider.qualification}</p>
           )}
+          {provider.registrationNumber ? (
+            <p className="mt-0.5 flex items-center gap-1 text-xs text-emerald-700">
+              <svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Reg. {provider.registrationNumber}
+              {provider.councilName && <span className="text-slate-400">· {provider.councilName}</span>}
+            </p>
+          ) : (
+            <p className="mt-0.5 text-xs text-amber-600">Registration pending verification</p>
+          )}
           {provider.languages.length > 0 && (
             <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
               </svg>
-              {provider.languages.map((l) => languageLabels[l.toLowerCase()] ?? l).join(", ")}
+              {provider.languages.map(formatLanguage).join(", ")}
             </p>
           )}
           {feeLabel && (
@@ -187,11 +271,8 @@ function ProviderCard({
           )}
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {provider.is24x7 && (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
-                </svg>
-                Available 24×7
+              <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+                24×7
               </span>
             )}
             {hasInPerson && (
@@ -207,15 +288,11 @@ function ProviderCard({
           </div>
         </div>
 
-        {/* NEXT AVAILABILITY + Book */}
+        {/* AVAILABILITY + Book */}
         <div className="flex shrink-0 flex-col items-end gap-3 pl-2">
           <div className="text-right">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Next Availability</p>
-            {nextSlotLabel ? (
-              <p className="mt-0.5 text-sm font-semibold text-slate-700">{nextSlotLabel}</p>
-            ) : (
-              <p className="mt-0.5 text-sm text-slate-400">No slots open</p>
-            )}
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Next Available</p>
+            <AvailabilityLabel avail={avail} />
           </div>
           <Link
             href={bookHref}
@@ -300,7 +377,9 @@ export default function ProvidersClient({
   const [specialty, setSpecialty] = useState(initialSpecialty);
   const [mode, setMode] = useState(initialMode);
   const [language, setLanguage] = useState("");
-  const [is24x7, setIs24x7] = useState(false);
+  const [avail, setAvail] = useState("any"); // "any" | "today" | "week" | "24x7"
+  const [gender, setGender] = useState("");
+  const [feeRange, setFeeRange] = useState(""); // "under500" | "mid" | "over1000"
   const [q, setQ] = useState(initialQ);
   const [page, setPage] = useState(1);
   const [activePin, setActivePin] = useState<string | null>(null);
@@ -313,7 +392,10 @@ export default function ProvidersClient({
   const hydratedRef = useRef(false);
 
   const fetchProviders = useCallback(
-    (params: { city: string; specialty: string; mode: string; language: string; is24x7: boolean; q: string; page: number }) => {
+    (params: {
+      city: string; specialty: string; mode: string; language: string;
+      avail: string; gender: string; feeRange: string; q: string; page: number;
+    }) => {
       abortRef.current?.abort();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
@@ -323,7 +405,9 @@ export default function ProvidersClient({
       if (params.specialty) sp.set("specialty", params.specialty);
       if (params.mode) sp.set("mode", params.mode);
       if (params.language) sp.set("language", params.language);
-      if (params.is24x7) sp.set("is24x7", "true");
+      if (params.avail !== "any") sp.set("avail", params.avail);
+      if (params.gender) sp.set("gender", params.gender);
+      if (params.feeRange) sp.set("feeRange", params.feeRange);
       if (params.q) sp.set("q", params.q);
       sp.set("page", String(params.page));
       sp.set("pageSize", "12");
@@ -348,9 +432,9 @@ export default function ProvidersClient({
       hydratedRef.current = true;
       return;
     }
-    fetchProviders({ city, specialty, mode, language, is24x7, q, page });
+    fetchProviders({ city, specialty, mode, language, avail, gender, feeRange, q, page });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city, specialty, mode, language, is24x7, page]);
+  }, [city, specialty, mode, language, avail, gender, feeRange, page]);
 
   // Sync filter state when the URL changes via header links
   // (e.g. clicking a specialty in the Specialties dropdown while
@@ -371,14 +455,14 @@ export default function ProvidersClient({
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     setPage(1);
-    fetchProviders({ city, specialty, mode, language, is24x7, q, page: 1 });
+    fetchProviders({ city, specialty, mode, language, avail, gender, feeRange, q, page: 1 });
   }
 
   function clearAllFilters() {
-    setSpecialty(""); setMode(""); setLanguage(""); setIs24x7(false); setPage(1);
+    setSpecialty(""); setMode(""); setLanguage(""); setGender(""); setFeeRange(""); setAvail("any"); setPage(1);
   }
 
-  const hasActiveFilters = !!(specialty || mode || language || is24x7);
+  const hasActiveFilters = !!(specialty || mode || language || gender || feeRange || avail !== "any");
 
   // Map pins
   const mapPins: MapPin[] = [];
@@ -459,6 +543,25 @@ export default function ProvidersClient({
               Search
             </button>
           </form>
+
+          {/* Symptom / condition quick-picks — guide to specialty without diagnosing */}
+          <div className="mt-3 flex max-w-2xl flex-wrap items-center gap-2">
+            <span className="shrink-0 text-xs font-medium text-slate-500/80">Find doctors for:</span>
+            {SYMPTOM_QUICK_PICKS.map((pick) => (
+              <button
+                key={pick.label}
+                type="button"
+                onClick={() => { setSpecialty(pick.specialty); setQ(""); setPage(1); }}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                  specialty === pick.specialty
+                    ? "bg-[#2f6ea5] text-white"
+                    : "bg-white/80 text-slate-700 hover:bg-white"
+                }`}
+              >
+                {pick.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -481,12 +584,14 @@ export default function ProvidersClient({
             <p className="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Availability</p>
             <div className="space-y-2.5">
               {[
-                { label: "Any time", value: false },
-                { label: "Available 24×7", value: true },
+                { label: "Any time", value: "any" },
+                { label: "Available today", value: "today" },
+                { label: "Available this week", value: "week" },
+                { label: "24×7 doctors", value: "24x7" },
               ].map(({ label, value }) => (
                 <label key={label} className="flex cursor-pointer items-center gap-2.5">
-                  <input type="radio" name="availability" checked={is24x7 === value}
-                    onChange={() => { setIs24x7(value); setPage(1); }} className="accent-[#2f6ea5]" />
+                  <input type="radio" name="availability" checked={avail === value}
+                    onChange={() => { setAvail(value); setPage(1); }} className="accent-[#2f6ea5]" />
                   <span className="text-sm text-slate-700">{label}</span>
                 </label>
               ))}
@@ -531,20 +636,53 @@ export default function ProvidersClient({
             </div>
           </div>
 
+          {/* CONSULTATION FEE */}
+          <div className="mb-5 border-t border-slate-100 pt-4">
+            <p className="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Consultation Fee</p>
+            <div className="space-y-2.5">
+              {[
+                { label: "Any price", value: "" },
+                { label: "Under ₹500", value: "under500" },
+                { label: "₹500 – ₹1,000", value: "mid" },
+                { label: "Over ₹1,000", value: "over1000" },
+              ].map(({ label, value }) => (
+                <label key={label} className="flex cursor-pointer items-center gap-2.5">
+                  <input type="radio" name="fee" checked={feeRange === value}
+                    onChange={() => { setFeeRange(value); setPage(1); }} className="accent-[#2f6ea5]" />
+                  <span className="text-sm text-slate-700">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* DOCTOR GENDER */}
+          <div className="mb-5 border-t border-slate-100 pt-4">
+            <p className="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Doctor Gender</p>
+            <div className="space-y-2.5">
+              {[
+                { label: "Any", value: "" },
+                { label: "Male", value: "Male" },
+                { label: "Female", value: "Female" },
+              ].map(({ label, value }) => (
+                <label key={label} className="flex cursor-pointer items-center gap-2.5">
+                  <input type="radio" name="gender" checked={gender === value}
+                    onChange={() => { setGender(value); setPage(1); }} className="accent-[#2f6ea5]" />
+                  <span className="text-sm text-slate-700">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
           {/* LANGUAGE */}
           <div className="border-t border-slate-100 pt-4">
             <p className="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Language</p>
             <div className="max-h-44 space-y-2.5 overflow-y-auto pr-1">
-              {[
-                { value: "", label: "Any language" },
-                { value: "en", label: "English" },
-                { value: "hi", label: "Hindi" },
-                { value: "te", label: "Telugu" },
-                { value: "ta", label: "Tamil" },
-                { value: "ur", label: "Urdu" },
-                { value: "bn", label: "Bengali" },
-                { value: "mr", label: "Marathi" },
-              ].map(({ value, label }) => (
+              <label className="flex cursor-pointer items-center gap-2.5">
+                <input type="radio" name="language" checked={language === ""}
+                  onChange={() => { setLanguage(""); setPage(1); }} className="accent-[#2f6ea5]" />
+                <span className="text-sm text-slate-700">Any language</span>
+              </label>
+              {LANGUAGE_OPTIONS.map(({ value, label }) => (
                 <label key={value} className="flex cursor-pointer items-center gap-2.5">
                   <input type="radio" name="language" checked={language === value}
                     onChange={() => { setLanguage(value); setPage(1); }} className="accent-[#2f6ea5]" />
@@ -575,8 +713,10 @@ export default function ProvidersClient({
             {city ? ` in ${city}` : ""}
             {specialty ? ` · ${specialty}` : ""}
             {mode === "IN_PERSON" ? " · In-person" : mode === "VIDEO" ? " · Video" : mode === "AUDIO" ? " · Audio" : ""}
-            {language ? ` · ${languageLabels[language] ?? language}` : ""}
-            {is24x7 ? " · 24×7" : ""}
+            {language ? ` · ${formatLanguage(language)}` : ""}
+            {avail !== "any" ? ` · ${{ today: "Today", week: "This week", "24x7": "24×7" }[avail] ?? avail}` : ""}
+            {gender ? ` · ${gender}` : ""}
+            {feeRange ? ` · ${{ under500: "Under ₹500", mid: "₹500–₹1,000", over1000: "Over ₹1,000" }[feeRange] ?? ""}` : ""}
           </p>
 
           <div className={`space-y-4 transition-opacity ${isPending ? "opacity-60 pointer-events-none" : ""}`}>

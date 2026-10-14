@@ -6,14 +6,17 @@ import { requireProviderSession } from "@/lib/auth.server";
 import { uploadToS3 } from "@/lib/s3";
 import { getErrorMessage } from "@/lib/errors";
 import { logAudit } from "@/lib/audit";
+import { PRESCRIBABLE_CATEGORY_VALUES, getDrugCategoryRule } from "@/config/drugCategories";
+import type { DrugCategory } from "@/config/drugCategories";
 
-const DrugCategory = z.enum(["OTC", "LIST_O", "LIST_A", "LIST_B", "SCHEDULE_X"]);
+// Only prescribable categories — Schedule X is excluded at the API layer.
+const DrugCategoryEnum = z.enum(PRESCRIBABLE_CATEGORY_VALUES);
 
 const MedSchema = z.object({
   name: z.string().trim().min(1, "Medicine name required"),
   sig: z.string().trim().optional(),
   qty: z.string().trim().optional(),
-  category: DrugCategory,
+  category: DrugCategoryEnum,
 });
 
 const PayloadSchema = z.object({
@@ -24,19 +27,8 @@ type RouteContext = {
   params: Promise<{ appointmentId: string }>;
 };
 
-function formatCategory(value: z.infer<typeof DrugCategory>) {
-  switch (value) {
-    case "LIST_O":
-      return "List O (OTC)";
-    case "LIST_A":
-      return "List A";
-    case "LIST_B":
-      return "List B";
-    case "SCHEDULE_X":
-      return "Schedule X";
-    default:
-      return "OTC";
-  }
+function formatCategory(value: DrugCategory): string {
+  return getDrugCategoryRule(value)?.tpgLabel ?? value;
 }
 
 async function buildPdf(opts: {
@@ -46,7 +38,7 @@ async function buildPdf(opts: {
   qualification?: string | null;
   patientName?: string | null;
   appointmentId: string;
-  meds: { name: string; sig?: string; qty?: string; category: z.infer<typeof DrugCategory> }[];
+  meds: { name: string; sig?: string; qty?: string; category: DrugCategory }[];
 }): Promise<Buffer> {
   const pdfDoc = await PDFDocument.create();
   const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);

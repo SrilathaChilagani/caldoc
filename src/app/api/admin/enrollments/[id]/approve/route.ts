@@ -140,6 +140,7 @@ export async function POST(
         registrationNumber: enrollment.registrationNumber,
         councilName: enrollment.registrationCouncil,
         qualification: enrollment.qualification,
+        gender: enrollment.gender ?? undefined,
         slug,
         phone: enrollment.phone,
         isActive: true,

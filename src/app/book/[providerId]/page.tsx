@@ -68,6 +68,7 @@ export default async function BookPage({ params, searchParams }: PageProps) {
       qualification: true,
       registrationNumber: true,
       councilName: true,
+      languages: true,
       defaultFeePaise: true,
       visitModes: true,
       clinics: {
@@ -106,6 +107,7 @@ export default async function BookPage({ params, searchParams }: PageProps) {
             qualification: provider.qualification,
             registrationNumber: provider.registrationNumber,
             councilName: provider.councilName,
+            languages: provider.languages,
             defaultFeePaise: provider.defaultFeePaise,
             visitModes: provider.visitModes,
             clinics: provider.clinics,

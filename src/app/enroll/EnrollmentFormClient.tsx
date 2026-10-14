@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { LANGUAGE_OPTIONS } from "@/config/languages";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -41,10 +42,7 @@ const COUNCILS = [
   "Central Council of Indian Medicine",
 ];
 
-const LANGUAGES = [
-  "English", "Hindi", "Bengali", "Telugu", "Marathi", "Tamil", "Urdu",
-  "Gujarati", "Kannada", "Malayalam", "Odia", "Punjabi", "Assamese",
-];
+// LANGUAGE_OPTIONS from config provides {value: code, label: display} for all 13 languages.
 
 const STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
@@ -80,40 +78,49 @@ function SectionHeader({ num, title, sub }: { num: number; title: string; sub?: 
   );
 }
 
+type CheckboxOption = string | { value: string; label: string };
+
 function CheckboxList({
   options,
   selected,
   onChange,
 }: {
-  options: string[];
+  options: CheckboxOption[];
   selected: string[];
   onChange: (v: string[]) => void;
 }) {
+  function getValue(opt: CheckboxOption) {
+    return typeof opt === "string" ? opt : opt.value;
+  }
+  function getLabel(opt: CheckboxOption) {
+    return typeof opt === "string" ? opt : opt.label;
+  }
   function toggle(val: string) {
-    onChange(
-      selected.includes(val) ? selected.filter((x) => x !== val) : [...selected, val]
-    );
+    onChange(selected.includes(val) ? selected.filter((x) => x !== val) : [...selected, val]);
   }
   return (
     <div className="flex flex-wrap gap-2">
-      {options.map((opt) => (
-        <label
-          key={opt}
-          className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition ${
-            selected.includes(opt)
-              ? "border-[#2f6ea5] bg-[#2f6ea5]/5 font-semibold text-[#2f6ea5]"
-              : "border-slate-200 text-slate-600 hover:border-slate-300"
-          }`}
-        >
-          <input
-            type="checkbox"
-            checked={selected.includes(opt)}
-            onChange={() => toggle(opt)}
-            className="sr-only"
-          />
-          {opt}
-        </label>
-      ))}
+      {options.map((opt) => {
+        const val = getValue(opt);
+        return (
+          <label
+            key={val}
+            className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition ${
+              selected.includes(val)
+                ? "border-[#2f6ea5] bg-[#2f6ea5]/5 font-semibold text-[#2f6ea5]"
+                : "border-slate-200 text-slate-600 hover:border-slate-300"
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={selected.includes(val)}
+              onChange={() => toggle(val)}
+              className="sr-only"
+            />
+            {getLabel(opt)}
+          </label>
+        );
+      })}
     </div>
   );
 }
@@ -363,7 +370,7 @@ export default function EnrollmentFormClient() {
           </div>
           <div>
             <p className={`${labelCls} mb-2`}>Languages you consult in *</p>
-            <CheckboxList options={LANGUAGES} selected={languages} onChange={setLanguages} />
+            <CheckboxList options={LANGUAGE_OPTIONS} selected={languages} onChange={setLanguages} />
           </div>
           <label className={labelCls}>
             Consultation fee (₹)
