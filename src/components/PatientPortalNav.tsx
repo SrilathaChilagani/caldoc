@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type TabKey = "appointments" | "labs" | "pharmacy" | "health" | "profile";
+type TabKey = "dashboard" | "appointments" | "labs" | "pharmacy" | "health" | "profile";
 
 type Props = {
   active: TabKey;
@@ -14,8 +14,9 @@ function buildHref(path: string, phone?: string) {
 }
 
 const TABS: { key: TabKey; label: string; href: string }[] = [
-  { key: "appointments", label: "Appointments", href: "/patient/appointments" },
-  { key: "labs",         label: "Lab Orders",   href: "/patient/labs" },
+  { key: "dashboard",    label: "Dashboard",     href: "/patient" },
+  { key: "appointments", label: "Appointments",  href: "/patient/appointments" },
+  { key: "labs",         label: "Lab Orders",    href: "/patient/labs" },
   { key: "pharmacy",     label: "Pharmacy",      href: "/patient/pharmacy" },
   { key: "health",       label: "Health Record", href: "/patient/health" },
   { key: "profile",      label: "Profile",       href: "/patient/profile" },
