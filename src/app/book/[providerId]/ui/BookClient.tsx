@@ -100,6 +100,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
   const searchParams = useSearchParams();
   const prefillName = (searchParams.get("patientName") || "").trim();
   const prefillPhone = (searchParams.get("patientPhone") || "").trim();
+  const followUpNote = (searchParams.get("followUpNote") || "").trim();
   const embedParam = (searchParams.get("embed") || "").trim();
   const isEmbed = embedParam === "1" || embedParam === "true";
 
@@ -159,6 +160,11 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
   useEffect(() => {
     if (prefillPhone && !patientPhone) setPatientPhone(prefillPhone);
   }, [prefillPhone, patientPhone]);
+
+  useEffect(() => {
+    if (followUpNote && !notes) setNotes(followUpNote);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [followUpNote]);
 
   const selectedSlotLabel = useMemo(() => {
     const slot = upcomingSlots.find((s) => s.id === selectedSlot);
@@ -643,6 +649,16 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
           Help the doctor prepare — select any symptoms and add notes before payment.
         </p>
       </div>
+
+      {/* Follow-up context banner */}
+      {followUpNote && (
+        <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[#2f6ea5]/25 bg-[#e7edf3] px-4 py-3">
+          <svg viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 text-[#2f6ea5]" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+          </svg>
+          <p className="text-sm font-medium text-[#2f6ea5]">{followUpNote}</p>
+        </div>
+      )}
 
       {/* Read-only booking recap */}
       <BookingRecap editable={false} />

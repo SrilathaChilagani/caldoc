@@ -5,7 +5,7 @@
 
 ## Current Focus
 - **Sprint:** Sprint 01 — "Stabilize + Performance Foundation"
-- **Last task (2026-10-13):** Improve doctor search — symptom chips, fee/gender/avail filters. COMPLETE.
+- **Last task (2026-10-13):** P1 Connected patient journey — appointment care summary, follow-up context, health timeline. COMPLETE.
 - **Next task:** P0 booking→payment→consult test pass; error-handling consistency.
 
 ---

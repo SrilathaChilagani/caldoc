@@ -97,4 +97,11 @@
 - **`src/app/api/providers/search/route.ts`** — SearchKey extended with `gender`, `minFeePaise`, `maxFeePaise`, `avail`; `is24x7` boolean replaced with `avail` string (`"any"|"today"|"week"|"24x7"`); text search extended to include `qualification`; fee range parsed from `feeRange` param; `avail=today/week` filters via Prisma EXISTS sub-query on slots; cache tag bumped to `providers-search-v2`.
 - **`src/app/providers/ProvidersClient.tsx`** — `is24x7` state replaced with `avail/gender/feeRange` state; sidebar has 4 new availability options, fee range (4 buckets), doctor gender (Male/Female/Any); hero section shows 12 symptom condition quick-pick chips that set `specialty` filter; filter summary line shows avail/gender/fee labels; `clearAllFilters` resets all new state.
 
-_Last updated: 2026-10-13 by Claude Code (doctor search improvement session)_
+## ✅ Done (added 2026-10-13 — P1 connected patient journey)
+- **`src/app/patient/appointments/[id]/page.tsx`** — enriched with `labOrders` + `pharmacyFulfillment` in query. New "After your visit" section shows: lab orders (test names, status, results download), "Order medicines" CTA → `/services/rx-delivery`, "Book follow-up" link with date context pre-filled. Status labels now use `statusLabels` map (was raw string). Doctor's notes moved into care summary when appointment is complete.
+- **`src/app/patient/appointments/page.tsx`** — "Book follow-up" modal path now includes `followUpNote` URL param with appointment date.
+- **`src/app/book/[providerId]/ui/BookClient.tsx`** — reads `followUpNote` URL param; pre-fills `notes` state; shows a blue context banner in step 2 when booking a follow-up.
+- **`src/app/patient/health/page.tsx`** (NEW) — patient health timeline page at `/patient/health`. Shows all appointments chronologically with nested lab orders (status + results download), prescription links, "Order medicines" and "Book follow-up" CTAs per appointment. Standalone Rx orders shown separately. Quick links section at bottom.
+- **`src/components/PatientPortalNav.tsx`** — added "Health Record" tab.
+
+_Last updated: 2026-10-13 by Claude Code (P1 connected patient journey session)_

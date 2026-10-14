@@ -321,7 +321,7 @@ export default async function PatientAppointments(props: PageProps) {
                     {appt.provider && (
                       <PatientBookingModal
                         label="Book follow-up"
-                        path={`/book/${encodeURIComponent(appt.provider.slug || appt.provider.id)}?ref=patient-portal`}
+                        path={`/book/${encodeURIComponent(appt.provider.slug || appt.provider.id)}?followUpNote=${encodeURIComponent(`Follow-up for consultation on ${new Date(appt.slot?.startsAt ?? appt.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" })}`)}`}
                         patientName={appt.patientName || patient.name}
                         patientPhone={patient.phone}
                         className="inline-flex items-center gap-1.5 rounded-full border border-[#2f6ea5]/30 px-4 py-1.5 text-sm font-medium text-[#2f6ea5] hover:border-[#2f6ea5]"
