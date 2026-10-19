@@ -23,6 +23,10 @@ export async function POST(
   });
   if (!appointment) return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
 
+  if (sess.providerIds !== null && !sess.providerIds.includes(appointment.providerId)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   if (["CANCELLED", "CANCELED", "COMPLETED"].includes(appointment.status)) {
     return NextResponse.json({ error: "Cannot reschedule a completed or cancelled appointment" }, { status: 409 });
   }

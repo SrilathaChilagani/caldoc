@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { notifyLabOrderConfirmation } from "@/lib/sendLabOrderConfirmation";
 import { dispatchLabOrder } from "@/lib/lab";
+import { logAudit } from "@/lib/audit";
 
 const LAB_ADMIN_PHONE_FALLBACK = process.env.LABS_ADMIN_PHONE || "";
 
@@ -108,6 +109,7 @@ export async function POST(req: NextRequest) {
     // Dispatch to lab API (fire-and-forget; failures recorded on the order,
     // retried by /api/cron/retry-lab-dispatch)
     dispatchLabOrder(labOrder.id).catch((e) => console.error("lab dispatch error", e));
+    logAudit({ action: "LAB_PAYMENT_CAPTURED", actorType: "SYSTEM", meta: { labOrderId: payment.labOrderId, rzpOrder, paymentId } }).catch(() => {});
 
     return NextResponse.json({ ok: true });
   } catch (err) {

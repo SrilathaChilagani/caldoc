@@ -81,10 +81,16 @@ export async function requireAdminSession(): Promise<{ userId: string; role: str
   if (!sess || sess.role !== "admin") return null;
   const adminUser = await prisma.adminUser.findUnique({
     where: { id: sess.uid },
-    select: { id: true },
+    select: { id: true, role: true },
   });
   if (!adminUser) return null;
-  return { userId: adminUser.id, role: "admin" };
+  return { userId: adminUser.id, role: adminUser.role };
+}
+
+export async function requireSuperAdminSession(): Promise<{ userId: string; role: string } | null> {
+  const sess = await requireAdminSession();
+  if (!sess || sess.role !== "SUPER_ADMIN") return null;
+  return sess;
 }
 
 export async function requireNgoSession(): Promise<{ userId: string; ngoId: string; role: string; email?: string } | null> {
@@ -126,18 +132,32 @@ export async function readFrontDeskSession(): Promise<SessionPayload | null> {
   return readSessionFromCookie(FRONTDESK_JWT_NAME);
 }
 
-export async function requireFrontDeskSession(): Promise<{ userId: string; role: string; email?: string } | null> {
+export async function requireFrontDeskSession(): Promise<{
+  userId: string;
+  role: string;
+  email?: string;
+  providerIds: string[] | null; // null = admin fallback (full access)
+} | null> {
   const sess = await readFrontDeskSession();
   if (sess && sess.role === "frontdesk") {
     const user = await prisma.frontDeskUser.findUnique({
       where: { id: sess.uid },
-      select: { id: true, email: true },
+      select: {
+        id: true,
+        email: true,
+        clinics: {
+          select: { providerClinic: { select: { providerId: true } } },
+        },
+      },
     });
-    if (user) return { userId: user.id, role: "frontdesk", email: user.email };
+    if (user) {
+      const providerIds = user.clinics.map((c) => c.providerClinic.providerId);
+      return { userId: user.id, role: "frontdesk", email: user.email, providerIds };
+    }
   }
-  // Fall back: allow any logged-in admin to access the front desk portal
+  // Fall back: admin sessions have full unrestricted access
   const adminSess = await requireAdminSession();
-  if (adminSess) return { userId: adminSess.userId, role: "frontdesk", email: "admin" };
+  if (adminSess) return { userId: adminSess.userId, role: "admin", email: "admin", providerIds: null };
   return null;
 }
 

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
 import { sendWhatsAppText } from "@/lib/whatsapp";
+import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -173,6 +174,7 @@ export async function POST(
   });
 
   const portalUrl = `${appBaseUrl()}/provider/login`;
+  logAudit({ action: "ENROLLMENT_APPROVED", actorType: "ADMIN", actorId: sess.userId, meta: { enrollmentId: id, providerId: provider.id } }).catch(() => {});
 
   // Notify provider via WhatsApp
   if (enrollment.phone) {

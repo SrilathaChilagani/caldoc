@@ -8,6 +8,7 @@ import {
   sendPatientVideoConfirmation,
 } from "@/lib/videoLinkHelpers";
 import { sendWhatsAppText } from "@/lib/whatsapp";
+import { logAudit } from "@/lib/audit";
 
 type RouteContext = {
   params: Promise<{ appointmentId: string }>;
@@ -107,6 +108,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
       );
       await sendPatientVideoConfirmation(updated, link || updated.videoRoom);
       await notifyVideoLinks(updated, link || updated.videoRoom, { notifyPatient: false });
+      logAudit({ action: "APPOINTMENT_CONFIRMED", actorType: "PROVIDER", actorId: session.userId, meta: { appointmentId } }).catch(() => {});
       return NextResponse.json({ ok: true, status: "CONFIRMED" });
     }
     case "CANCEL": {
@@ -128,6 +130,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
           },
         },
       });
+      logAudit({ action: "APPOINTMENT_CANCELLED", actorType: "PROVIDER", actorId: session.userId, meta: { appointmentId } }).catch(() => {});
       return NextResponse.json({ ok: true, status: "CANCELLED" });
     }
     case "NO_SHOW": {
@@ -149,6 +152,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
           },
         },
       });
+      logAudit({ action: "APPOINTMENT_NO_SHOW", actorType: "PROVIDER", actorId: session.userId, meta: { appointmentId } }).catch(() => {});
       return NextResponse.json({ ok: true, status: "NO_SHOW" });
     }
     case "RESCHEDULE": {
@@ -202,6 +206,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
           { status: 400 }
         );
       }
+      logAudit({ action: "APPOINTMENT_RESCHEDULED", actorType: "PROVIDER", actorId: session.userId, meta: { appointmentId, slotId } }).catch(() => {});
       return NextResponse.json({ ok: true, status: "RESCHEDULED" });
     }
     case "COMPLETE": {
@@ -260,7 +265,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
           console.error("post-consult patient WA", e),
         );
       }
-
+      logAudit({ action: "APPOINTMENT_COMPLETED", actorType: "PROVIDER", actorId: session.userId, meta: { appointmentId } }).catch(() => {});
       return NextResponse.json({ ok: true, status: "COMPLETED" });
     }
     default:

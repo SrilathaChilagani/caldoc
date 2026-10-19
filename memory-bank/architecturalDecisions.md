@@ -66,6 +66,14 @@
 - **Alternatives considered:** Vercel Edge Middleware with JWT-only check (no DB lookup); would allow deleted accounts to access the system until token expiry.
 - **Consequences:** Each request hits a serverless function before auth is checked (no edge rejection). Acceptable for v1. Revisit if unauthenticated traffic becomes a cost or DDoS concern.
 
+## ADR-008: Production schema hardening — indexes, audit fields, new models
+- **Date:** 2026-10-14
+- **Status:** Accepted
+- **Context:** Pre-productionization schema audit revealed missing indexes, redundant fields, functional gaps in partner routing, and missing models for refunds and schedule templates.
+- **Decision:** Migration `20261014000003_production_schema_hardening` applies 17 targeted changes: removes `Appointment.paymentId` (legacy unused field), adds `serviceAreas` to `LabPartner` (routing parity with PharmacyPartner), adds `role` to `AdminUser`, adds offboarding audit fields to `Provider`, adds `createdAt/updatedAt` to `Provider`, adds 14 missing indexes on FK/query paths, drops redundant `Medication@@index([name])` (duplicates the @unique B-tree), and introduces two new models: `RefundRequest` (payment refund audit trail) and `ProviderScheduleTemplate` (recurring slot generation templates).
+- **Alternatives considered:** Prisma enum types instead of String status fields — deferred (ALTER TYPE cannot be rolled back in PG transactions; string fields allow forward-compatible status additions).
+- **Consequences:** All 42 models are now documented in `docs/db/data-dictionary.md`. Data flows documented in `docs/db/data-mapping.md`. Full architecture in `docs/db/architecture.md`. TODO: update `generate-slots` cron to read from `ProviderScheduleTemplate` instead of hardcoded hours.
+
 ## ADR-007: No dedicated job queue for v1 — cron + idempotency sufficient
 - **Date:** 2026-06-29
 - **Status:** Accepted

@@ -3,20 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 import { dispatchRxOrder } from "@/lib/pharmacy";
-
-function formatItems(items: unknown) {
-  if (!Array.isArray(items)) return "";
-  return items.map((item) => `${item?.name || "medicine"} × ${item?.qty || 1}`).join(", ");
-}
-
-function formatAddress(address: unknown) {
-  if (!address) return "";
-  const value = address as Record<string, unknown>;
-  const parts = [value.line1, value.line2, value.city, value.state, value.postalCode]
-    .map((p) => String(p ?? "").trim())
-    .filter(Boolean);
-  return parts.join(", ");
-}
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,6 +38,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Order mismatch" }, { status: 409 });
     }
 
+    // Idempotency: duplicate callback returns success without replaying side-effects.
     if (payment.status === "CAPTURED") {
       return NextResponse.json({ ok: true, idempotent: true });
     }
@@ -62,59 +50,20 @@ export async function POST(req: NextRequest) {
       }),
       prisma.payment.update({
         where: { id: payment.id },
-        data: {
-          status: "CAPTURED",
-          paymentRef: paymentId,
-          currency: "INR",
-        },
+        data: { status: "CAPTURED", paymentRef: paymentId, currency: "INR" },
       }),
       prisma.rxOrder.findUniqueOrThrow({ where: { id: payment.rxOrderId } }),
     ]);
     const rxOrder = txResult[2];
 
-    const itemsLabel = formatItems(rxOrder.items);
-    const addressLabel = formatAddress(rxOrder.address);
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://caldoc.in";
+    sendWhatsAppText(
+      rxOrder.patientPhone,
+      `Hi ${rxOrder.patientName}, payment received for your medicine order. Your pharmacy partner is now processing it. Track at caldoc.in/services/rx-delivery/success?order=${rxOrder.id}`,
+    ).catch((e) => console.error("rx confirm WA error", e));
 
-    const sends: Promise<unknown>[] = [];
-
-    // Notify patient
-    if (rxOrder.patientPhone) {
-      const patientMsg = `Hi ${rxOrder.patientName}, we received your CalDoc Rx delivery order ${rxOrder.id}. Our pharmacy will reach out shortly.`;
-      sends.push(
-        sendWhatsAppText(rxOrder.patientPhone, patientMsg).catch((e) =>
-          console.error("patient Rx WA", e),
-        ),
-      );
-    }
-
-    // Notify the assigned pharmacy partner
-    if (rxOrder.pharmacyPartnerId) {
-      const partner = await prisma.pharmacyPartner.findUnique({
-        where: { id: rxOrder.pharmacyPartnerId },
-        select: { phone: true, contactName: true },
-      });
-      if (partner?.phone) {
-        const pharmacyMsg =
-          `New Rx order paid — action required!\n\n` +
-          `Order: ${rxOrder.id}\n` +
-          `Patient: ${rxOrder.patientName} (${rxOrder.patientPhone})\n` +
-          `Items: ${itemsLabel}\n` +
-          `Delivery address: ${addressLabel}\n\n` +
-          `Log in to ${appUrl}/pharmacy to process this order.`;
-        sends.push(
-          sendWhatsAppText(partner.phone, pharmacyMsg).catch((e) =>
-            console.error("pharmacy Rx notify WA", e),
-          ),
-        );
-      }
-    }
-
-    await Promise.all(sends);
-
-    // Dispatch to pharmacy API (fire-and-forget; failures recorded on the order,
-    // retried by /api/cron/retry-pharmacy-dispatch)
-    dispatchRxOrder(rxOrder.id).catch((e) => console.error("pharmacy dispatch error", e));
+    // Dispatch to pharmacy API (fire-and-forget; failures retried by cron)
+    dispatchRxOrder(rxOrder.id).catch((e) => console.error("rx dispatch error", e));
+    logAudit({ action: "RX_PAYMENT_CAPTURED", actorType: "SYSTEM", meta: { rxOrderId: payment.rxOrderId, rzpOrder, paymentId } }).catch(() => {});
 
     return NextResponse.json({ ok: true });
   } catch (err) {

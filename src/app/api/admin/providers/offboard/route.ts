@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   const sess = await requireAdminSession();
@@ -20,6 +21,6 @@ export async function POST(req: NextRequest) {
     where: { id: providerId },
     data: { isActive: action !== "deactivate" },
   });
-
+  logAudit({ action: action === "deactivate" ? "PROVIDER_DEACTIVATED" : "PROVIDER_REACTIVATED", actorType: "ADMIN", actorId: sess.userId, meta: { providerId, action } }).catch(() => {});
   return NextResponse.json({ ok: true });
 }

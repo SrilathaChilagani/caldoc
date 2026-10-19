@@ -1,14 +1,25 @@
 import { NextResponse } from "next/server";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 import { getErrorMessage } from "@/lib/errors";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
+
+const CONTACT_RATE_LIMIT = { maxRequests: 5, windowMs: 60_000 };
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 export async function POST(req: Request) {
+  const rl = checkRateLimit(getClientIp(req.headers), CONTACT_RATE_LIMIT);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const name = String(body?.name || "").trim().slice(0, 100);

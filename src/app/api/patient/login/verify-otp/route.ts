@@ -5,6 +5,7 @@ import { buildPatientPhoneMeta } from "@/lib/phone";
 import { checkVerificationCode } from "@/lib/twilioVerify";
 import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS, signPatientSession } from "@/lib/patientAuth.server";
 import { getErrorMessage } from "@/lib/errors";
+import { logAudit } from "@/lib/audit";
 
 const PATIENT_REDIRECT = "/patient/appointments";
 const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true" && process.env.NODE_ENV !== "production";
@@ -95,6 +96,7 @@ export async function POST(req: Request) {
       path: "/",
     });
 
+    logAudit({ action: "PATIENT_LOGIN", actorType: "PATIENT", actorId: patient.id, meta: { phone: meta.canonical } }).catch(() => {});
     return NextResponse.json({ ok: true, redirect: next });
   } catch (err) {
     const message = getErrorMessage(err);

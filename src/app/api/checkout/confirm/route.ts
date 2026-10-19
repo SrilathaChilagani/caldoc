@@ -16,6 +16,7 @@ import { sendPatientAudioConfirmation } from "@/lib/sendPatientAudioConfirmation
 import { getErrorMessage } from "@/lib/errors";
 import { ensureVideoRoomIfNeeded } from "@/lib/videoLinkHelpers";
 import { sendCheckinFormLink } from "@/lib/sendCheckinFormLink";
+import { logAudit } from "@/lib/audit";
 
 function appBaseUrl() {
   return (
@@ -141,7 +142,7 @@ export async function POST(req: NextRequest) {
           `✅ Payment confirmed!\n\nHi ${firstName}, your emergency consultation payment has been received. One of our doctors will reach out to you within 5 minutes.\n\nTrack your appointment:\n${trackUrl}\n\n— CalDoc Team`
         ).catch((err) => console.error("[confirm] emergency WhatsApp failed:", err));
       }
-
+      logAudit({ action: "PAYMENT_CAPTURED", actorType: "SYSTEM", meta: { appointmentId, orderId, paymentId, type: "emergency" } }).catch(() => {});
       return NextResponse.json({ ok: true });
     }
 
@@ -201,6 +202,7 @@ export async function POST(req: NextRequest) {
       level: "info",
       extra: { appointmentId, orderId, paymentId },
     });
+    logAudit({ action: "PAYMENT_CAPTURED", actorType: "SYSTEM", meta: { appointmentId, orderId, paymentId } }).catch(() => {});
 
     // Provider booking notification — retried up to 3 times with back-off
     if (appointment.provider?.phone && appointment.slot?.startsAt) {

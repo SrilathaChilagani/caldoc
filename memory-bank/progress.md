@@ -44,14 +44,18 @@
 - Sprint 01: production-readiness checklist.
 
 ## 🐞 Broken / Known Issues
-- `generate-slots` cron creates slots at UTC times (09:00–17:00 UTC = 14:30–22:30 IST) — should use IST offset. (P1)
-- Razorpay webhook silently ignores Rx/Lab order payments — only client-side confirm works for those flows. (P1)
-- AuditLog model under-used — sensitive actions (login, payment, status change) not consistently logged. (P1)
-- Error handling not consistent across all API routes. (P0)
-- Vercel Pro plan required for hourly reminder cron (`0 * * * *`) — confirm plan before deploy. (blocker)
-- No password-change or forgot-password flow for pharmacy or lab users. (P1)
-- Labs: no `serviceAreas` on `LabPartner` — routing uses first active homeCollection lab. Multi-lab postal code matching not yet implemented. (P1)
-- `LABS_ALLOWED_EMAILS` + `LABS_PORTAL_DEFAULT_PASSWORD` env vars now unused — remove from prod. (housekeeping)
+- **Error handling not consistent across all API routes (P0)** — still uneven formats and status codes.
+- **No password-change or forgot-password flow for pharmacy or lab users (P1)** — LabUser and PharmacyUser can only be reset by an admin creating a new user.
+- **AdminUser.role field exists but not enforced (P1)** — `requireAdminSession()` doesn't check role; all admins have identical access regardless of SUPER_ADMIN/SUPPORT/FINANCE assignment.
+- **Vercel Pro plan required for hourly reminder cron (blocker)** — `0 * * * *` schedule in vercel.json requires Pro. Confirm before deploy.
+- **`LABS_ALLOWED_EMAILS` + `LABS_PORTAL_DEFAULT_PASSWORD` env vars unused** — remove from prod. (housekeeping)
+
+## ✅ Previously listed as broken — confirmed already fixed
+- Slot timezone: cron already uses IST correctly via `+05:30` offset in `makeISTTime()`.
+- Razorpay webhook Rx/Lab gap: webhook handles Rx (`AWAITING_PAYMENT→PAID`) and Lab (`AWAITING_PAYMENT→PENDING`) with notify + dispatch — lines 92–162.
+- OTP rate limiting: 60s resend cooldown + 10/day hard cap already in `/api/patient/login/request-otp`.
+- LabPartner.serviceAreas: added in migration 20261014000003.
+- generate-slots timezone + hardcoded schedule: fixed in 20261014000003 session.
 
 ## 📋 Next Up (P0 first)
 - [ ] **P0:** End-to-end booking → payment → consultation test pass
@@ -61,10 +65,8 @@
 - [ ] **P0:** Ensure `CRON_SECRET` is set in GitHub repo secrets (needed by `cron-jobs.yml`)
 - [ ] Auth/session hardening for patient/provider/admin
 - [ ] Perf pass for homepage / providers / booking / checkout
-- [ ] (P1) Fix slot timezone: generate-slots should use IST (+05:30) offsets
-- [ ] (P1) Razorpay webhook: handle Rx/Lab order payment.captured events
-- [ ] (P1) AuditLog: write on login, payment capture, appointment status change
-- [ ] (P1) OTP rate limiting on /api/patient/login/request-otp
+- [ ] (P1) Lab/pharmacy user password reset flow
+- [ ] (P1) AdminUser.role enforcement in sensitive admin routes
 - [ ] (P1) Provider listing search/filter query optimization
 
 ## 🧱 Milestones
@@ -104,6 +106,25 @@
 - **`src/app/patient/health/page.tsx`** (NEW) — patient health timeline page at `/patient/health`. Shows all appointments chronologically with nested lab orders (status + results download), prescription links, "Order medicines" and "Book follow-up" CTAs per appointment. Standalone Rx orders shown separately. Quick links section at bottom.
 - **`src/components/PatientPortalNav.tsx`** — added "Health Record" tab.
 
+## ✅ Done (added 2026-10-14 — diagnostics orchestration, task 15)
+- **`src/lib/labCatalog.ts`** (NEW) — 35-entry lab test catalog with clinical metadata: prep instructions, fasting hours, sample type, home collection eligibility, turnaround days, per-test pricing (paise), requiresDoctorOrder. Lookup helpers: `findTestByCode`, `findTestByName`, `searchCatalog`.
+- **`src/lib/labTests.ts`** — replaced flat 150-line string array; re-exports `LAB_TEST_OPTIONS` from labCatalog.
+- **`src/lib/labPricing.ts`** — `computeLabAmount` now uses per-test catalog pricing; falls back to `LABS_HOME_TEST_PAISE` env var for uncatalogued tests.
+- **`prisma/schema.prisma` + migration `20261014000001_lab_order_scheduling`** — `scheduledFor DateTime?`, `collectionType String?`, `scheduleNote String?` added to `LabOrder`.
+- **`src/app/api/services/labs-at-home/suggestions/route.ts`** — suggestions now return rich metadata (fasting, sampleType, price, turnaround, prepInstructions, homeCollectionOk).
+- **`src/app/api/provider/appointments/[appointmentId]/labs/route.ts`** — patient WhatsApp includes scheduling link.
+- **`src/app/api/patient/appointments/[appointmentId]/schedule-labs/route.ts`** (NEW) — POST: validates patient ownership, updates LabOrder scheduling fields, creates timeline event, notifies lab partner.
+- **`src/app/patient/appointments/[id]/schedule-labs/page.tsx`** + **`ScheduleLabsForm.tsx`** (NEW) — per-test prep instructions with fasting alerts, HOME/WALK_IN toggle, date picker (tomorrow to +14 days), time slot picker (6am–8pm, 30-min), address form pre-filled from last order.
+- **`src/app/patient/lab-orders/[id]/page.tsx`** (NEW) — state-aware lab order detail: prep info + catalog metadata per test, schedule CTA (PENDING/CONFIRMED), pay CTA (AWAITING_PAYMENT), results download + follow-up link (REPORTS_READY), full timeline.
+- **`src/app/patient/appointments/[id]/page.tsx`** — lab orders in "After your visit" section now show "View details" and "Schedule collection" buttons.
+- **`src/app/labs/orders/[id]/page.tsx`** — patient-scheduled collection shown in blue info panel.
+
+## ✅ Done (added 2026-10-14 — pharmacy orchestration UI)
+- **`src/app/patient/appointments/[id]/order-medicines/page.tsx`** (NEW) + **`OrderMedicinesForm.tsx`** (NEW) — patient delivery address form, pre-filled prescription items, POSTs to rx-from-prescription API → redirects to review. Idempotent: if active order already exists, redirects straight to review.
+- **`src/app/patient/rx-orders/[id]/review/page.tsx`** (NEW) + **`QuoteReviewForm.tsx`** (NEW) — fully state-aware quote review: QUOTE_PENDING shows "awaiting pharmacy" message; QUOTE_READY shows per-item availability/substitution table with checkbox approval form + confirm/cancel actions; AWAITING_PAYMENT shows pay CTA with amount; fulfilled states (PAID/PROCESSING/DISPATCHED/DELIVERED) + terminal states (REJECTED/CANCELLED/DELIVERY_FAILED) shown with timeline.
+- **`src/app/pharmacy/rx-orders/[id]/RxQuoteForm.tsx`** (NEW) — pharmacy per-item quote form for QUOTE_PENDING orders: status picker (Available/Substitute/Unavailable), substitute name/sig, unit price and qty, per-item notes, global note, reject-entire-order toggle.
+- **`src/app/pharmacy/rx-orders/[id]/page.tsx`** — updated: imports RxQuoteForm; Prisma query includes `rxOrderItems`; QUOTE_PENDING renders RxQuoteForm in right sidebar; per-item `rxOrderItems` table replaces flat `items` JSON in left column when available; all new statuses (QUOTE_PENDING, QUOTE_READY, REJECTED, DELIVERY_FAILED) added to STATUS_COLORS/LABELS/ICONS/NEXT_STEPS.
+
 ## ✅ Done (added 2026-10-13 — P1 connected patient journey phase 2)
 - **`prisma/schema.prisma` + migration `20261013000002_rxorder_appointment_link`** — `appointmentId String?` added to `RxOrder`; `rxOrders RxOrder[]` back-relation added to `Appointment`. Enables tracing medicine orders to the prescription consultation.
 - **`src/app/api/provider/appointments/[appointmentId]/status/route.ts`** — new `COMPLETE` action: sets status to `COMPLETED`, records status history, fires post-consult WhatsApp to patient with prescription CTA, lab orders summary, and follow-up booking link.
@@ -114,4 +135,63 @@
 - **`src/app/api/services/rx-delivery/route.ts`** — reads `body.appointmentId`, verifies the appointment exists, stores `appointmentId` on the new `RxOrder`.
 - **`src/app/patient/appointments/[id]/page.tsx`** + **`src/app/patient/health/page.tsx`** — "Order medicines" CTA now includes `?appointmentId=` param so the Rx order is traceable.
 
-_Last updated: 2026-10-13 by Claude Code (P1 connected patient journey phase 2)_
+## ✅ Done (added 2026-10-14 — Follow-Up as First-Class Feature)
+- **`prisma/schema.prisma` + migration `20261014000002_follow_up_requests`** — `FollowUpRequest` model: type (TIMED|AFTER_LAB_RESULTS), status (PENDING|NOTIFIED|BOOKED|DISMISSED|EXPIRED), dueAt, providerNote, relations to Appointment/Patient/Provider/LabOrder.
+- **`/api/provider/appointments/[appointmentId]/followup`** — POST (create/replace, typed WhatsApp) + GET (active follow-up for UI).
+- **`/api/patient/follow-ups/[id]/dismiss`** — patient dismiss endpoint (ownership-verified).
+- **`/api/cron/follow-up-reminders`** — daily cron (7am IST): WhatsApp TIMED follow-ups due in 48h, expires overdue ones. Added to `vercel.json`.
+- **`/api/labs/orders/[orderId]/results`** — on results upload: triggers AFTER_LAB_RESULTS follow-up (sets dueAt=now, status=NOTIFIED); patient WA message updated.
+- **`AppointmentActions.tsx`** — full follow-up panel: shows existing state + "Request/Update" button → modal with type picker, days selector, providerNote, lab order picker.
+- **`/provider/(portal)/appointments/[id]/page.tsx`** — parallel Prisma query for activeFollowUp; passes labOrders + existingFollowUp to AppointmentActions.
+- **`src/components/DismissFollowUpButton.tsx`** (NEW) — client dismiss button with router.refresh().
+- **`src/app/patient/page.tsx`** — 6th parallel query (FollowUpRequest PENDING|NOTIFIED); doctor-requested follow-up cards with booking link + dismiss; heuristic suggestions suppressed when active doctor requests exist.
+
+## ✅ Done (added 2026-10-14 — Lab & Pharmacy Partner Transparency)
+- **`src/components/PartnerDisclosureCard.tsx`** (NEW) — reusable server component for both lab and pharmacy partner attribution. Shows partner name, city/state, NABL Accredited badge + cert number (labs) or Drug Licence (pharmacy), and a CalDoc-orchestrates / partner-fulfills explanation. Falls back to generic "licensed partner" text when no partner is assigned yet.
+- **`src/app/patient/lab-orders/[id]/page.tsx`** — added `labPartner` to Prisma include; `PartnerDisclosureCard type="lab"` rendered after the status description panel.
+- **`src/app/patient/rx-orders/[id]/review/page.tsx`** — added `pharmacyPartner` to Prisma include; `PartnerDisclosureCard type="pharmacy"` rendered after the status description. STATUS_META descriptions updated to say "pharmacy partner" throughout (QUOTE_PENDING, QUOTE_READY, PAID, PROCESSING, DISPATCHED, REJECTED).
+- **`src/app/patient/appointments/[id]/schedule-labs/page.tsx`** — lab order include now fetches `labPartner`; `PartnerDisclosureCard type="lab"` shown before the scheduling form.
+- **`src/app/patient/appointments/[id]/order-medicines/page.tsx`** — subtitle updated from vague "pharmacy partner near you" to explicit: "licensed pharmacy partner… CalDoc coordinates your order; the pharmacy partner dispenses your medicines."
+
+## ✅ Done (added 2026-10-14 — Backend API audit + Rx checkout fix)
+- **Critical fix: `/api/rx-orders/create-order/route.ts`** (NEW) — Razorpay order creation for `RxOrder`. Was deleted but still called by `RxOrderCheckoutClient`. Mirrors lab-orders pattern. `AWAITING_PAYMENT` guard, Payment upsert, returns `{ key, orderId, prefill }`.
+- **Critical fix: `/api/rx-orders/confirm/route.ts`** (NEW) — HMAC-verified payment confirmation for Rx orders. Transitions `AWAITING_PAYMENT → PAID`, captures Payment, WhatsApp patient, dispatches to pharmacy partner. Idempotent on duplicate callback.
+- **Dead code deleted:** `/api/cron/route.ts` (re-export alias, not in vercel.json), `src/middleware_disabled.ts` (obsolete disabled middleware), `/api/sentry-example-api/route.ts` (dev scaffold with no auth).
+- Full 131-route API audit: no other broken integrations found.
+
+## ✅ Done (added 2026-10-14 — Production schema hardening)
+Full DB audit of all 42 models. Migration `20261014000003_production_schema_hardening`:
+- **Removed** `Appointment.paymentId` (legacy, never read; actual payment via `Payment.appointmentId` relation)
+- **Added** `AdminUser.role String @default("SUPER_ADMIN")` — role-based admin access
+- **Added** `Provider.{offboardedAt, offboardedBy, offboardingReason, createdAt, updatedAt}` — offboarding audit + change tracking
+- **Added** `LabPartner.serviceAreas String[]` — postal-code routing parity with PharmacyPartner
+- **Dropped** `Medication @@index([name])` — redundant with @unique constraint
+- **Added 14 missing indexes:** AuditLog (actorId+at, at, action), WebhookEvent (orderId, source+type), PatientDocument (patientId), PatientOtp (patientId), OfflineRequest (status+createdAt), PatientPasswordReset (patientId), ProviderUser (providerId), LabUser (labPartnerId), PharmacyUser (pharmacyPartnerId), LabOrder (patientId+status)
+- **New model `RefundRequest`** — payment refund tracking with gatewayRefundId, status, actor
+- **New model `ProviderScheduleTemplate`** — recurring weekly availability windows (dayOfWeek, hours, slotDuration)
+- **3 architecture documents** created in `docs/db/`: `data-mapping.md`, `data-dictionary.md`, `architecture.md`
+- **ADR-008** recorded in `architecturalDecisions.md`
+
+**`/api/cron/generate-slots` updated** to read from `ProviderScheduleTemplate`. Per-provider template-driven slot generation using `createMany + skipDuplicates` (one DB call per provider instead of per-slot). Falls back to `09:00–17:00 / 30 min` for providers with no templates. Added `isActive: true` filter on providers query (was previously generating slots for deactivated providers). Prisma client regenerated.
+
+## ✅ Done (added 2026-10-19 — auth/security hardening)
+- **`patientMobileToken.ts`** — single `JWT_SECRET`, no `"change-me"` fallback.
+- **`/api/video/ensure-room`** — `resolveCallerIdentity()` with appointment ownership; `isOwner` server-derived.
+- **`/api/checkout/create-order`** — patient auth + dual ownership (patientId OR phone).
+- **`/api/labs/orders/[orderId]/results`** — `labPartnerId` ownership: `!= null` (not truthiness).
+- **`/api/webhooks/razorpay`** — HMAC verified with `timingSafeEqual` (was plain `!==`).
+- **`/api/contact`** — rate limited 5 req/min per IP.
+- **`/api/appointments/emergency`** — rate limited 5 req/min per IP.
+- **`/api/patient/profile`** — phone field removed from profile update (requires OTP re-login to change); unused imports cleaned up.
+- Zero TypeScript errors.
+
+## ✅ Done (added 2026-10-14 — logAudit wiring across all key routes)
+- `src/lib/audit.ts` — `ActorType` expanded to include `PHARMACY | LAB | FRONTDESK | NGO`
+- **Payment confirms:** `checkout/confirm` (`PAYMENT_CAPTURED` emergency + standard), `rx-orders/confirm` (`RX_PAYMENT_CAPTURED`), `lab-orders/confirm` (`LAB_PAYMENT_CAPTURED`)
+- **Login events:** `PATIENT_LOGIN` (OTP + email), `PROVIDER_LOGIN`, `ADMIN_LOGIN` (both combined and standalone routes), `PHARMACY_LOGIN`, `LAB_LOGIN`, `FRONTDESK_LOGIN`, `NGO_LOGIN`
+- **Appointment status:** `APPOINTMENT_CONFIRMED/CANCELLED/NO_SHOW/RESCHEDULED/COMPLETED` (provider portal); `APPOINTMENT_CANCELLED` (patient self-cancel, admin cancel)
+- **Enrollment decisions:** `ENROLLMENT_APPROVED/REJECTED` (provider), `LAB_ENROLLMENT_APPROVED/REJECTED`, `PHARMACY_ENROLLMENT_APPROVED/REJECTED`
+- **Provider offboard:** `PROVIDER_DEACTIVATED` / `PROVIDER_REACTIVATED`
+- Zero TypeScript errors after all 21 files updated.
+
+_Last updated: 2026-10-19 by Claude Code (auth/security hardening complete)_

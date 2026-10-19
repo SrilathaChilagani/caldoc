@@ -5,6 +5,7 @@ import { requirePharmacySession } from "@/lib/auth.server";
 import { formatINR } from "@/lib/format";
 import { validateAddress, formatAddress } from "@/lib/validateAddress";
 import RxOrderActions from "./RxOrderActions";
+import RxQuoteForm from "./RxQuoteForm";
 
 export const dynamic = "force-dynamic";
 
@@ -23,39 +24,55 @@ function formatIST(date: Date | null | undefined) {
 }
 
 const STATUS_COLORS: Record<string, string> = {
+  QUOTE_PENDING:    "bg-orange-100 text-orange-700",
+  QUOTE_READY:      "bg-sky-100 text-sky-700",
   AWAITING_PAYMENT: "bg-amber-100 text-amber-700",
-  PAID: "bg-blue-100 text-blue-700",
-  PROCESSING: "bg-violet-100 text-violet-700",
-  DISPATCHED: "bg-indigo-100 text-indigo-700",
-  DELIVERED: "bg-emerald-100 text-emerald-700",
-  CANCELLED: "bg-red-100 text-red-700",
+  PAID:             "bg-blue-100 text-blue-700",
+  PROCESSING:       "bg-violet-100 text-violet-700",
+  DISPATCHED:       "bg-indigo-100 text-indigo-700",
+  DELIVERED:        "bg-emerald-100 text-emerald-700",
+  CANCELLED:        "bg-red-100 text-red-700",
+  REJECTED:         "bg-red-100 text-red-700",
+  DELIVERY_FAILED:  "bg-red-100 text-red-700",
 };
 
 const STATUS_LABELS: Record<string, string> = {
+  QUOTE_PENDING:    "Quote pending",
+  QUOTE_READY:      "Quote sent",
   AWAITING_PAYMENT: "Awaiting payment",
-  PAID: "Paid — ready to process",
-  PROCESSING: "Processing",
-  DISPATCHED: "Dispatched",
-  DELIVERED: "Delivered",
-  CANCELLED: "Cancelled",
+  PAID:             "Paid — ready to process",
+  PROCESSING:       "Processing",
+  DISPATCHED:       "Dispatched",
+  DELIVERED:        "Delivered",
+  CANCELLED:        "Cancelled",
+  REJECTED:         "Rejected",
+  DELIVERY_FAILED:  "Delivery failed",
 };
 
 const STATUS_ICONS: Record<string, string> = {
+  QUOTE_PENDING:    "📋",
+  QUOTE_READY:      "💬",
   AWAITING_PAYMENT: "💳",
-  PAID: "✅",
-  PROCESSING: "📦",
-  DISPATCHED: "🚚",
-  DELIVERED: "🏠",
-  CANCELLED: "❌",
+  PAID:             "✅",
+  PROCESSING:       "📦",
+  DISPATCHED:       "🚚",
+  DELIVERED:        "🏠",
+  CANCELLED:        "❌",
+  REJECTED:         "❌",
+  DELIVERY_FAILED:  "🔴",
 };
 
 const NEXT_STEPS: Record<string, string> = {
-  PAID: "Start packing medicines and mark as Processing.",
-  PROCESSING: "Once packed and handed to courier, mark as Dispatched and add tracking details.",
-  DISPATCHED: "Once the patient has received the package, mark as Delivered.",
-  DELIVERED: "Order complete.",
-  CANCELLED: "This order was cancelled.",
+  QUOTE_PENDING:    "Review the prescription items and submit your availability quote to the patient.",
+  QUOTE_READY:      "Quote sent to patient. Waiting for patient confirmation.",
+  PAID:             "Start packing medicines and mark as Processing.",
+  PROCESSING:       "Once packed and handed to courier, mark as Dispatched and add tracking details.",
+  DISPATCHED:       "Once the patient has received the package, mark as Delivered.",
+  DELIVERED:        "Order complete.",
+  CANCELLED:        "This order was cancelled.",
+  REJECTED:         "This order was rejected.",
   AWAITING_PAYMENT: "Waiting for patient payment — no action needed yet.",
+  DELIVERY_FAILED:  "Delivery failed. Contact the patient to reschedule.",
 };
 
 export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
@@ -68,6 +85,7 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
     where: { id },
     include: {
       events: { orderBy: { createdAt: "asc" } },
+      rxOrderItems: { orderBy: { createdAt: "asc" } },
     },
   });
 
@@ -86,6 +104,7 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
     : [];
 
   const canUpdate = order.status === "PAID" || order.status === "PROCESSING" || order.status === "DISPATCHED";
+  const needsQuote = order.status === "QUOTE_PENDING";
 
   return (
     <div className="space-y-6">
@@ -208,9 +227,47 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-lg text-slate-900">Medicine items</h2>
-              <span className="text-sm font-semibold text-slate-900">{formatINR(order.amountPaise)}</span>
+              {order.amountPaise > 0 && (
+                <span className="text-sm font-semibold text-slate-900">{formatINR(order.amountPaise)}</span>
+              )}
             </div>
-            {items.length === 0 ? (
+            {order.rxOrderItems.length > 0 ? (
+              <ul className="mt-4 divide-y divide-slate-100">
+                {order.rxOrderItems.map((item) => {
+                  const itemStatusColors: Record<string, string> = {
+                    AVAILABLE: "bg-emerald-100 text-emerald-700",
+                    SUBSTITUTED: "bg-amber-100 text-amber-700",
+                    UNAVAILABLE: "bg-red-100 text-red-700",
+                    PENDING: "bg-slate-100 text-slate-600",
+                    REJECTED_BY_PATIENT: "bg-slate-100 text-slate-500",
+                  };
+                  return (
+                    <li key={item.id} className="py-3">
+                      <div className="flex items-start justify-between gap-3 text-sm">
+                        <div>
+                          <p className="font-medium text-slate-900">{item.name}</p>
+                          {item.sig && <p className="text-xs text-slate-500">Dosage: {item.sig}</p>}
+                          {item.qtyPrescribed && <p className="text-xs text-slate-500">Prescribed: {item.qtyPrescribed}</p>}
+                          {item.status === "SUBSTITUTED" && item.dispensedName && (
+                            <p className="text-xs text-amber-700">Sub: {item.dispensedName}</p>
+                          )}
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${itemStatusColors[item.status] ?? "bg-slate-100 text-slate-600"}`}>
+                            {item.status.replace(/_/g, " ")}
+                          </span>
+                          {item.unitPricePaise != null && item.qtyDispensed != null && (
+                            <p className="mt-0.5 text-xs text-slate-500">
+                              {formatINR(item.unitPricePaise)} × {item.qtyDispensed}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : items.length === 0 ? (
               <p className="mt-3 text-sm text-slate-400">No items recorded.</p>
             ) : (
               <ul className="mt-4 divide-y divide-slate-100">
@@ -289,7 +346,24 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
 
         {/* Right: actions + prescription */}
         <div className="space-y-6">
-          {canUpdate ? (
+          {needsQuote ? (
+            <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
+              <h2 className="font-serif text-lg text-slate-900">Submit quote</h2>
+              <p className="mb-4 mt-1 text-sm text-slate-500">
+                Review each item and enter availability, quantity, and price.
+              </p>
+              <RxQuoteForm
+                orderId={order.id}
+                items={order.rxOrderItems.map((i) => ({
+                  id: i.id,
+                  name: i.name,
+                  sig: i.sig,
+                  qtyPrescribed: i.qtyPrescribed,
+                }))}
+                patientName={order.patientName}
+              />
+            </section>
+          ) : canUpdate ? (
             <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
               <h2 className="font-serif text-lg text-slate-900">Update order</h2>
               <p className="mb-4 text-sm text-slate-500">Move this order through the fulfilment pipeline.</p>
@@ -301,8 +375,10 @@ export default async function PharmacyRxOrderDetailPage({ params }: PageProps) {
               <p className="mt-2 text-sm text-slate-500">
                 {order.status === "DELIVERED"
                   ? "This order has been delivered — no further action needed."
-                  : order.status === "CANCELLED"
-                  ? "This order was cancelled."
+                  : order.status === "CANCELLED" || order.status === "REJECTED"
+                  ? "This order was cancelled or rejected."
+                  : order.status === "QUOTE_READY"
+                  ? "Quote sent to patient. Waiting for their confirmation."
                   : "Waiting for payment before you can action this order."}
               </p>
             </section>

@@ -73,7 +73,7 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
   const testsLabel = tests.join(", ");
 
   const labMessage = `New lab order from ${providerName} (${appointment.provider?.speciality || ""}). Tests: ${testsLabel}. Patient: ${patientName}. Mode: ${deliveryMode === "IN_HOUSE" ? "CalDoc labs" : "External"}.`;
-  const patientMessage = `Hi ${patientName}, ${providerName} ordered lab tests (${testsLabel}). Our labs team will reach out soon.`;
+  const patientMessage = `Hi ${patientName}, ${providerName} has ordered lab tests for you: ${testsLabel}.\n\nSchedule your home collection or walk-in at caldoc.in/patient/lab-orders/${order.id}\n\nOur labs team will confirm your booking.`;
 
   const sends: Promise<unknown>[] = [];
   if (LABS_ADMIN_PHONE) {

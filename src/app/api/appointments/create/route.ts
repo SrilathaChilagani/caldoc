@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
-// 20 req/min per IP — prevents slot enumeration while allowing normal booking retries
-const BOOKING_RATE_LIMIT = { maxRequests: 20, windowMs: 60_000 };
+// 3 req/min per IP + 3 bookings/day per phone — prevents anonymous abuse while
+// keeping the public booking flow open for first-time patients.
+const BOOKING_IP_LIMIT    = { maxRequests: 3,  windowMs: 60_000 };       // per minute per IP
+const BOOKING_PHONE_LIMIT = { maxRequests: 3,  windowMs: 24 * 60 * 60_000 }; // per 24 h per phone
 
 export const maxDuration = 30;
 import { Prisma } from "@prisma/client";
@@ -142,11 +144,12 @@ type CreateAppointmentPayload = {
 };
 
 export async function POST(req: Request) {
-  const rl = checkRateLimit(getClientIp(req.headers), BOOKING_RATE_LIMIT);
-  if (!rl.allowed) {
+  // Layer 1: IP-based rate limit — catches distributed abuse early
+  const ipRl = checkRateLimit(getClientIp(req.headers), BOOKING_IP_LIMIT);
+  if (!ipRl.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Please try again later." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+      { status: 429, headers: { "Retry-After": String(ipRl.retryAfterSec) } },
     );
   }
 
@@ -174,6 +177,15 @@ export async function POST(req: Request) {
     const meta = buildPatientPhoneMeta(phone);
     if (!meta) {
       return NextResponse.json({ error: "Enter a valid phone number with country code (e.g. +91 for India, +1 for US)" }, { status: 400 });
+    }
+
+    // Layer 2: per-phone daily limit — prevents targeting a specific number for spam
+    const phoneRl = checkRateLimit(`phone:${meta.canonical}`, BOOKING_PHONE_LIMIT);
+    if (!phoneRl.allowed) {
+      return NextResponse.json(
+        { error: "Too many booking attempts for this number. Please try again tomorrow." },
+        { status: 429, headers: { "Retry-After": String(phoneRl.retryAfterSec) } },
+      );
     }
 
     // Validate bookerPhone if provided

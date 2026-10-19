@@ -30,8 +30,18 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
-  const order = await prisma.labOrder.findUnique({ where: { id }, select: { id: true, status: true } });
+  const order = await prisma.labOrder.findUnique({
+    where: { id },
+    select: { id: true, status: true, appointment: { select: { providerId: true } } },
+  });
   if (!order) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  if (sess.providerIds !== null) {
+    const pid = order.appointment?.providerId;
+    if (!pid || !sess.providerIds.includes(pid)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
 
   const updateData: Record<string, unknown> = {};
   if (status) updateData.status = status;

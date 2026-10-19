@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { NGO_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logAudit } from "@/lib/audit";
 
 const LOGIN_RATE_LIMIT = { maxRequests: 10, windowMs: 60_000 };
 
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 30,
       ...domainOption,
     });
-
+    logAudit({ action: "NGO_LOGIN", actorType: "NGO", actorId: ngoUser.id, meta: { email } }).catch(() => {});
     return res;
   } catch (err) {
     console.error("ngo login error", err);

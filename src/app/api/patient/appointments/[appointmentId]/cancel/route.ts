@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { readPatientPhone } from "@/lib/patientAuth.server";
 import { getErrorMessage } from "@/lib/errors";
+import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,7 @@ export async function POST(
       }
     });
 
+    logAudit({ action: "APPOINTMENT_CANCELLED", actorType: "PATIENT", actorId: patient.id, meta: { appointmentId } }).catch(() => {});
     return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 });

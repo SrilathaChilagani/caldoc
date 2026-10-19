@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { signPatientMobileToken } from "@/lib/patientMobileToken";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest) {
     }
 
     const token = signPatientMobileToken({ patientId: patient.id, phone: patient.phone, name: patient.name });
+    logAudit({ action: "PATIENT_LOGIN", actorType: "PATIENT", actorId: patient.id, meta: { email } }).catch(() => {});
     return NextResponse.json({ token });
   } catch (err) {
     console.error("[login/email]", err);

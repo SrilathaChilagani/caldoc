@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { getErrorMessage } from "./errors";
 import { Prisma } from "@prisma/client";
 
-type ActorType = "PROVIDER" | "ADMIN" | "PATIENT" | "SYSTEM";
+type ActorType = "PROVIDER" | "ADMIN" | "PATIENT" | "PHARMACY" | "LAB" | "FRONTDESK" | "NGO" | "SYSTEM";
 
 type AuditEntry = {
   action: string;

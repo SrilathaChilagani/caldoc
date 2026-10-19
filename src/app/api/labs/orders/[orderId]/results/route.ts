@@ -41,7 +41,7 @@ export async function POST(
         (order.appointment.provider as { slug?: string; id?: string }).id
       : null;
 
-    if (sess.labPartnerId && order.labPartnerId !== sess.labPartnerId) {
+    if (sess.labPartnerId != null && order.labPartnerId !== sess.labPartnerId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -79,12 +79,30 @@ export async function POST(
       });
     });
 
+    // Trigger any AFTER_LAB_RESULTS follow-up for this appointment
+    if (order.appointmentId) {
+      const pendingFollowUp = await prisma.followUpRequest.findFirst({
+        where: {
+          appointmentId: order.appointmentId,
+          type: "AFTER_LAB_RESULTS",
+          status: "PENDING",
+        },
+      });
+      if (pendingFollowUp) {
+        const now = new Date();
+        await prisma.followUpRequest.update({
+          where: { id: pendingFollowUp.id },
+          data: { status: "NOTIFIED", dueAt: now, notifiedAt: now },
+        });
+      }
+    }
+
     // Notify patient
     if (order.patientPhone) {
       const doctorName = order.appointment?.provider?.name;
-      let patientMsg = `Hi ${order.patientName || "there"}, your CalDoc lab results are ready! Download them from your patient portal: caldoc.in/patient/labs`;
+      let patientMsg = `Hi ${order.patientName || "there"}, your CalDoc lab results are ready! View them here: caldoc.in/patient/labs`;
       if (providerSlug && doctorName) {
-        patientMsg += `\n\nNeed a follow-up with ${doctorName}? Book now: caldoc.in/book/${encodeURIComponent(providerSlug)}`;
+        patientMsg += `\n\n${doctorName} has requested a follow-up to review your results. Continue your care: caldoc.in/book/${encodeURIComponent(providerSlug)}`;
       }
       sendWhatsAppText(order.patientPhone, patientMsg).catch((e) =>
         console.error("lab results patient notify WA", e),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
 import { sendWhatsAppText } from "@/lib/whatsapp";
+import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -80,5 +81,6 @@ export async function POST(
     }
   }
 
+  logAudit({ action: "LAB_ENROLLMENT_APPROVED", actorType: "ADMIN", actorId: sess.userId, meta: { enrollmentId: id, labPartnerId: partner.id } }).catch(() => {});
   return NextResponse.json({ ok: true, labPartnerId: partner.id });
 }

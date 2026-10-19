@@ -52,6 +52,7 @@ const nav: NavSection[] = [
     links: [
       { href: "/admin/pharmacy-users", label: "Pharmacy team" },
       { href: "/admin/lab-users", label: "Lab team" },
+      { href: "/admin/frontdesk", label: "Front desk staff" },
     ],
   },
   {
@@ -73,6 +74,7 @@ const nav: NavSection[] = [
   {
     group: "System",
     links: [
+      { href: "/admin/admin-users", label: "Admin users" },
       { href: "/admin/whatsapp", label: "WhatsApp" },
       { href: "/admin/audit-logs", label: "Audit log" },
     ],

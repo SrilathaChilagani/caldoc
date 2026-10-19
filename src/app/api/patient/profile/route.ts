@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
-import { readPatientSession, PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS } from "@/lib/patientAuth.server";
-import { buildPatientPhoneMeta } from "@/lib/phone";
+import { readPatientSession } from "@/lib/patientAuth.server";
 import { uploadToS3 } from "@/lib/s3";
 
 export async function POST(req: NextRequest) {
@@ -26,7 +24,6 @@ export async function POST(req: NextRequest) {
     const firstName = String(form.get("firstName") || "").trim();
     const lastName = String(form.get("lastName") || "").trim();
     const email = String(form.get("email") || "").trim() || null;
-    const phoneInput = String(form.get("phone") || "").trim();
     const line1 = String(form.get("line1") || "").trim();
     const line2 = String(form.get("line2") || "").trim();
     const city = String(form.get("city") || "").trim();
@@ -36,14 +33,9 @@ export async function POST(req: NextRequest) {
 
     const combinedName = `${firstName} ${lastName}`.trim() || patient.name;
 
-    let phoneToSave = patient.phone;
-    if (phoneInput) {
-      const meta = buildPatientPhoneMeta(phoneInput);
-      if (!meta) {
-        return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
-      }
-      phoneToSave = meta.canonical;
-    }
+    // Phone is the patient's verified identity — changes require a new OTP login.
+    // Silently ignore any phone submitted here; the cookie already holds the correct value.
+    const phoneToSave = patient.phone;
 
     let photoKey = patient.profilePhotoKey || null;
     let photoUpdated = false;
@@ -101,16 +93,6 @@ export async function POST(req: NextRequest) {
           },
         });
       }
-    }
-
-    if (phoneInput) {
-      const jar = await cookies();
-      jar.set(PATIENT_COOKIE, phoneToSave, {
-        httpOnly: true,
-        sameSite: "lax",
-        maxAge: PATIENT_MAX_AGE_DAYS * 24 * 60 * 60,
-        path: "/",
-      });
     }
 
     return NextResponse.json({ ok: true, photoUpdated });

@@ -144,6 +144,33 @@ export default async function LabOrderDetailPage({ params }: PageProps) {
             </div>
           </section>
 
+          {/* Scheduled collection */}
+          {order.scheduledFor && (
+            <section className="rounded-3xl border border-blue-100 bg-blue-50 p-6">
+              <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-blue-700">
+                Patient-scheduled collection
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2 text-sm">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase text-blue-600">Date & time</p>
+                  <p className="font-medium text-slate-900">{formatIST(order.scheduledFor)}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase text-blue-600">Type</p>
+                  <p className="text-slate-900">
+                    {order.collectionType === "HOME" ? "Home collection" : "Walk-in at lab"}
+                  </p>
+                </div>
+                {order.scheduleNote && (
+                  <div className="sm:col-span-2">
+                    <p className="text-[11px] font-semibold uppercase text-blue-600">Patient note</p>
+                    <p className="text-slate-700">{order.scheduleNote}</p>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
           {/* Home visit address */}
           <section className="rounded-3xl border border-white/70 bg-white/90 p-6">
             <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">

@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 
 // Pharmacy can advance paid orders through the fulfilment pipeline only.
 // AWAITING_PAYMENT, PAID, and CANCELLED are set by the payment gateway or admin.
-const PHARMACY_ALLOWED = ["PROCESSING", "DISPATCHED", "DELIVERED"];
+// DELIVERY_FAILED is added for failed delivery reporting.
+const PHARMACY_ALLOWED = ["PROCESSING", "DISPATCHED", "DELIVERED", "DELIVERY_FAILED"];
 
 export async function PATCH(
   req: NextRequest,
@@ -68,16 +69,20 @@ export async function PATCH(
     }),
   ]);
 
-  // Notify patient on shipment and delivery
-  if (order.patientPhone && (newStatus === "DISPATCHED" || newStatus === "DELIVERED")) {
-    const trackInfo =
-      newStatus === "DISPATCHED" && trackingNumber
-        ? `\nTracking: ${courierName ? courierName + " — " : ""}${trackingNumber}`
-        : "";
-    const msg =
-      newStatus === "DISPATCHED"
-        ? `Hi ${order.patientName}, your CalDoc medicine order is on its way!${trackInfo}`
-        : `Hi ${order.patientName}, your CalDoc medicine order has been delivered. Get well soon!`;
+  // Notify patient on shipment, delivery, and delivery failure
+  if (order.patientPhone && (newStatus === "DISPATCHED" || newStatus === "DELIVERED" || newStatus === "DELIVERY_FAILED")) {
+    let msg: string;
+    if (newStatus === "DISPATCHED") {
+      const trackInfo =
+        trackingNumber
+          ? `\nTracking: ${courierName ? courierName + " — " : ""}${trackingNumber}`
+          : "";
+      msg = `Hi ${order.patientName}, your CalDoc medicine order is on its way!${trackInfo}`;
+    } else if (newStatus === "DELIVERED") {
+      msg = `Hi ${order.patientName}, your CalDoc medicine order has been delivered. Get well soon!`;
+    } else {
+      msg = `Hi ${order.patientName}, your CalDoc medicine delivery failed. Our team will contact you to reschedule.`;
+    }
     sendWhatsAppText(order.patientPhone, msg).catch((e) =>
       console.error("patient dispatch/delivery notify WA", e),
     );

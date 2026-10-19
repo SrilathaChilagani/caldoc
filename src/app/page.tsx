@@ -1,7 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import DisclaimerNotice from "@/components/DisclaimerNotice";
-import OfflineRequestForm from "@/components/OfflineRequestForm";
 import HeroSearchForm from "./HeroSearchForm";
 import { prisma } from "@/lib/db";
 import { IMAGES, HERO_DOCTOR_IMAGES, getDailyHeroImage } from "@/lib/imagePaths";
@@ -291,35 +289,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
-      {false && (
-      <section className="bg-[#f6f8ff]">
-        <div className="container mx-auto flex flex-col gap-8 px-4 py-12 md:flex-row md:items-start">
-          <div className="flex-1 space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-blue-500">Rural access</p>
-            <h2 className="text-2xl font-semibold text-slate-900">Low-bandwidth & offline support</h2>
-            <p className="text-sm text-slate-600">
-              Borrowing from eSanjeevani&apos;s playbook, CalDoc lets you switch to audio-only consults or leave an
-              offline request if connectivity drops.
-            </p>
-            <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-              <li>Pick “Audio-only call” during booking when data coverage is weak.</li>
-              <li>Stay on the queue using the same slot; the doctor will phone the registered number.</li>
-              <li>Submit the offline form so our coordinator can call back when the network stabilises.</li>
-            </ul>
-          </div>
-          <div className="flex-1 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900">Request a call-back</h3>
-            <p className="text-xs text-slate-500">
-              We&apos;ll store your request securely and an operations member will call you to finish the booking.
-            </p>
-            <div className="mt-4">
-              <OfflineRequestForm />
-            </div>
-          </div>
-        </div>
-      </section>
-      )}
 
       <section id="doctors" className="bg-[#f7f2ea]">
         <div className="container mx-auto px-4 py-12 md:py-16">

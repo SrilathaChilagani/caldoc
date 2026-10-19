@@ -105,16 +105,26 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
     qty: med.qty ?? "",
     category: normalizeDrugCategory(med.category),
   }));
-  const availableSlots = await prisma.slot.findMany({
-    where: {
-      providerId: appointment.providerId,
-      isBooked: false,
-      startsAt: { gt: new Date() },
-    },
-    orderBy: { startsAt: "asc" },
-    take: 12,
-    select: { id: true, startsAt: true },
-  });
+  const [availableSlots, activeFollowUp] = await Promise.all([
+    prisma.slot.findMany({
+      where: {
+        providerId: appointment.providerId,
+        isBooked: false,
+        startsAt: { gt: new Date() },
+      },
+      orderBy: { startsAt: "asc" },
+      take: 12,
+      select: { id: true, startsAt: true },
+    }),
+    prisma.followUpRequest.findFirst({
+      where: { appointmentId: id, status: { in: ["PENDING", "NOTIFIED"] } },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true, type: true, daysUntilDue: true, status: true,
+        dueAt: true, providerNote: true,
+      },
+    }),
+  ]);
 
   const readOnly = viewingAsAdmin;
   const effectiveFeePaise =
@@ -292,6 +302,19 @@ export default async function ProviderAppointmentDetail({ params, searchParams }
                 startsAt: slot.startsAt.toISOString(),
               }))}
               patientPhone={appointment.patient?.phone ?? null}
+              labOrders={labOrderData.map((lo) => ({ id: lo.id, tests: lo.tests }))}
+              existingFollowUp={
+                activeFollowUp
+                  ? {
+                      id: activeFollowUp.id,
+                      type: activeFollowUp.type,
+                      daysUntilDue: activeFollowUp.daysUntilDue,
+                      status: activeFollowUp.status,
+                      dueAt: activeFollowUp.dueAt?.toISOString() ?? null,
+                      providerNote: activeFollowUp.providerNote,
+                    }
+                  : null
+              }
             />
           </div>
         )}

@@ -3,17 +3,14 @@ import { prisma } from "@/lib/db";
 import { fetchWithBackoff } from "@/lib/fetchWithBackoff";
 
 function basicAuthHeader(key: string, secret: string) {
-  const token = Buffer.from(`${key}:${secret}`).toString("base64");
-  return `Basic ${token}`;
+  return `Basic ${Buffer.from(`${key}:${secret}`).toString("base64")}`;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const orderId: string = body?.orderId;
-    if (!orderId) {
-      return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
-    }
+    if (!orderId) return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
 
     const rxOrder = await prisma.rxOrder.findUnique({ where: { id: orderId } });
     if (!rxOrder) return NextResponse.json({ error: "Order not found" }, { status: 404 });
@@ -42,8 +39,11 @@ export async function POST(req: NextRequest) {
     });
     const order = await rzpRes.json();
     if (!rzpRes.ok) {
-      console.error("Razorpay order error", order);
-      return NextResponse.json({ error: order?.error?.description || "Order create failed" }, { status: 500 });
+      console.error("Razorpay rx order error", order);
+      return NextResponse.json(
+        { error: order?.error?.description || "Unable to create payment order" },
+        { status: 500 },
+      );
     }
 
     await prisma.payment.upsert({
@@ -69,8 +69,8 @@ export async function POST(req: NextRequest) {
       key,
       orderId: order.id,
       prefill: {
-        name: rxOrder.patientName,
-        contact: rxOrder.patientPhone,
+        name: rxOrder.patientName ?? undefined,
+        contact: rxOrder.patientPhone ?? undefined,
       },
     });
   } catch (err) {

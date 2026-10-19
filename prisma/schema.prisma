@@ -20,13 +20,14 @@ model Patient {
   consentAt       DateTime?
   createdAt       DateTime                @default(now())
   profilePhotoKey String?
-  appointments    Appointment[]
-  addresses       PatientAddress[]
-  documents       PatientDocument[]
-  otps            PatientOtp[]
-  labOrders       LabOrder[]
-  rxOrders        RxOrder[]
-  passwordResets  PatientPasswordReset[]
+  appointments      Appointment[]
+  addresses         PatientAddress[]
+  documents         PatientDocument[]
+  otps              PatientOtp[]
+  labOrders         LabOrder[]
+  rxOrders          RxOrder[]
+  passwordResets    PatientPasswordReset[]
+  followUpRequests  FollowUpRequest[]
 }
 
 model Provider {
@@ -48,11 +49,18 @@ model Provider {
   gender             String?
   defaultFeePaise    Int              @default(100)
   visitModes         String[]         @default([])
+  offboardedAt       DateTime?
+  offboardedBy       String?
+  offboardingReason  String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
   appointments       Appointment[]
   ngoReservations    NgoReservation[]
   users              ProviderUser[]
   slots              Slot[]
   clinics            ProviderClinic[]
+  followUpRequests   FollowUpRequest[]
+  scheduleTemplates  ProviderScheduleTemplate[]
 }
 
 model ProviderClinic {
@@ -70,7 +78,8 @@ model ProviderClinic {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  provider     Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider       Provider              @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  frontDeskUsers FrontDeskUserClinic[]
 
   @@index([providerId])
   @@index([city])
@@ -101,7 +110,6 @@ model Appointment {
   status                  String                     @default("PENDING")
   videoRoom               String?
   recordingKey            String?
-  paymentId               String?
   deliveryOpt             String?
   createdAt               DateTime                   @default(now())
   updatedAt               DateTime                   @updatedAt
@@ -134,6 +142,7 @@ model Appointment {
   labOrders               LabOrder[]
   rxOrders                RxOrder[]
   checkInForm             CheckInForm?
+  followUpRequests        FollowUpRequest[]
 
   @@index([providerId, createdAt])
   @@index([patientId, createdAt])
@@ -151,12 +160,13 @@ model Payment {
   appointmentId String?      @unique
   rxOrderId     String?      @unique
   labOrderId    String?      @unique
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @default(now()) @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now()) @updatedAt
   receiptUrl    String?
-  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
-  rxOrder       RxOrder?     @relation("RxOrderPayment", fields: [rxOrderId], references: [id])
-  labOrder      LabOrder?    @relation("LabOrderPayment", fields: [labOrderId], references: [id])
+  appointment   Appointment?   @relation(fields: [appointmentId], references: [id])
+  rxOrder       RxOrder?       @relation("RxOrderPayment", fields: [rxOrderId], references: [id])
+  labOrder      LabOrder?      @relation("LabOrderPayment", fields: [labOrderId], references: [id])
+  refundRequests RefundRequest[]
 
   @@index([status])
 }
@@ -195,6 +205,7 @@ model PatientDocument {
   patient       Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   @@index([appointmentId])
+  @@index([patientId])
 }
 
 model PatientOtp {
@@ -214,6 +225,7 @@ model PatientOtp {
   @@index([phoneCanonical])
   @@index([last10])
   @@index([expiresAt])
+  @@index([patientId])
 }
 
 model Prescription {
@@ -232,6 +244,10 @@ model AuditLog {
   action    String
   meta      Json
   at        DateTime @default(now())
+
+  @@index([actorId, at])
+  @@index([at])
+  @@index([action])
 }
 
 model WebhookEvent {
@@ -242,6 +258,9 @@ model WebhookEvent {
   orderId   String?
   payload   Json
   createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([source, type])
 }
 
 model ProviderUser {
@@ -252,21 +271,38 @@ model ProviderUser {
   role         String   @default("admin")
   createdAt    DateTime @default(now())
   provider     Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
 }
 
 model AdminUser {
   id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String
+  role         String   @default("SUPER_ADMIN")
   createdAt    DateTime @default(now())
 }
 
 model FrontDeskUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String                @id @default(cuid())
+  email        String                @unique
   passwordHash String
   name         String?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime              @default(now())
+  clinics      FrontDeskUserClinic[]
+}
+
+model FrontDeskUserClinic {
+  id               String         @id @default(cuid())
+  frontDeskUserId  String
+  providerClinicId String
+  assignedAt       DateTime       @default(now())
+  frontDeskUser    FrontDeskUser  @relation(fields: [frontDeskUserId], references: [id], onDelete: Cascade)
+  providerClinic   ProviderClinic @relation(fields: [providerClinicId], references: [id], onDelete: Cascade)
+
+  @@unique([frontDeskUserId, providerClinicId])
+  @@index([frontDeskUserId])
+  @@index([providerClinicId])
 }
 
 model Ngo {
@@ -390,6 +426,9 @@ model LabOrder {
   collectionAgentPhone String?
   resultsPdfKey        String?
   labPartnerId         String?
+  scheduledFor         DateTime?
+  collectionType       String?
+  scheduleNote         String?
   externalOrderId      String?
   dispatchStatus       String      @default("PENDING")
   dispatchError        String?
@@ -401,9 +440,11 @@ model LabOrder {
   patient              Patient?        @relation(fields: [patientId], references: [id], onDelete: Cascade)
   payment              Payment?        @relation("LabOrderPayment")
   events               LabOrderEvent[]
+  followUpRequests     FollowUpRequest[]
 
   @@index([status, createdAt])
   @@index([labPartnerId, status])
+  @@index([patientId, status])
 }
 
 model LabOrderEvent {
@@ -421,6 +462,33 @@ model LabOrderEvent {
   @@index([labOrderId, createdAt])
 }
 
+model FollowUpRequest {
+  id            String      @id @default(cuid())
+  appointmentId String
+  patientId     String
+  providerId    String
+  labOrderId    String?
+  // type: "TIMED" | "AFTER_LAB_RESULTS"
+  type          String
+  daysUntilDue  Int?
+  // status: PENDING | NOTIFIED | BOOKED | DISMISSED | EXPIRED
+  status        String      @default("PENDING")
+  dueAt         DateTime?
+  providerNote  String?
+  notifiedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient       Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  provider      Provider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  labOrder      LabOrder?   @relation(fields: [labOrderId], references: [id], onDelete: SetNull)
+
+  @@index([patientId, status])
+  @@index([status, dueAt])
+  @@index([appointmentId])
+}
+
 model LabUser {
   id            String      @id @default(cuid())
   email         String      @unique
@@ -429,16 +497,20 @@ model LabUser {
   labPartnerId  String?
   labPartner    LabPartner? @relation(fields: [labPartnerId], references: [id])
   createdAt     DateTime    @default(now())
+
+  @@index([labPartnerId])
 }
 
 model PharmacyUser {
-  id               String          @id @default(cuid())
-  email            String          @unique
+  id               String           @id @default(cuid())
+  email            String           @unique
   passwordHash     String
-  role             String          @default("PHARMACY")
+  role             String           @default("PHARMACY")
   pharmacyPartnerId String?
   pharmacyPartner   PharmacyPartner? @relation(fields: [pharmacyPartnerId], references: [id])
-  createdAt        DateTime        @default(now())
+  createdAt        DateTime         @default(now())
+
+  @@index([pharmacyPartnerId])
 }
 
 model RxOrder {
@@ -456,6 +528,9 @@ model RxOrder {
   rxDocumentSize       Int?
   rxDocumentUploadedAt DateTime?
   amountPaise           Int
+  quotedAmountPaise     Int?
+  quoteNote             String?
+  quoteExpiresAt        DateTime?
   status                String           @default("AWAITING_PAYMENT")
   trackingNumber        String?
   courierName           String?
@@ -467,6 +542,7 @@ model RxOrder {
   dispatchedAt          DateTime?
   payment               Payment?         @relation("RxOrderPayment")
   events                RxOrderEvent[]
+  rxOrderItems          RxOrderItem[]
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
   patient               Patient?         @relation(fields: [patientId], references: [id], onDelete: SetNull)
@@ -477,6 +553,26 @@ model RxOrder {
   @@index([pharmacyPartnerId])
   @@index([appointmentId])
   @@index([status, createdAt])
+}
+
+model RxOrderItem {
+  id                  String   @id @default(cuid())
+  rxOrderId           String
+  name                String
+  sig                 String?
+  qtyPrescribed       String?
+  status              String   @default("PENDING")
+  dispensedName       String?
+  dispensedSig        String?
+  unitPricePaise      Int?
+  qtyDispensed        Int?
+  substituteApproved  Boolean?
+  note                String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  rxOrder             RxOrder  @relation(fields: [rxOrderId], references: [id], onDelete: Cascade)
+
+  @@index([rxOrderId])
 }
 
 model RxOrderEvent {
@@ -503,6 +599,8 @@ model OfflineRequest {
   status     String    @default("RECEIVED")
   createdAt  DateTime  @default(now()) @db.Timestamptz(6)
   resolvedAt DateTime? @db.Timestamptz(6)
+
+  @@index([status, createdAt])
 }
 
 model PaymentReceipt {
@@ -520,8 +618,6 @@ model Medication {
   strength  String?
   category  String?   @default("OTC")
   createdAt DateTime? @default(now()) @db.Timestamp(6)
-
-  @@index([name])
 }
 
 model PharmacyPartner {
@@ -580,6 +676,7 @@ model LabPartner {
   nablCertified   Boolean  @default(false)
   nablCertNumber  String?
   testCategories  String[]
+  serviceAreas    String[] @default([])
   homeCollection  Boolean    @default(true)
   isActive        Boolean    @default(true)
   notes           String?
@@ -695,4 +792,44 @@ model PatientPasswordReset {
   patient   Patient   @relation(fields: [patientId], references: [id])
 
   @@index([expiresAt])
+  @@index([patientId])
+}
+
+model RefundRequest {
+  id              String    @id @default(cuid())
+  paymentId       String
+  amount          Int
+  reason          String
+  requestedBy     String
+  requestedByType String
+  status          String    @default("PENDING")
+  gatewayRefundId String?
+  processedAt     DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  payment         Payment   @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId])
+  @@index([status, createdAt])
+}
+
+model ProviderScheduleTemplate {
+  id                  String    @id @default(cuid())
+  providerId          String
+  dayOfWeek           Int
+  startHour           Int
+  startMinute         Int       @default(0)
+  endHour             Int
+  endMinute           Int       @default(0)
+  slotDurationMinutes Int       @default(30)
+  isActive            Boolean   @default(true)
+  effectiveFrom       DateTime?
+  effectiveTo         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  provider            Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, dayOfWeek])
+  @@index([providerId, isActive])
 }

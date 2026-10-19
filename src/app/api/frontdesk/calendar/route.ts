@@ -21,12 +21,26 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid dates" }, { status: 400 });
   }
 
-  const providerIds = providerParam
+  const requestedIds = providerParam
     ? providerParam.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
 
+  // Compute effective provider filter:
+  //   - admin (providerIds=null): use requested or all
+  //   - frontdesk: intersect requested with their assigned clinics
+  const allowed = sess.providerIds;
+  let providerFilter: { id: { in: string[] } } | Record<string, never>;
+  if (allowed !== null) {
+    const effective = requestedIds.length > 0
+      ? requestedIds.filter((id) => allowed.includes(id))
+      : allowed;
+    providerFilter = { id: { in: effective } };
+  } else {
+    providerFilter = requestedIds.length > 0 ? { id: { in: requestedIds } } : {};
+  }
+
   const providers = await prisma.provider.findMany({
-    where: { isActive: true, ...(providerIds.length ? { id: { in: providerIds } } : {}) },
+    where: { isActive: true, ...providerFilter },
     select: { id: true, name: true, speciality: true },
     orderBy: { name: "asc" },
   });

@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
 
-const MOBILE_SECRET =
-  process.env.PATIENT_MOBILE_JWT_SECRET ||
-  process.env.JWT_SECRET ||
-  "change-me";
+function getSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET must be set");
+  return secret;
+}
 
 const TOKEN_TTL_DAYS = Number(process.env.PATIENT_MOBILE_JWT_MAX_AGE_DAYS || 365);
 
@@ -19,11 +20,11 @@ export function signPatientMobileToken(args: { patientId: string; phone: string;
     phone: args.phone,
     ...(args.name ? { name: args.name } : {}),
   };
-  return jwt.sign(payload, MOBILE_SECRET, { expiresIn: `${TOKEN_TTL_DAYS}d` });
+  return jwt.sign(payload, getSecret(), { expiresIn: `${TOKEN_TTL_DAYS}d` });
 }
 
 export function verifyPatientMobileToken(token: string) {
-  const decoded = jwt.verify(token, MOBILE_SECRET) as PatientMobileClaims;
+  const decoded = jwt.verify(token, getSecret()) as PatientMobileClaims;
   return {
     patientId: decoded.sub,
     phone: decoded.phone,

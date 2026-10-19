@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { FRONTDESK_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -76,5 +77,6 @@ export async function POST(req: NextRequest) {
     maxAge: 60 * 60 * 24 * 14,
     ...(domain ? { domain } : {}),
   });
+  logAudit({ action: "FRONTDESK_LOGIN", actorType: "FRONTDESK", actorId: user.id, meta: { email } }).catch(() => {});
   return res;
 }

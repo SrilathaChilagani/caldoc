@@ -5,6 +5,7 @@ import { readPatientPhone } from "@/lib/patientAuth.server";
 import PatientPortalNav from "@/components/PatientPortalNav";
 import PatientMobileTabs from "@/components/PatientMobileTabs";
 import PatientAvatarUpload from "@/components/PatientAvatarUpload";
+import DismissFollowUpButton from "@/components/DismissFollowUpButton";
 
 export const dynamic = "force-dynamic";
 
@@ -249,7 +250,7 @@ export default async function PatientDashboard(props: PageProps) {
   const sevenDaysAhead = new Date(now.getTime() + 7 * 86400 * 1000);
 
   // All queries in parallel
-  const [nextAppt, allUpcomingAppts, labOrders, unfilledRx, recentCompleted] =
+  const [nextAppt, allUpcomingAppts, labOrders, unfilledRx, recentCompleted, activeFollowUps] =
     await Promise.all([
       // 1. Very next upcoming appointment
       prisma.appointment.findFirst({
@@ -341,6 +342,19 @@ export default async function PatientDashboard(props: PageProps) {
           slot: { select: { startsAt: true } },
         },
       }),
+
+      // 6. Active follow-up requests from doctors
+      prisma.followUpRequest.findMany({
+        where: {
+          patientId: patient.id,
+          status: { in: ["PENDING", "NOTIFIED"] },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        include: {
+          provider: { select: { name: true, slug: true, id: true, speciality: true } },
+        },
+      }),
     ]);
 
   // Providers the patient already has an upcoming booking with
@@ -370,7 +384,8 @@ export default async function PatientDashboard(props: PageProps) {
     labPendingPayment.length +
     labResultsReady.length +
     unfilledRx.length +
-    (followUpCandidates.length > 0 ? 1 : 0);
+    activeFollowUps.length +
+    (followUpCandidates.length > 0 && activeFollowUps.length === 0 ? 1 : 0);
 
   const photoToken = patient.profilePhotoKey
     ? encodeURIComponent(patient.profilePhotoKey)
@@ -600,8 +615,47 @@ export default async function PatientDashboard(props: PageProps) {
           );
         })}
 
-        {/* ── 6. Follow-Up Suggestions (show top 2) ── */}
-        {followUpCandidates.slice(0, 2).map((appt) => {
+        {/* ── 6a. Doctor-requested follow-ups ── */}
+        {activeFollowUps.map((fu) => {
+          const providerSlug = fu.provider?.slug || fu.provider?.id;
+          const bookingLink = providerSlug
+            ? `/book/${encodeURIComponent(providerSlug)}?ref=follow-up&fu=${fu.id}`
+            : null;
+          const typeLabel =
+            fu.type === "TIMED"
+              ? fu.dueAt
+                ? `Due ${shortDate(fu.dueAt)}`
+                : "Follow-up requested"
+              : "Follow up after lab results";
+          return (
+            <CardShell
+              key={fu.id}
+              accent="border-l-indigo-500"
+              icon={<FollowUpIcon />}
+              category="Follow-up · Requested by doctor"
+            >
+              <p className="text-base font-semibold text-slate-900">
+                {fu.provider?.name ?? "Your doctor"}
+              </p>
+              {fu.provider?.speciality && (
+                <p className="text-sm text-[#2f6ea5]">{fu.provider.speciality}</p>
+              )}
+              <p className="text-sm text-slate-500">{typeLabel}</p>
+              {fu.providerNote && (
+                <p className="mt-1 text-sm italic text-slate-600">&ldquo;{fu.providerNote}&rdquo;</p>
+              )}
+              <CtaRow>
+                {bookingLink && (
+                  <PrimaryBtn href={bookingLink} label={`Continue care with ${fu.provider?.name ?? "doctor"} →`} />
+                )}
+                <DismissFollowUpButton followUpId={fu.id} />
+              </CtaRow>
+            </CardShell>
+          );
+        })}
+
+        {/* ── 6b. Heuristic follow-up suggestions (only if no doctor-requested follow-ups) ── */}
+        {activeFollowUps.length === 0 && followUpCandidates.slice(0, 2).map((appt) => {
           const slotDate = appt.slot?.startsAt ?? appt.createdAt;
           const providerSlug = appt.provider?.slug || appt.provider?.id;
           if (!providerSlug) return null;

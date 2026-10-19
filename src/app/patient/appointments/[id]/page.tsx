@@ -225,16 +225,32 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
                           </p>
                           <p className={`mt-0.5 text-xs ${info.colorClass}`}>{info.label}</p>
                         </div>
-                        {order.resultsPdfKey && (
-                          <a
-                            href={`/api/patient/lab-orders/results/${order.id}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="shrink-0 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                        <div className="shrink-0 flex flex-col gap-1.5 items-end">
+                          <Link
+                            href={`/patient/lab-orders/${order.id}`}
+                            className="rounded-full border border-[#2f6ea5]/30 px-3 py-1.5 text-xs font-semibold text-[#2f6ea5] hover:bg-[#2f6ea5]/5"
                           >
-                            Download results
-                          </a>
-                        )}
+                            View details
+                          </Link>
+                          {["PENDING", "CONFIRMED"].includes(order.status) && (
+                            <Link
+                              href={`/patient/appointments/${appointment.id}/schedule-labs?order=${order.id}`}
+                              className="rounded-full bg-[#2f6ea5] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#255b8b]"
+                            >
+                              Schedule collection
+                            </Link>
+                          )}
+                          {order.resultsPdfKey && (
+                            <a
+                              href={`/api/patient/lab-orders/results/${order.id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                            >
+                              Download results
+                            </a>
+                          )}
+                        </div>
                       </div>
                     );
                   })}

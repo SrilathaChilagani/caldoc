@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdminSession } from "@/lib/auth.server";
+import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -34,5 +35,6 @@ export async function POST(
     },
   });
 
+  logAudit({ action: "LAB_ENROLLMENT_REJECTED", actorType: "ADMIN", actorId: sess.userId, meta: { enrollmentId: id, reason } }).catch(() => {});
   return NextResponse.json({ ok: true });
 }

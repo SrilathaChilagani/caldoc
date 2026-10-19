@@ -4,8 +4,11 @@ import { Prisma } from "@prisma/client";
 import { buildPatientPhoneMeta } from "@/lib/phone";
 import { getErrorMessage } from "@/lib/errors";
 import { sendWhatsAppText } from "@/lib/whatsapp";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export const maxDuration = 30;
+
+const EMERGENCY_RATE_LIMIT = { maxRequests: 5, windowMs: 60_000 };
 
 // Default emergency fee: ₹499
 const EMERGENCY_FEE_PAISE = Number(process.env.EMERGENCY_FEE_PAISE || 49900);
@@ -26,6 +29,14 @@ type EmergencyPayload = {
 };
 
 export async function POST(req: Request) {
+  const rl = checkRateLimit(getClientIp(req.headers), EMERGENCY_RATE_LIMIT);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
+
   try {
     const body = (await req.json()) as EmergencyPayload;
     const name = body.name?.trim();

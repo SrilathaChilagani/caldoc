@@ -1,6 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getErrorMessage } from "@/lib/errors";
+import { readPatientPhone } from "@/lib/patientAuth.server";
+import { verifyPatientMobileToken } from "@/lib/patientMobileToken";
+import { requireProviderSession, requireAdminSession } from "@/lib/auth.server";
 
 const DAILY_API_BASE = "https://api.daily.co/v1";
 
@@ -76,32 +79,110 @@ async function createDailyToken(opts: {
   return data.token;
 }
 
-export async function POST(req: Request) {
+// ─── Caller identity resolution ──────────────────────────────────────────────
+
+type CallerIdentity =
+  | { role: "patient"; phone: string; patientId?: string }
+  | { role: "provider"; userId: string; providerId: string }
+  | { role: "admin"; userId: string };
+
+/**
+ * Try each auth mechanism in priority order:
+ *   1. Bearer token  → patient (mobile app)
+ *   2. Patient cookie → patient (web)
+ *   3. Provider cookie → provider (web)
+ *   4. Admin cookie → admin (web)
+ *
+ * If a Bearer token is present but invalid, rejects immediately (no fallthrough).
+ */
+async function resolveCallerIdentity(req: NextRequest): Promise<CallerIdentity | null> {
+  const authHeader = req.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    try {
+      const claims = verifyPatientMobileToken(authHeader.slice(7));
+      return {
+        role: "patient",
+        phone: claims.phone,
+        patientId: claims.patientId ?? undefined,
+      };
+    } catch {
+      // Malformed/expired Bearer token — reject; do not fall through to cookies
+      return null;
+    }
+  }
+
+  const patientPhone = await readPatientPhone();
+  if (patientPhone) return { role: "patient", phone: patientPhone };
+
+  const providerSess = await requireProviderSession();
+  if (providerSess) {
+    return { role: "provider", userId: providerSess.userId, providerId: providerSess.providerId };
+  }
+
+  const adminSess = await requireAdminSession();
+  if (adminSess) return { role: "admin", userId: adminSess.userId };
+
+  return null;
+}
+
+// ─── Route handler ────────────────────────────────────────────────────────────
+
+export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as {
-      appointmentId?: string;
-      userName?: string;
-      isProvider?: boolean;
-    };
+    // 1. Who is calling?
+    const caller = await resolveCallerIdentity(req);
+    if (!caller) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = (await req.json()) as { appointmentId?: string };
     const appointmentId = body?.appointmentId;
     if (!appointmentId) {
       return NextResponse.json({ error: "Missing appointmentId" }, { status: 400 });
     }
 
+    // 2. Fetch appointment with enough detail for the ownership check
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
-      select: { videoRoom: true },
+      select: {
+        videoRoom: true,
+        providerId: true,
+        patientId: true,
+        patient: { select: { phone: true, name: true } },
+        provider: { select: { name: true } },
+      },
     });
     if (!appointment) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     }
 
-    const urlSearchParams = new URL(req.url).searchParams;
-    const providerMode = urlSearchParams.get("provider");
-    const isProvider = body?.isProvider ?? providerMode === "daily";
-    const userName = body?.userName || (isProvider ? "Doctor" : "Patient");
+    // 3. Ownership check — verified phone/providerId must match the appointment
+    let isOwner: boolean;
+    let userName: string;
 
-    // Fallback path: Daily not configured, use /room/:id
+    if (caller.role === "patient") {
+      // Accept match on patientId (mobile token) or phone (web cookie)
+      const authorized = caller.patientId
+        ? appointment.patientId === caller.patientId
+        : appointment.patient?.phone === caller.phone;
+      if (!authorized) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      isOwner = false;
+      userName = appointment.patient?.name || "Patient";
+    } else if (caller.role === "provider") {
+      if (appointment.providerId !== caller.providerId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      isOwner = true;
+      userName = appointment.provider?.name || "Doctor";
+    } else {
+      // admin — can access any appointment's room
+      isOwner = true;
+      userName = "Admin";
+    }
+
+    // 4. Fallback path: Daily not configured, use /room/:id
     const apiKey = process.env.DAILY_API_KEY;
     if (!apiKey) {
       let roomUrl = appointment.videoRoom;
@@ -119,11 +200,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ url: roomUrl });
     }
 
-    // Daily path: ensure private room + return token URL
+    // 5. Daily path: ensure private room + issue a per-caller token
     const roomName = `caldoc-${appointmentId}`;
     const roomUrl = await ensureDailyRoom(roomName);
 
-    // Persist the base room URL on the appointment if not set
     if (!appointment.videoRoom) {
       await prisma.appointment.update({
         where: { id: appointmentId },
@@ -131,11 +211,7 @@ export async function POST(req: Request) {
       }).catch(() => {});
     }
 
-    const token = await createDailyToken({
-      roomName,
-      isOwner: isProvider,
-      userName,
-    });
+    const token = await createDailyToken({ roomName, isOwner, userName });
 
     return NextResponse.json({ url: `${roomUrl}?t=${token}` });
   } catch (err) {

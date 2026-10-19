@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -200,7 +201,7 @@ export async function POST(req: NextRequest) {
     const otherCookie = cookieName === ADMIN_JWT_NAME ? PROVIDER_JWT_NAME : ADMIN_JWT_NAME;
     res.cookies.set(otherCookie, "", { path: "/", maxAge: 0, ...domainOption });
 
-
+    logAudit({ action: role === "admin" ? "ADMIN_LOGIN" : "PROVIDER_LOGIN", actorType: role === "admin" ? "ADMIN" : "PROVIDER", actorId: userId, meta: { email } }).catch(() => {});
     return res;
   } catch (err) {
     console.error("provider login error:", err);
