@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, NGO_JWT_NAME, LABS_JWT_NAME, PHARMACY_JWT_NAME, FRONTDESK_JWT_NAME, SESSION_COOKIE_DOMAIN, SessionPayload } from "./auth";
 
 function requireSecret(): string {
-  const s = process.env.JWT_SECRET;
+  const s = process.env.JWT_SECRET?.trim();
   if (!s) throw new Error("Missing JWT_SECRET");
   return s;
 }
@@ -93,6 +93,12 @@ export async function requireSuperAdminSession(): Promise<{ userId: string; role
   return sess;
 }
 
+export async function requireOperationsSession(): Promise<{ userId: string; role: string } | null> {
+  const sess = await requireAdminSession();
+  if (!sess || !["SUPER_ADMIN", "OPERATIONS"].includes(sess.role)) return null;
+  return sess;
+}
+
 export async function requireNgoSession(): Promise<{ userId: string; ngoId: string; role: string; email?: string } | null> {
   const sess = await readNgoSession();
   if (!sess) return null;
@@ -104,11 +110,13 @@ export async function requireNgoSession(): Promise<{ userId: string; ngoId: stri
   return { userId: user.id, ngoId: user.ngoId, role: sess.role, email: sess.email ?? user.email };
 }
 
-export async function requireLabsSession(): Promise<{ userId: string; email?: string; labPartnerId?: string | null } | null> {
+export async function requireLabsSession(): Promise<{ userId: string; email?: string; labPartnerId: string | null } | null> {
   const sess = await readLabsSession();
   if (sess) {
     const user = await prisma.labUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true, labPartnerId: true } });
-    if (user) return { userId: user.id, email: user.email, labPartnerId: user.labPartnerId };
+    // Reject: user deleted, partner unassigned, or JWT partner ID doesn't match DB (detects DB tampering / reassignment)
+    if (!user || !user.labPartnerId || sess.pid !== user.labPartnerId) return null;
+    return { userId: user.id, email: user.email, labPartnerId: user.labPartnerId };
   }
   // Fall back: allow any logged-in admin to access the labs portal (no partner restriction)
   const adminSess = await requireAdminSession();
@@ -116,11 +124,13 @@ export async function requireLabsSession(): Promise<{ userId: string; email?: st
   return null;
 }
 
-export async function requirePharmacySession(): Promise<{ userId: string; email?: string; pharmacyPartnerId?: string | null } | null> {
+export async function requirePharmacySession(): Promise<{ userId: string; email?: string; pharmacyPartnerId: string | null } | null> {
   const sess = await readPharmacySession();
   if (sess) {
     const user = await prisma.pharmacyUser.findUnique({ where: { id: sess.uid }, select: { id: true, email: true, pharmacyPartnerId: true } });
-    if (user) return { userId: user.id, email: user.email, pharmacyPartnerId: user.pharmacyPartnerId };
+    // Reject: user deleted, partner unassigned, or JWT partner ID doesn't match DB (detects DB tampering / reassignment)
+    if (!user || !user.pharmacyPartnerId || sess.pid !== user.pharmacyPartnerId) return null;
+    return { userId: user.id, email: user.email, pharmacyPartnerId: user.pharmacyPartnerId };
   }
   // Fall back: allow any logged-in admin to access the pharmacy portal (no partner restriction)
   const adminSess = await requireAdminSession();

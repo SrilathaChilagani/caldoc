@@ -5,8 +5,8 @@
 
 ## Current Focus
 - **Sprint:** Sprint 01 — "Stabilize + Performance Foundation"
-- **Last task (2026-10-14):** Production schema hardening — full DB audit, 17-change migration, 3 architecture docs — COMPLETE.
-- **Next task:** Update `generate-slots` cron to read from `ProviderScheduleTemplate`; then P0 booking→payment→consult test pass.
+- **Last task (2026-10-21):** Auth/security hardening sprint + P1 backlog clearance — COMPLETE.
+- **Next task:** P0 booking→payment→consultation end-to-end test pass.
 
 ## Backend API Audit — COMPLETED (2026-10-14)
 
@@ -99,9 +99,37 @@ Added `logAudit` fire-and-forget calls to 21 routes covering all high-impact eve
 ### Outstanding (needs design discussion)
 - **Frontdesk clinic scoping** — `requireFrontDeskSession()` returns no `clinicId`; frontdesk users can access all appointments system-wide. Requires schema + session design work before fixing.
 
+## Auth/Security Hardening — Sprint (2026-10-19, continued)
+
+All unauthenticated public endpoint audit findings have been resolved (rate limits only, per user preference):
+- `/api/appointments/create` — IP + phone two-layer limits
+- `/api/appointments/emergency` — IP + phone two-layer limits
+- `/api/services/rx-delivery` — IP + phone two-layer limits
+- `/api/offline-requests` — IP + phone two-layer limits
+- `/api/enroll/labs` + `/api/enroll/pharmacy` — IP + email two-layer limits
+- `/api/patient/login/request-otp` — **DONE**: Added IP-level rate limit (5/min); unified both 429 responses to identical message to prevent phone enumeration via differential error responses
+
+### Super-admin + frontdesk clinic scoping (2026-10-19)
+- `AdminUser.role` enforced via `requireSuperAdminSession()`
+- Admin portals: admin-users management, frontdesk staff management built
+- `FrontDeskUserClinic` join table: multi-clinic scoping for frontdesk sessions
+- `requireFrontDeskSession()` returns `providerIds: null` (admin) | `[]` (no clinics) | `["id"]` (scoped)
+- Frontdesk calendar, appointment reschedule, lab/rx order status routes all scoped
+
 ## Next Action
-P0: End-to-end booking → payment → consultation test pass.
-Then: Error-handling consistency across all API routes.
+All P0 items from the auth/security hardening sprint are complete.
+
+**Hard blockers before any production deploy:**
+1. Rotate `CRON_SECRET` — current value `dev-please-change` is explicitly blocked by `cronAuth.ts` in production → all cron jobs return 500.
+2. Rotate `JWT_SECRET` — current value `some-long-random-string` is weak/guessable → all portal tokens can be forged.
+3. Swap Razorpay test keys (`rzp_test_*`) to live keys.
+
+**Lower priority before deploy:**
+- Add `GET /api/health` endpoint (no health endpoint exists; `/api/dev/health` dir has only `.DS_Store`).
+- Consider `sendDefaultPii: false` in Sentry configs (`sentry.server.config.ts`, `sentry.edge.config.ts`, `instrumentation-client.ts`) — patient phones/names may appear in error reports.
+- `META_WEBHOOK_VERIFY_TOKEN=abc123` is a placeholder — weak webhook verify token.
+- `PROVIDER_CONFIRM_SECRET=a-long-random-string` is a placeholder.
+- `ADMIN_PHONE`, `RESEND_API_KEY`, `LABS_ADMIN_PHONE` missing → enrollment emails and WhatsApp admin notifications silently skipped.
 
 ## Blockers
-- None.
+- None (all code issues resolved; remaining items are env/ops).

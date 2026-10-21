@@ -8,7 +8,8 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export const maxDuration = 30;
 
-const EMERGENCY_RATE_LIMIT = { maxRequests: 5, windowMs: 60_000 };
+const EMERGENCY_IP_LIMIT    = { maxRequests: 2,  windowMs: 60_000 };          // 2/min per IP
+const EMERGENCY_PHONE_LIMIT = { maxRequests: 1,  windowMs: 60 * 60_000 };    // 1/hr per phone
 
 // Default emergency fee: ₹499
 const EMERGENCY_FEE_PAISE = Number(process.env.EMERGENCY_FEE_PAISE || 49900);
@@ -29,11 +30,12 @@ type EmergencyPayload = {
 };
 
 export async function POST(req: Request) {
-  const rl = checkRateLimit(getClientIp(req.headers), EMERGENCY_RATE_LIMIT);
-  if (!rl.allowed) {
+  // Layer 1: IP limit — fast rejection of scripted floods
+  const ipRl = checkRateLimit(getClientIp(req.headers), EMERGENCY_IP_LIMIT);
+  if (!ipRl.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Please try again later." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+      { status: 429, headers: { "Retry-After": String(ipRl.retryAfterSec) } },
     );
   }
 
@@ -55,6 +57,15 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "Enter a valid phone number with country code (e.g. +91 for India)" },
         { status: 400 }
+      );
+    }
+
+    // Layer 2: per-phone hourly limit — prevents targeting a specific number
+    const phoneRl = checkRateLimit(`emerg:${meta.canonical}`, EMERGENCY_PHONE_LIMIT);
+    if (!phoneRl.allowed) {
+      return NextResponse.json(
+        { error: "An emergency request for this number was already submitted. Please wait before trying again." },
+        { status: 429, headers: { "Retry-After": String(phoneRl.retryAfterSec) } },
       );
     }
 

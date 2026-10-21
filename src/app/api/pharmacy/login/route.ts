@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { PHARMACY_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
+import { PHARMACY_JWT_NAME, MAX_AGE_DAYS, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { logAudit } from "@/lib/audit";
 
@@ -53,9 +53,11 @@ export async function POST(req: NextRequest) {
   const ok = await bcrypt.compare(password, user.passwordHash);
   if (!ok) return redirectWithError("creds");
 
+  if (!user.pharmacyPartnerId) return redirectWithError("unassigned");
+
   const token = signSession({
     userId: user.id,
-    providerId: user.pharmacyPartnerId ?? "pharmacy",
+    providerId: user.pharmacyPartnerId,
     role: "pharmacy",
     email: user.email,
   });
@@ -66,7 +68,7 @@ export async function POST(req: NextRequest) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: MAX_AGE_DAYS * 24 * 60 * 60,
     ...(domain ? { domain } : {}),
   });
   logAudit({ action: "PHARMACY_LOGIN", actorType: "PHARMACY", actorId: user.id, meta: { email } }).catch(() => {});

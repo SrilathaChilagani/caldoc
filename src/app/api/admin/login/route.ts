@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { ADMIN_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
+import { ADMIN_JWT_NAME, MAX_AGE_DAYS, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { logAudit } from "@/lib/audit";
 
@@ -52,9 +52,16 @@ export async function POST(req: NextRequest) {
     return redirectWithError("creds");
   }
 
-  const defaultPassword = process.env.ADMIN_PORTAL_DEFAULT_PASSWORD || "Passw0rd!";
+  const configuredPassword = process.env.ADMIN_PORTAL_DEFAULT_PASSWORD;
+  if (!configuredPassword && process.env.NODE_ENV === "production") {
+    console.error("[admin/login] ADMIN_PORTAL_DEFAULT_PASSWORD not set — bootstrap disabled in production");
+  }
+  const defaultPassword = configuredPassword || "Passw0rd!";
   let user = await prisma.adminUser.findUnique({ where: { email } });
   if (!user && allowedEmails.includes(email)) {
+    if (!configuredPassword && process.env.NODE_ENV === "production") {
+      return redirectWithError("creds");
+    }
     const hash = await bcrypt.hash(defaultPassword, 10);
     user = await prisma.adminUser.create({ data: { email, passwordHash: hash } });
   }
@@ -84,7 +91,7 @@ export async function POST(req: NextRequest) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: MAX_AGE_DAYS * 24 * 60 * 60,
     ...(domain ? { domain } : {}),
   });
   logAudit({ action: "ADMIN_LOGIN", actorType: "ADMIN", actorId: user.id, meta: { email } }).catch(() => {});

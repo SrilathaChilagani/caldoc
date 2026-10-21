@@ -10,7 +10,7 @@ const PLACEHOLDER = "dev-please-change";
  * forgotten CRON_SECRET= swap still locks the endpoint rather than exposing it.
  */
 export function requireCronAuth(req: NextRequest): NextResponse | null {
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = process.env.CRON_SECRET?.trim();
 
   if (!cronSecret) {
     console.error("[cron-auth] CRON_SECRET is not set — endpoint locked");

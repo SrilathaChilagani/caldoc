@@ -35,15 +35,20 @@ export async function POST(
     });
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
+    // Authorization gates — must pass before any file I/O
+    if (!order.labPartnerId) {
+      // Order not yet assigned to a lab partner; no one may upload results
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    if (sess.labPartnerId != null && order.labPartnerId !== sess.labPartnerId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     // We need the provider slug for the follow-up booking link
     const providerSlug = order.appointment?.provider
       ? (order.appointment.provider as { slug?: string; id?: string }).slug ||
         (order.appointment.provider as { slug?: string; id?: string }).id
       : null;
-
-    if (sess.labPartnerId != null && order.labPartnerId !== sess.labPartnerId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

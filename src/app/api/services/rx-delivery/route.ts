@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { computeRxDeliveryAmount } from "@/lib/rxDeliveryPricing";
+import { buildPatientPhoneMeta } from "@/lib/phone";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+
+const RX_IP_LIMIT    = { maxRequests: 3, windowMs: 60 * 60_000 };       // 3/hr per IP
+const RX_PHONE_LIMIT = { maxRequests: 2, windowMs: 24 * 60 * 60_000 };  // 2/day per phone
 
 type ItemPayload = { name: string; qty: number };
 
@@ -23,6 +28,15 @@ function buildPhoneCandidates(raw: string | undefined | null) {
 }
 
 export async function POST(req: NextRequest) {
+  // Layer 1: IP limit
+  const ipRl = checkRateLimit(getClientIp(req.headers), RX_IP_LIMIT);
+  if (!ipRl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(ipRl.retryAfterSec) } },
+    );
+  }
+
   try {
     const body = await req.json();
     const items: ItemPayload[] = Array.isArray(body?.items)
@@ -55,6 +69,18 @@ export async function POST(req: NextRequest) {
 
     if (!patientName || !patientPhone || !address.line1 || !address.city || !address.state || !address.postalCode) {
       return NextResponse.json({ error: "Fill all contact and address fields" }, { status: 400 });
+    }
+
+    // Layer 2: per-phone daily limit — prevents targeting a specific number
+    const phoneMeta = buildPatientPhoneMeta(patientPhone);
+    if (phoneMeta) {
+      const phoneRl = checkRateLimit(`rx:${phoneMeta.canonical}`, RX_PHONE_LIMIT);
+      if (!phoneRl.allowed) {
+        return NextResponse.json(
+          { error: "Too many orders for this number. Please try again tomorrow." },
+          { status: 429, headers: { "Retry-After": String(phoneRl.retryAfterSec) } },
+        );
+      }
     }
 
     const prescription = body?.prescription as
@@ -127,8 +153,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ orderId: order.id });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Server error";
     console.error("rx-delivery error", err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Unable to create order. Please try again." }, { status: 500 });
   }
 }

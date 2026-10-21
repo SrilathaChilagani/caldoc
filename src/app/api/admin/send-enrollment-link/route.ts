@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requireOperationsSession } from "@/lib/auth.server";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ const MESSAGES: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
-  const sess = await requireAdminSession();
+  const sess = await requireOperationsSession();
   if (!sess) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { phone, type } = await req.json();

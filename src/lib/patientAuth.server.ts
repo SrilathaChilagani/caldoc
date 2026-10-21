@@ -11,7 +11,7 @@ type PatientTokenPayload = {
 };
 
 function getSecret(): string {
-  const s = process.env.JWT_SECRET;
+  const s = process.env.JWT_SECRET?.trim();
   if (!s) throw new Error("JWT_SECRET is not set");
   return s;
 }
@@ -52,7 +52,7 @@ export async function readPatientPhone(): Promise<string | null> {
  */
 export async function clearPatientCookie() {
   const jar = await cookies();
-  jar.set(PATIENT_COOKIE, "", { path: "/", maxAge: 0 });
+  jar.set(PATIENT_COOKIE, "", { path: "/", maxAge: 0, httpOnly: true, sameSite: "lax" });
 }
 
 /**

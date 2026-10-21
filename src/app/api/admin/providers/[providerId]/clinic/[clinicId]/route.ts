@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requireOperationsSession } from "@/lib/auth.server";
 import { getErrorMessage } from "@/lib/errors";
 
 type RouteContext = { params: Promise<{ providerId: string; clinicId: string }> };
@@ -22,7 +22,7 @@ const PatchSchema = z.object({
 /** PATCH /api/admin/providers/[providerId]/clinic/[clinicId] */
 export async function PATCH(req: NextRequest, ctx: RouteContext) {
   try {
-    const session = await requireAdminSession();
+    const session = await requireOperationsSession();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { providerId, clinicId } = await ctx.params;
@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
 /** DELETE /api/admin/providers/[providerId]/clinic/[clinicId] */
 export async function DELETE(_req: NextRequest, ctx: RouteContext) {
   try {
-    const session = await requireAdminSession();
+    const session = await requireOperationsSession();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { providerId, clinicId } = await ctx.params;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requireOperationsSession } from "@/lib/auth.server";
 import { uploadToS3 } from "@/lib/s3";
 import { buildPatientPhoneMeta } from "@/lib/phone";
 
@@ -34,7 +34,7 @@ function parseBody(body: Record<string, unknown>) {
 }
 
 export async function POST(req: NextRequest) {
-  const sess = await requireAdminSession();
+  const sess = await requireOperationsSession();
   if (!sess) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

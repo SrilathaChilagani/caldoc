@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requireOperationsSession } from "@/lib/auth.server";
 import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const sess = await requireAdminSession();
+  const sess = await requireOperationsSession();
   if (!sess) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;

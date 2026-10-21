@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requireOperationsSession } from "@/lib/auth.server";
 import { getErrorMessage } from "@/lib/errors";
 
 type RouteContext = { params: Promise<{ providerId: string }> };
@@ -22,7 +22,7 @@ const ClinicSchema = z.object({
 /** GET /api/admin/providers/[providerId]/clinic — list clinics for a provider */
 export async function GET(_req: NextRequest, ctx: RouteContext) {
   try {
-    const session = await requireAdminSession();
+    const session = await requireOperationsSession();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { providerId } = await ctx.params;
@@ -39,7 +39,7 @@ export async function GET(_req: NextRequest, ctx: RouteContext) {
 /** POST /api/admin/providers/[providerId]/clinic — create a clinic */
 export async function POST(req: NextRequest, ctx: RouteContext) {
   try {
-    const session = await requireAdminSession();
+    const session = await requireOperationsSession();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { providerId } = await ctx.params;

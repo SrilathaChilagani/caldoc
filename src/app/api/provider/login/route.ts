@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { ADMIN_JWT_NAME, PROVIDER_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
+import { ADMIN_JWT_NAME, MAX_AGE_DAYS, PROVIDER_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { logAudit } from "@/lib/audit";
 
@@ -33,8 +33,10 @@ async function readCredentials(req: NextRequest) {
 }
 
 async function bootstrapProviderAccount(email: string, providedPassword: string) {
-  const fallback = process.env.PROVIDER_PORTAL_DEFAULT_PASSWORD || "Passw0rd!";
-  if (!email.endsWith("@telemed.local") || providedPassword !== fallback) return null;
+  const fallback = process.env.NODE_ENV === "production"
+    ? process.env.PROVIDER_PORTAL_DEFAULT_PASSWORD
+    : (process.env.PROVIDER_PORTAL_DEFAULT_PASSWORD || "Passw0rd!");
+  if (!fallback || !email.endsWith("@telemed.local") || providedPassword !== fallback) return null;
   const slug = email.split("@")[0];
   if (!slug) return null;
   const provider = await prisma.provider.findFirst({ where: { slug } });
@@ -52,8 +54,10 @@ async function bootstrapProviderAccount(email: string, providedPassword: string)
 }
 
 async function bootstrapLabsAdminAccount(email: string, providedPassword: string) {
-  const fallback = process.env.ADMIN_PORTAL_DEFAULT_PASSWORD || "Passw0rd!";
-  if (!LABS_ADMIN_EMAILS.includes(email) || providedPassword !== fallback) return null;
+  const fallback = process.env.NODE_ENV === "production"
+    ? process.env.ADMIN_PORTAL_DEFAULT_PASSWORD
+    : (process.env.ADMIN_PORTAL_DEFAULT_PASSWORD || "Passw0rd!");
+  if (!fallback || !LABS_ADMIN_EMAILS.includes(email) || providedPassword !== fallback) return null;
   const existing = await prisma.adminUser.findUnique({
     where: { email },
     select: { id: true, passwordHash: true, email: true },
@@ -195,7 +199,7 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: MAX_AGE_DAYS * 24 * 60 * 60,
       ...domainOption,
     });
     const otherCookie = cookieName === ADMIN_JWT_NAME ? PROVIDER_JWT_NAME : ADMIN_JWT_NAME;

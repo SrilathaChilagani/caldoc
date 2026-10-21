@@ -94,8 +94,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ orderId: order.id });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Server error";
     console.error("labs-at-home error", err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Unable to create order. Please try again." }, { status: 500 });
   }
 }

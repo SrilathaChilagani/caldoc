@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { NGO_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
+import { NGO_JWT_NAME, MAX_AGE_DAYS, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { logAudit } from "@/lib/audit";
 
@@ -33,8 +33,10 @@ async function readCredentials(req: NextRequest) {
 }
 
 async function bootstrapNgoAccount(email: string, password: string) {
-  const fallback = process.env.NGO_PORTAL_DEFAULT_PASSWORD || "Passw0rd!";
-  if (!email.endsWith("@ngo.local") || password !== fallback) return null;
+  const fallback = process.env.NODE_ENV === "production"
+    ? process.env.NGO_PORTAL_DEFAULT_PASSWORD
+    : (process.env.NGO_PORTAL_DEFAULT_PASSWORD || "Passw0rd!");
+  if (!fallback || !email.endsWith("@ngo.local") || password !== fallback) return null;
   const slug = email.split("@")[0];
   if (!slug) return null;
   const ngo = await prisma.ngo.findFirst({ where: { slug } });
@@ -117,7 +119,7 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: MAX_AGE_DAYS * 24 * 60 * 60,
       ...domainOption,
     });
     logAudit({ action: "NGO_LOGIN", actorType: "NGO", actorId: ngoUser.id, meta: { email } }).catch(() => {});

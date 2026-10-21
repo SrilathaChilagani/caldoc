@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { FRONTDESK_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
+import { FRONTDESK_JWT_NAME, MAX_AGE_DAYS, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { logAudit } from "@/lib/audit";
 
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 14,
+    maxAge: MAX_AGE_DAYS * 24 * 60 * 60,
     ...(domain ? { domain } : {}),
   });
   logAudit({ action: "FRONTDESK_LOGIN", actorType: "FRONTDESK", actorId: user.id, meta: { email } }).catch(() => {});

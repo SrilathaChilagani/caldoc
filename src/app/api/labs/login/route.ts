@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { LABS_JWT_NAME, resolveSessionCookieDomain, signSession } from "@/lib/auth";
+import { LABS_JWT_NAME, MAX_AGE_DAYS, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { logAudit } from "@/lib/audit";
 
@@ -53,7 +53,9 @@ export async function POST(req: NextRequest) {
   const ok = await bcrypt.compare(password, user.passwordHash);
   if (!ok) return redirectWithError("creds");
 
-  const token = signSession({ userId: user.id, providerId: "labs", role: "labs", email: user.email });
+  if (!user.labPartnerId) return redirectWithError("unassigned");
+
+  const token = signSession({ userId: user.id, providerId: user.labPartnerId, role: "labs", email: user.email });
   const res = NextResponse.redirect(new URL(nextUrl || "/labs", req.nextUrl.origin), 303);
   const domain = resolveSessionCookieDomain(req.nextUrl.hostname);
   res.cookies.set(LABS_JWT_NAME, token, {
@@ -61,7 +63,7 @@ export async function POST(req: NextRequest) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: MAX_AGE_DAYS * 24 * 60 * 60,
     ...(domain ? { domain } : {}),
   });
   logAudit({ action: "LAB_LOGIN", actorType: "LAB", actorId: user.id, meta: { email } }).catch(() => {});

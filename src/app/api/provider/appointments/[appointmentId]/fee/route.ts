@@ -8,8 +8,10 @@ type RouteContext = {
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
   const { appointmentId } = await context.params;
-  const providerSess = await readProviderSession();
-  const adminSess = providerSess ? null : await requireAdminSession();
+  const [providerSess, adminSess] = await Promise.all([
+    readProviderSession(),
+    requireAdminSession(),
+  ]);
 
   if (!providerSess && !adminSess) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -31,7 +33,8 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
   }
 
-  if (providerSess && appointment.providerId !== providerSess.pid) {
+  // Providers are scoped to their own appointments; admins can update any
+  if (providerSess && !adminSess && appointment.providerId !== providerSess.pid) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

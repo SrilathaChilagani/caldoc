@@ -22,11 +22,10 @@ export async function POST(
   }
 
   // Validate the reservation belongs to this NGO and is still HELD
-  const reservation = await prisma.ngoReservation.findUnique({
-    where: { id: reservationId },
+  const reservation = await prisma.ngoReservation.findFirst({
+    where: { id: reservationId, ngoId: session.ngoId },
     select: {
       id: true,
-      ngoId: true,
       status: true,
       slotId: true,
       providerId: true,
@@ -36,8 +35,6 @@ export async function POST(
   });
 
   if (!reservation) return NextResponse.json({ error: "Reservation not found." }, { status: 404 });
-  if (reservation.ngoId !== session.ngoId)
-    return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   if (reservation.status !== "HELD")
     return NextResponse.json({ error: "Only HELD reservations can be assigned a patient." }, { status: 400 });
   if (!reservation.slotId)

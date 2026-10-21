@@ -1,16 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { buildPatientPhoneMeta } from "@/lib/phone";
 import { sendVerificationSms } from "@/lib/twilioVerify";
 import { getErrorMessage } from "@/lib/errors";
 import { PATIENT_COOKIE, PATIENT_MAX_AGE_DAYS, signPatientSession } from "@/lib/patientAuth.server";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const OTP_TTL_MINUTES = Number(process.env.PATIENT_OTP_TTL_MINUTES || 10);
 const RESEND_WINDOW_SECONDS = Number(process.env.PATIENT_OTP_RESEND_SECONDS || 60);
 const SKIP_OTP = process.env.SKIP_PATIENT_OTP === "true" && process.env.NODE_ENV !== "production";
 
-export async function POST(req: Request) {
+const OTP_IP_LIMIT = { maxRequests: 5, windowMs: 60_000 }; // 5/min per IP
+
+export async function POST(req: NextRequest) {
+  const ipRl = checkRateLimit(getClientIp(req.headers), OTP_IP_LIMIT);
+  if (!ipRl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(ipRl.retryAfterSec) } },
+    );
+  }
+
   try {
     const body = (await req.json()) as { phone?: string; next?: string };
     const phoneInput = String(body?.phone || "").trim();
@@ -55,7 +66,7 @@ export async function POST(req: Request) {
     });
     if (recentSends.length >= 10) {
       return NextResponse.json(
-        { error: "Too many OTP requests. Try again after 24 hours." },
+        { error: "Too many OTP requests. Please try again later." },
         { status: 429 },
       );
     }
@@ -63,9 +74,8 @@ export async function POST(req: Request) {
     if (lastSend) {
       const secondsSinceLast = (Date.now() - lastSend.createdAt.getTime()) / 1000;
       if (secondsSinceLast < RESEND_WINDOW_SECONDS) {
-        const wait = Math.ceil(RESEND_WINDOW_SECONDS - secondsSinceLast);
         return NextResponse.json(
-          { error: `Please wait ${wait}s before requesting another code.` },
+          { error: "Too many OTP requests. Please try again later." },
           { status: 429 },
         );
       }

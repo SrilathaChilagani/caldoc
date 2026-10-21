@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requireOperationsSession } from "@/lib/auth.server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const session = await requireAdminSession();
+  const session = await requireOperationsSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const users = await prisma.labUser.findMany({
@@ -17,7 +17,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await requireAdminSession();
+  const session = await requireOperationsSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));

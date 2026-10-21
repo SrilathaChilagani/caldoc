@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requireOperationsSession } from "@/lib/auth.server";
 
 type Params = {
   params: Promise<{ reservationId: string }>;
 };
 
 export async function POST(_: Request, { params }: Params) {
-  const admin = await requireAdminSession();
+  const admin = await requireOperationsSession();
   if (!admin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireAdminSession } from "@/lib/auth.server";
+import { requireOperationsSession } from "@/lib/auth.server";
 import { getErrorMessage } from "@/lib/errors";
 
 type RouteContext = {
@@ -14,7 +14,7 @@ const PayloadSchema = z.object({
 
 export async function PATCH(req: NextRequest, ctx: RouteContext) {
   try {
-    const session = await requireAdminSession();
+    const session = await requireOperationsSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
