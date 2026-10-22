@@ -3,8 +3,9 @@ import { prisma } from "@/lib/db";
 import { requireCronAuth } from "@/lib/cronAuth";
 import * as Sentry from "@sentry/nextjs";
 
-// How long a PENDING appointment may sit before its slot is released.
-const ABANDON_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+export const dynamic = "force-dynamic";
+
+const ABANDON_TIMEOUT_MS = 15 * 60 * 1000;
 
 export async function GET(req: NextRequest) {
   const authError = requireCronAuth(req);

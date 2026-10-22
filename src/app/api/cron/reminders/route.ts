@@ -107,10 +107,13 @@ async function logOutboundMessage(opts: {
   });
 }
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const authError = requireCronAuth(req);
   if (authError) return authError;
 
+  try {
   const results = [];
 
   for (const job of JOBS) {
@@ -201,4 +204,8 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true, results });
+  } catch (err) {
+    console.error("[reminders] Error:", err);
+    return NextResponse.json({ error: "Reminders failed" }, { status: 500 });
+  }
 }
