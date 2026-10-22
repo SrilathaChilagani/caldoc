@@ -40,13 +40,28 @@
   - `src/app/emergency/confirmed/[id]/page.tsx` — "emergency consultation" → "urgent consultation", "Emergency — Pending" → "Urgent — Pending".
   - `src/app/page.tsx` — homepage button "Emergency Appointment" → "Urgent Consultation".
 
+## ✅ Done (added 2026-10-22 — cron route 500s fixed)
+- **Root cause found:** Next.js router threw "You cannot use different slug names for the
+  same dynamic path ('id' !== 'orderId')" at server startup due to two conflicting dynamic
+  segment pairs in the route tree. Crashed the serverless function in 11ms with
+  `FUNCTION_INVOCATION_FAILED` before any handler ran — affected ALL cron routes.
+- **Fix 1:** Deleted empty ghost directory `/api/appointments/[id]/` (conflicted with
+  `[appointmentId]`).
+- **Fix 2:** Renamed `/api/patient/rx-orders/[orderId]/prescription/` →
+  `/api/patient/rx-orders/[id]/prescription/`; updated internal param name; URL unchanged.
+- **Fix 3:** `automaticVercelMonitors: false` in `next.config.ts` (Sentry option explicitly
+  marked "does not work with App Router" — safe cleanup).
+- **Fix 4:** Added `export const dynamic = "force-dynamic"` and outer try/catch to
+  `cleanup-abandoned-bookings/route.ts` and `reminders/route.ts`.
+- Confirmed locally: `next build` clean, `GET /api/cron/warm` → HTTP 200 in production mode.
+- Deployed: commits `c8e1dde` + `c424baa` pushed to main 2026-10-22.
+
 ## 🚧 In Progress
-- Sprint 01: pre-production env hardening (secrets rotation).
+- Vercel deployment of `c424baa` in progress (started 2026-10-22T02:36:56Z).
 
 ## 🐞 Broken / Known Issues
-- **`CRON_SECRET=dev-please-change`** — HARD BLOCK: all cron jobs return 500 in production. Must rotate before deploy.
-- **`JWT_SECRET=some-long-random-string`** — HARD BLOCK: weak/guessable value; all portal tokens forgeable. Must rotate to 64+ char random value.
-- **Razorpay test keys** — `rzp_test_*` keys set in `.env.local`; must swap to live keys before accepting real payments.
+- **`JWT_SECRET=some-long-random-string`** — HARD BLOCK: weak/guessable value; all portal tokens forgeable. Must rotate to 64+ char random value in Vercel env.
+- **Razorpay test keys** — `rzp_test_*` keys set; must swap to live keys before accepting real payments.
 - **Vercel Pro plan required for hourly reminder cron (blocker)** — `0 * * * *` schedule in vercel.json requires Pro. Confirm before deploy.
 - **No health endpoint** — `/api/dev/health` dir exists but no `route.ts`; nothing to ping for uptime monitoring.
 - **`sendDefaultPii: true` in Sentry** — patient phone/name may appear in error payloads (PHI risk for telehealth context).
@@ -221,4 +236,4 @@ Full DB audit of all 42 models. Migration `20261014000003_production_schema_hard
 - **Sentry monitoring confirmed wired:** server + edge + client configs all init with DSN; `onRequestError = captureRequestError` in `instrumentation.ts`; manual `captureException` in payment routes.
 - **Production env checklist complete** — blockers documented in 🐞 section above.
 
-_Last updated: 2026-10-21 by Claude Code (E2E test pass, env checklist, auth hardening complete)_
+_Last updated: 2026-10-22 by Claude Code (cron route FUNCTION_INVOCATION_FAILED root-caused and fixed — dynamic slug conflict)_

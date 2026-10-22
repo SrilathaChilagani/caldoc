@@ -16,9 +16,6 @@ type SlotInfo = {
   feePaise?: number;
 };
 
-// Imported from src/config/redFlagSymptoms.ts — edit that file to change the list.
-// Red-flag symptoms (chest pain, breathing difficulty, etc.) are intentionally absent.
-
 type ClinicInfo = {
   id: string;
   clinicName: string;
@@ -59,17 +56,6 @@ type DeliveryForm = {
   instructions: string;
 };
 
-function formatSlotLabel(value: string) {
-  return new Date(value).toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 function formatSlotDate(value: string) {
   return new Date(value).toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -82,6 +68,17 @@ function formatSlotDate(value: string) {
 function formatSlotTime(value: string) {
   return new Date(value).toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function formatSlotLabel(value: string) {
+  return new Date(value).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
     hour: "numeric",
     minute: "2-digit",
   });
@@ -104,7 +101,6 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
   const embedParam = (searchParams.get("embed") || "").trim();
   const isEmbed = embedParam === "1" || embedParam === "true";
 
-  const [step, setStep] = useState<1 | 2>(1);
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [slotIndex, setSlotIndex] = useState(0);
   const [patientName, setPatientName] = useState("");
@@ -166,16 +162,20 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [followUpNote]);
 
-  const selectedSlotLabel = useMemo(() => {
-    const slot = upcomingSlots.find((s) => s.id === selectedSlot);
-    return slot ? formatSlotLabel(slot.startsAt) : "";
-  }, [upcomingSlots, selectedSlot]);
+  const selectedSlotInfo = useMemo(
+    () => upcomingSlots.find((s) => s.id === selectedSlot),
+    [upcomingSlots, selectedSlot],
+  );
+
+  const selectedSlotLabel = useMemo(
+    () => (selectedSlotInfo ? formatSlotLabel(selectedSlotInfo.startsAt) : ""),
+    [selectedSlotInfo],
+  );
 
   const selectedSlotFeePaise = useMemo(() => {
-    const slot = upcomingSlots.find((s) => s.id === selectedSlot);
-    if (slot?.feePaise && slot.feePaise > 0) return slot.feePaise;
+    if (selectedSlotInfo?.feePaise && selectedSlotInfo.feePaise > 0) return selectedSlotInfo.feePaise;
     return provider.defaultFeePaise ?? null;
-  }, [upcomingSlots, selectedSlot, provider.defaultFeePaise]);
+  }, [selectedSlotInfo, provider.defaultFeePaise]);
 
   const selectedSlotFeeLabel = useMemo(
     () => formatFeeFromPaise(selectedSlotFeePaise),
@@ -219,10 +219,10 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
         ? `${address.contactName || patientName} · ${address.line1}`
         : "Home delivery";
 
-  // ── Step 1 → Step 2 ──────────────────────────────────────
-  function handleConfirm() {
+  async function handleProceed() {
     if (!selectedSlot || !patientName.trim() || !patientPhone.trim()) {
       setError("Select a slot and enter the patient name and mobile number.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     if (!consentAccepted) {
@@ -240,13 +240,6 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
         return;
       }
     }
-    setError(null);
-    setStep(2);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  // ── Step 2 → Payment ─────────────────────────────────────
-  async function handleProceed() {
     try {
       setLoading(true);
       setError(null);
@@ -277,60 +270,9 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
     }
   }
 
-  // ── Shared: compact booking recap card ───────────────────
-  const BookingRecap = ({ editable }: { editable: boolean }) => (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Booking Summary</p>
-        {!editable && (
-          <button
-            type="button"
-            onClick={() => { setStep(1); setError(null); }}
-            className="text-xs font-semibold text-[#2f6ea5] hover:underline"
-          >
-            Edit
-          </button>
-        )}
-      </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Doctor</p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-900">{provider.name}</p>
-          <p className="text-xs text-slate-500">{provider.speciality}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Slot</p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-900">
-            {selectedSlotLabel || <span className="font-normal text-slate-400">Not selected</span>}
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Patient</p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-900">
-            {patientName.trim() || <span className="font-normal text-slate-400">—</span>}
-          </p>
-          <p className="text-xs font-mono text-slate-500">{patientPhone.trim()}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Visit</p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-900">{visitModeLabel}</p>
-          <p className="text-xs text-slate-500">{deliverySummary}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Fee</p>
-          <p className="mt-0.5 text-sm font-bold text-slate-900">
-            {selectedSlotFeeLabel ?? <span className="font-normal text-slate-400">—</span>}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-
-  // ═══════════════════════════════════════════════════════════
-  // STEP 1
-  // ═══════════════════════════════════════════════════════════
-  if (step === 1) return (
-    <div className="w-full px-6 lg:px-16 xl:px-24">
+  return (
+    <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16">
+      {/* Back link */}
       <Link
         href="/providers"
         className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
@@ -341,7 +283,8 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
         Back to doctors
       </Link>
 
-      <div className="mb-5 mt-3">
+      {/* Doctor header */}
+      <div className="mb-6 mt-3">
         <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl lg:text-3xl">
           Book {provider.name}{" "}
           <span className="text-base font-normal text-slate-500">· {provider.speciality}</span>
@@ -349,8 +292,6 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
         {provider.qualification && (
           <p className="mt-0.5 text-sm text-slate-500">{provider.qualification}</p>
         )}
-
-        {/* Registration — always shown; explicit pending state when absent */}
         {provider.registrationNumber ? (
           <p className="mt-1 flex items-center gap-1.5 text-xs text-emerald-700">
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -368,8 +309,6 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
             Registration: Pending verification
           </p>
         )}
-
-        {/* Languages */}
         {(provider.languages?.length ?? 0) > 0 && (
           <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
@@ -380,229 +319,361 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
         )}
       </div>
 
-      {/* Single-column form */}
-      <div className="space-y-6 max-w-3xl">
-
-        {/* Available slots */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Available Slots</h3>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handlePage("prev")}
-              disabled={!canPrev}
-              className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-600 disabled:opacity-40 hover:bg-slate-50"
-            >
-              ‹
-            </button>
-            <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-              {upcomingSlots.length === 0 && (
-                <p className="col-span-4 text-sm text-slate-500">No slots available right now. Please check back later.</p>
-              )}
-              {(pagedSlots.length ? pagedSlots : upcomingSlots).map((slot) => (
-                <button
-                  key={slot.id}
-                  type="button"
-                  onClick={() => setSelectedSlot(slot.id)}
-                  className={`rounded-xl border px-3 py-2.5 text-left transition-all duration-200 ${
-                    selectedSlot === slot.id
-                      ? "border-[#2f6ea5] bg-[#2f6ea5] shadow-sm"
-                      : "border-slate-200 bg-white hover:border-[#2f6ea5]/40"
-                  }`}
-                >
-                  <p className={`text-sm font-medium ${selectedSlot === slot.id ? "text-white" : "text-slate-900"}`}>
-                    {formatSlotDate(slot.startsAt)}
-                  </p>
-                  <p className={`text-xs ${selectedSlot === slot.id ? "text-white/80" : "text-slate-500"}`}>
-                    {formatSlotTime(slot.startsAt)} · {formatFeeFromPaise(slot.feePaise ?? provider.defaultFeePaise) ?? "TBD"}
-                  </p>
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => handlePage("next")}
-              disabled={!canNext}
-              className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-600 disabled:opacity-40 hover:bg-slate-50"
-            >
-              ›
-            </button>
-          </div>
+      {/* Follow-up context banner */}
+      {followUpNote && (
+        <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[#2f6ea5]/25 bg-[#e7edf3] px-4 py-3">
+          <svg viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 text-[#2f6ea5]" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+          </svg>
+          <p className="text-sm font-medium text-[#2f6ea5]">{followUpNote}</p>
         </div>
+      )}
 
-        {/* Patient Details */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Patient Details</h3>
-          <div className="mb-3 grid grid-cols-2 gap-2">
-            <label className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${bookingFor === "self" ? "border-[#2f6ea5] bg-[#2f6ea5]/5 text-[#2f6ea5]" : "border-slate-200 bg-white text-slate-600"}`}>
-              <input type="radio" name="bookingFor" value="self" checked={bookingFor === "self"} onChange={() => { setBookingFor("self"); setBookerPhone(""); }} className="accent-[#2f6ea5]" />
-              Myself
-            </label>
-            <label className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${bookingFor === "other" ? "border-[#2f6ea5] bg-[#2f6ea5]/5 text-[#2f6ea5]" : "border-slate-200 bg-white text-slate-600"}`}>
-              <input type="radio" name="bookingFor" value="other" checked={bookingFor === "other"} onChange={() => setBookingFor("other")} className="accent-[#2f6ea5]" />
-              Someone else
-            </label>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Patient full name</label>
-              <input
-                value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
-                className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Mobile number</label>
-              <input
-                value={patientPhone}
-                onChange={(e) => setPatientPhone(e.target.value)}
-                placeholder="+91 98765 43210"
-                className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
-              />
-            </div>
-          </div>
-          {bookingFor === "other" && (
-            <div className="mt-3">
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Your mobile number{" "}
-                <span className="text-xs font-normal text-slate-400">(optional — you'll also receive confirmation here)</span>
-              </label>
-              <input
-                value={bookerPhone}
-                onChange={(e) => setBookerPhone(e.target.value)}
-                placeholder="+91 or +1 for international"
-                className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
-              />
-            </div>
-          )}
-        </div>
+      {/* ── Two-column layout ── */}
+      <div className="grid gap-6 lg:grid-cols-5 lg:items-start">
 
-        {/* Visit Type */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Visit Type</h3>
-          <div className={`grid gap-2 ${hasInPerson ? "grid-cols-3" : "grid-cols-2"}`}>
-            <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 ${visitMode === "VIDEO" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white hover:border-[#2f6ea5]/40"}`}>
-              <div className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 ${visitMode === "VIDEO" ? "border-[#2f6ea5]" : "border-slate-400"}`}>
-                {visitMode === "VIDEO" && <div className="h-1.5 w-1.5 rounded-full bg-[#2f6ea5]" />}
+        {/* ── LEFT: form inputs (3 cols) ── */}
+        <div className="space-y-5 lg:col-span-3">
+
+          {/* Available Slots */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Available Slots</h3>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handlePage("prev")}
+                disabled={!canPrev}
+                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-600 disabled:opacity-40 hover:bg-slate-50"
+              >
+                ‹
+              </button>
+              <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                {upcomingSlots.length === 0 && (
+                  <p className="col-span-4 text-sm text-slate-500">No slots available right now. Please check back later.</p>
+                )}
+                {(pagedSlots.length ? pagedSlots : upcomingSlots).map((slot) => (
+                  <button
+                    key={slot.id}
+                    type="button"
+                    onClick={() => setSelectedSlot(slot.id)}
+                    className={`rounded-xl border px-3 py-2.5 text-left transition-all duration-200 ${
+                      selectedSlot === slot.id
+                        ? "border-[#2f6ea5] bg-[#2f6ea5] shadow-sm"
+                        : "border-slate-200 bg-white hover:border-[#2f6ea5]/40"
+                    }`}
+                  >
+                    <p className={`text-sm font-medium ${selectedSlot === slot.id ? "text-white" : "text-slate-900"}`}>
+                      {formatSlotDate(slot.startsAt)}
+                    </p>
+                    <p className={`text-xs ${selectedSlot === slot.id ? "text-white/80" : "text-slate-500"}`}>
+                      {formatSlotTime(slot.startsAt)} · {formatFeeFromPaise(slot.feePaise ?? provider.defaultFeePaise) ?? "TBD"}
+                    </p>
+                  </button>
+                ))}
               </div>
-              <input type="radio" name="visitMode" value="VIDEO" checked={visitMode === "VIDEO"} onChange={() => setVisitMode("VIDEO")} className="sr-only" />
-              <svg className={`h-3.5 w-3.5 ${visitMode === "VIDEO" ? "text-[#2f6ea5]" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="m22 8-6 4 6 4V8z" /><rect x="2" y="6" width="14" height="12" rx="2" />
-              </svg>
-              <span className={`text-sm ${visitMode === "VIDEO" ? "font-medium text-slate-900" : "text-slate-600"}`}>Video call</span>
-            </label>
-            <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 ${visitMode === "AUDIO" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white hover:border-[#2f6ea5]/40"}`}>
-              <div className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 ${visitMode === "AUDIO" ? "border-[#2f6ea5]" : "border-slate-400"}`}>
-                {visitMode === "AUDIO" && <div className="h-1.5 w-1.5 rounded-full bg-[#2f6ea5]" />}
-              </div>
-              <input type="radio" name="visitMode" value="AUDIO" checked={visitMode === "AUDIO"} onChange={() => setVisitMode("AUDIO")} className="sr-only" />
-              <svg className={`h-3.5 w-3.5 ${visitMode === "AUDIO" ? "text-[#2f6ea5]" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.7 12.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-              </svg>
-              <span className={`text-sm ${visitMode === "AUDIO" ? "font-medium text-slate-900" : "text-slate-600"}`}>Audio-only</span>
-            </label>
-            {hasInPerson && (
-              <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 ${visitMode === "IN_PERSON" ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-emerald-300"}`}>
-                <div className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 ${visitMode === "IN_PERSON" ? "border-emerald-600" : "border-slate-400"}`}>
-                  {visitMode === "IN_PERSON" && <div className="h-1.5 w-1.5 rounded-full bg-emerald-600" />}
-                </div>
-                <input type="radio" name="visitMode" value="IN_PERSON" checked={visitMode === "IN_PERSON"} onChange={() => setVisitMode("IN_PERSON")} className="sr-only" />
-                <svg className={`h-3.5 w-3.5 ${visitMode === "IN_PERSON" ? "text-emerald-600" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
-                </svg>
-                <span className={`text-sm ${visitMode === "IN_PERSON" ? "font-medium text-slate-900" : "text-slate-600"}`}>In-person</span>
+              <button
+                type="button"
+                onClick={() => handlePage("next")}
+                disabled={!canNext}
+                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-600 disabled:opacity-40 hover:bg-slate-50"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+
+          {/* Patient Details */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Patient Details</h3>
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              <label className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${bookingFor === "self" ? "border-[#2f6ea5] bg-[#2f6ea5]/5 text-[#2f6ea5]" : "border-slate-200 bg-white text-slate-600"}`}>
+                <input type="radio" name="bookingFor" value="self" checked={bookingFor === "self"} onChange={() => { setBookingFor("self"); setBookerPhone(""); }} className="accent-[#2f6ea5]" />
+                Myself
               </label>
+              <label className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${bookingFor === "other" ? "border-[#2f6ea5] bg-[#2f6ea5]/5 text-[#2f6ea5]" : "border-slate-200 bg-white text-slate-600"}`}>
+                <input type="radio" name="bookingFor" value="other" checked={bookingFor === "other"} onChange={() => setBookingFor("other")} className="accent-[#2f6ea5]" />
+                Someone else
+              </label>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Patient full name</label>
+                <input
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Mobile number</label>
+                <input
+                  value={patientPhone}
+                  onChange={(e) => setPatientPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
+                />
+              </div>
+            </div>
+            {bookingFor === "other" && (
+              <div className="mt-3">
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Your mobile number{" "}
+                  <span className="text-xs font-normal text-slate-400">(optional — you'll also receive confirmation here)</span>
+                </label>
+                <input
+                  value={bookerPhone}
+                  onChange={(e) => setBookerPhone(e.target.value)}
+                  placeholder="+91 or +1 for international"
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
+                />
+              </div>
             )}
           </div>
-          {visitMode === "IN_PERSON" && provider.clinics && provider.clinics.length > 0 && (
-            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-              <p className="text-xs font-semibold text-emerald-800 mb-1">Clinic location</p>
-              {provider.clinics.map((c) => (
-                <div key={c.id} className="text-sm text-emerald-900">
-                  <p className="font-medium">{c.clinicName}</p>
-                  <p className="text-xs text-emerald-700">{c.addressLine1}{c.addressLine2 ? `, ${c.addressLine2}` : ""}</p>
-                  <p className="text-xs text-emerald-700">{c.city}, {c.state} – {c.pincode}</p>
-                  {c.phone && <p className="text-xs text-emerald-700">📞 {c.phone}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Prescription Delivery */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Prescription Delivery</h3>
-          <div className="space-y-2">
-            <label className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition-all ${deliveryOpt === "PHONE" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white"}`}>
-              <input type="radio" name="delivery" checked={deliveryOpt === "PHONE"} onChange={() => setDeliveryOpt("PHONE")} className="mt-0.5 accent-[#2f6ea5]" />
-              <div>
-                <p className="text-sm font-medium text-slate-900">Send to phone / WhatsApp</p>
-                <p className="text-xs text-slate-500">Prescription link shared to patient mobile number.</p>
-              </div>
-            </label>
-            <label className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition-all ${deliveryOpt === "DELIVERY" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white"}`}>
-              <input type="radio" name="delivery" checked={deliveryOpt === "DELIVERY"} onChange={() => setDeliveryOpt("DELIVERY")} className="mt-0.5 accent-[#2f6ea5]" />
-              <div className="w-full">
-                <p className="text-sm font-medium text-slate-900">Request home delivery</p>
-                <p className="text-xs text-slate-500">Courier delivery (subject to availability).</p>
-                {deliveryOpt === "DELIVERY" && (
-                  <div className="mt-3 grid gap-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      <input placeholder="Contact name" value={address.contactName} onChange={(e) => setAddress((p) => ({ ...p, contactName: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
-                      <input placeholder="Phone" value={address.contactPhone} onChange={(e) => setAddress((p) => ({ ...p, contactPhone: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
-                    </div>
-                    <input placeholder="Address line 1" value={address.line1} onChange={(e) => setAddress((p) => ({ ...p, line1: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
-                    <input placeholder="Address line 2 (optional)" value={address.line2} onChange={(e) => setAddress((p) => ({ ...p, line2: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
-                    <div className="grid grid-cols-3 gap-2">
-                      <input placeholder="City" value={address.city} onChange={(e) => setAddress((p) => ({ ...p, city: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
-                      <input placeholder="State" value={address.state} onChange={(e) => setAddress((p) => ({ ...p, state: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
-                      <input placeholder="PIN code" value={address.postalCode} onChange={(e) => setAddress((p) => ({ ...p, postalCode: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
-                    </div>
-                    <input placeholder="Delivery instructions (optional)" value={address.instructions} onChange={(e) => setAddress((p) => ({ ...p, instructions: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
+          {/* Visit Type */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Visit Type</h3>
+            <div className={`grid gap-2 ${hasInPerson ? "grid-cols-3" : "grid-cols-2"}`}>
+              <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 ${visitMode === "VIDEO" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white hover:border-[#2f6ea5]/40"}`}>
+                <div className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 ${visitMode === "VIDEO" ? "border-[#2f6ea5]" : "border-slate-400"}`}>
+                  {visitMode === "VIDEO" && <div className="h-1.5 w-1.5 rounded-full bg-[#2f6ea5]" />}
+                </div>
+                <input type="radio" name="visitMode" value="VIDEO" checked={visitMode === "VIDEO"} onChange={() => setVisitMode("VIDEO")} className="sr-only" />
+                <svg className={`h-3.5 w-3.5 ${visitMode === "VIDEO" ? "text-[#2f6ea5]" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="m22 8-6 4 6 4V8z" /><rect x="2" y="6" width="14" height="12" rx="2" />
+                </svg>
+                <span className={`text-sm ${visitMode === "VIDEO" ? "font-medium text-slate-900" : "text-slate-600"}`}>Video call</span>
+              </label>
+              <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 ${visitMode === "AUDIO" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white hover:border-[#2f6ea5]/40"}`}>
+                <div className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 ${visitMode === "AUDIO" ? "border-[#2f6ea5]" : "border-slate-400"}`}>
+                  {visitMode === "AUDIO" && <div className="h-1.5 w-1.5 rounded-full bg-[#2f6ea5]" />}
+                </div>
+                <input type="radio" name="visitMode" value="AUDIO" checked={visitMode === "AUDIO"} onChange={() => setVisitMode("AUDIO")} className="sr-only" />
+                <svg className={`h-3.5 w-3.5 ${visitMode === "AUDIO" ? "text-[#2f6ea5]" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.7 12.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                <span className={`text-sm ${visitMode === "AUDIO" ? "font-medium text-slate-900" : "text-slate-600"}`}>Audio-only</span>
+              </label>
+              {hasInPerson && (
+                <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 ${visitMode === "IN_PERSON" ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-emerald-300"}`}>
+                  <div className={`flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 ${visitMode === "IN_PERSON" ? "border-emerald-600" : "border-slate-400"}`}>
+                    {visitMode === "IN_PERSON" && <div className="h-1.5 w-1.5 rounded-full bg-emerald-600" />}
                   </div>
-                )}
+                  <input type="radio" name="visitMode" value="IN_PERSON" checked={visitMode === "IN_PERSON"} onChange={() => setVisitMode("IN_PERSON")} className="sr-only" />
+                  <svg className={`h-3.5 w-3.5 ${visitMode === "IN_PERSON" ? "text-emerald-600" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
+                  </svg>
+                  <span className={`text-sm ${visitMode === "IN_PERSON" ? "font-medium text-slate-900" : "text-slate-600"}`}>In-person</span>
+                </label>
+              )}
+            </div>
+            {visitMode === "IN_PERSON" && provider.clinics && provider.clinics.length > 0 && (
+              <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                <p className="text-xs font-semibold text-emerald-800 mb-1">Clinic location</p>
+                {provider.clinics.map((c) => (
+                  <div key={c.id} className="text-sm text-emerald-900">
+                    <p className="font-medium">{c.clinicName}</p>
+                    <p className="text-xs text-emerald-700">{c.addressLine1}{c.addressLine2 ? `, ${c.addressLine2}` : ""}</p>
+                    <p className="text-xs text-emerald-700">{c.city}, {c.state} – {c.pincode}</p>
+                    {c.phone && <p className="text-xs text-emerald-700">📞 {c.phone}</p>}
+                  </div>
+                ))}
               </div>
+            )}
+          </div>
+
+          {/* Prescription Delivery */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Prescription Delivery</h3>
+            <div className="space-y-2">
+              <label className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition-all ${deliveryOpt === "PHONE" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white"}`}>
+                <input type="radio" name="delivery" checked={deliveryOpt === "PHONE"} onChange={() => setDeliveryOpt("PHONE")} className="mt-0.5 accent-[#2f6ea5]" />
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Send to phone / WhatsApp</p>
+                  <p className="text-xs text-slate-500">Prescription link shared to patient mobile number.</p>
+                </div>
+              </label>
+              <label className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition-all ${deliveryOpt === "DELIVERY" ? "border-[#2f6ea5] bg-[#2f6ea5]/5" : "border-slate-200 bg-white"}`}>
+                <input type="radio" name="delivery" checked={deliveryOpt === "DELIVERY"} onChange={() => setDeliveryOpt("DELIVERY")} className="mt-0.5 accent-[#2f6ea5]" />
+                <div className="w-full">
+                  <p className="text-sm font-medium text-slate-900">Request home delivery</p>
+                  <p className="text-xs text-slate-500">Courier delivery (subject to availability).</p>
+                  {deliveryOpt === "DELIVERY" && (
+                    <div className="mt-3 grid gap-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <input placeholder="Contact name" value={address.contactName} onChange={(e) => setAddress((p) => ({ ...p, contactName: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
+                        <input placeholder="Phone" value={address.contactPhone} onChange={(e) => setAddress((p) => ({ ...p, contactPhone: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
+                      </div>
+                      <input placeholder="Address line 1" value={address.line1} onChange={(e) => setAddress((p) => ({ ...p, line1: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
+                      <input placeholder="Address line 2 (optional)" value={address.line2} onChange={(e) => setAddress((p) => ({ ...p, line2: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
+                      <div className="grid grid-cols-3 gap-2">
+                        <input placeholder="City" value={address.city} onChange={(e) => setAddress((p) => ({ ...p, city: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
+                        <input placeholder="State" value={address.state} onChange={(e) => setAddress((p) => ({ ...p, state: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
+                        <input placeholder="PIN code" value={address.postalCode} onChange={(e) => setAddress((p) => ({ ...p, postalCode: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
+                      </div>
+                      <input placeholder="Delivery instructions (optional)" value={address.instructions} onChange={(e) => setAddress((p) => ({ ...p, instructions: e.target.value }))} className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none" />
+                    </div>
+                  )}
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Consent */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={consentAccepted}
+                onChange={(e) => setConsentAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-[#2f6ea5]"
+              />
+              <span className="text-xs leading-relaxed text-slate-600">
+                {CONSENT_TEXT} Read our{" "}
+                <button type="button" onClick={() => setPolicyModal("disclaimer")} className="text-[#2f6ea5] hover:underline">
+                  disclaimer
+                </button>{" "}
+                and{" "}
+                <button type="button" onClick={() => setPolicyModal("terms")} className="text-[#2f6ea5] hover:underline">
+                  terms of service
+                </button>.
+              </span>
             </label>
           </div>
         </div>
 
-        {/* Consent */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <label className="flex cursor-pointer items-start gap-3">
-            <input
-              type="checkbox"
-              checked={consentAccepted}
-              onChange={(e) => setConsentAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-[#2f6ea5]"
+        {/* ── RIGHT: live summary + symptoms + notes + CTA (2 cols) ── */}
+        <div className="space-y-5 lg:col-span-2 lg:sticky lg:top-4">
+
+          {/* Live Booking Summary */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Booking Summary</p>
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 w-16 shrink-0 pt-0.5">Doctor</span>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-slate-900">{provider.name}</p>
+                  <p className="text-xs text-slate-500">{provider.speciality}</p>
+                </div>
+              </div>
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 w-16 shrink-0 pt-0.5">Slot</span>
+                <p className="text-sm font-semibold text-slate-900 text-right">
+                  {selectedSlotLabel || <span className="font-normal text-slate-400">Not selected</span>}
+                </p>
+              </div>
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 w-16 shrink-0 pt-0.5">Patient</span>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-slate-900">
+                    {patientName.trim() || <span className="font-normal text-slate-400">—</span>}
+                  </p>
+                  {patientPhone.trim() && <p className="text-xs font-mono text-slate-500">{patientPhone.trim()}</p>}
+                </div>
+              </div>
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 w-16 shrink-0 pt-0.5">Visit</span>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-slate-900">{visitModeLabel}</p>
+                  <p className="text-xs text-slate-500">{deliverySummary}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 w-16 shrink-0">Fee</span>
+                <p className="text-base font-bold text-slate-900">
+                  {selectedSlotFeeLabel ?? <span className="text-sm font-normal text-slate-400">—</span>}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Red-flag guard */}
+          <RedFlagBanner triggeredSymptoms={triggeredSymptoms} className="rounded-2xl" />
+
+          {/* Common Symptoms */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="mb-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Common Symptoms</h3>
+              <p className="mt-1 text-xs text-slate-500">Select all that apply.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {BOOKING_SYMPTOMS.map((symptom) => {
+                const isActive = selectedSymptoms.includes(symptom);
+                return (
+                  <label
+                    key={symptom}
+                    className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm transition ${
+                      isActive ? "border-[#2f6ea5] bg-[#e7edf3] text-[#1e4d77]" : "border-slate-200 bg-white text-slate-600 hover:border-[#2f6ea5]/40"
+                    }`}
+                  >
+                    <input type="checkbox" checked={isActive} onChange={() => toggleSymptom(symptom)} className="rounded border-slate-300 accent-[#2f6ea5]" />
+                    {symptom}
+                  </label>
+                );
+              })}
+              <label className={`col-span-2 flex cursor-pointer flex-col rounded-xl border px-3 py-2.5 text-sm transition ${selectedSymptoms.includes("Other") ? "border-[#2f6ea5] bg-[#e7edf3] text-[#1e4d77]" : "border-slate-200 bg-white text-slate-600 hover:border-[#2f6ea5]/40"}`}>
+                <span className="flex items-center gap-2">
+                  <input type="checkbox" checked={selectedSymptoms.includes("Other")} onChange={() => toggleSymptom("Other")} className="rounded border-slate-300 accent-[#2f6ea5]" />
+                  Other
+                </span>
+                {selectedSymptoms.includes("Other") && (
+                  <input
+                    value={otherSymptom}
+                    onChange={(e) => setOtherSymptom(e.target.value)}
+                    placeholder="Describe other symptoms"
+                    className="mt-2 w-full rounded-lg border border-[#2f6ea5]/20 px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
+                  />
+                )}
+              </label>
+            </div>
+            <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
+              <svg viewBox="0 0 24 24" className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                <path d="M12 9v4M12 17h.01" />
+              </svg>
+              <span>
+                For chest pain, breathing difficulty, or any life-threatening symptoms — call{" "}
+                <a href="tel:112" className="font-bold underline underline-offset-2">112</a> immediately or use our{" "}
+                <a href="/emergency" className="font-semibold underline underline-offset-2">Urgent Consultation</a> service.
+              </span>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Notes (Optional)</h3>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              placeholder="Symptoms, duration, or any remarks for the doctor…"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
             />
-            <span className="text-xs leading-relaxed text-slate-600">
-              {CONSENT_TEXT} Read our{" "}
-              <button type="button" onClick={() => setPolicyModal("disclaimer")} className="text-[#2f6ea5] hover:underline">
-                disclaimer
-              </button>{" "}
-              and{" "}
-              <button type="button" onClick={() => setPolicyModal("terms")} className="text-[#2f6ea5] hover:underline">
-                terms of service
-              </button>.
-            </span>
-          </label>
+          </div>
+
+          {error && (
+            <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
+          )}
+
+          {/* Proceed to payment */}
+          <button
+            type="button"
+            onClick={handleProceed}
+            disabled={loading || redFlagBlocked}
+            title={redFlagBlocked ? "Please address the safety warning above before proceeding" : undefined}
+            className="w-full rounded-xl bg-[#2f6ea5] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? "Creating booking…" : "Proceed to payment →"}
+          </button>
+          {redFlagBlocked && (
+            <p className="text-center text-xs text-rose-600">
+              Please call 112 or remove the life-threatening symptoms above to continue.
+            </p>
+          )}
         </div>
-
-        {error && (
-          <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
-        )}
-
-        {/* Confirm booking button */}
-        <button
-          type="button"
-          onClick={handleConfirm}
-          className="w-full rounded-xl bg-[#2f6ea5] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b] transition-colors"
-        >
-          Confirm booking →
-        </button>
       </div>
 
+      {/* Policy modal */}
       {policyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 px-4 backdrop-blur-sm">
           <div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-100">
@@ -622,135 +693,6 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
           </div>
         </div>
       )}
-    </div>
-  );
-
-  // ═══════════════════════════════════════════════════════════
-  // STEP 2 — Symptoms & Notes
-  // ═══════════════════════════════════════════════════════════
-  return (
-    <div className="w-full px-6 lg:px-16 xl:px-24">
-      <button
-        type="button"
-        onClick={() => { setStep(1); setError(null); }}
-        className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
-      >
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M15 18l-6-6 6-6" />
-        </svg>
-        Back to booking
-      </button>
-
-      <div className="mb-5 mt-3">
-        <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl lg:text-3xl">
-          Tell us about your visit
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Help the doctor prepare — select any symptoms and add notes before payment.
-        </p>
-      </div>
-
-      {/* Follow-up context banner */}
-      {followUpNote && (
-        <div className="mb-5 flex items-start gap-3 rounded-2xl border border-[#2f6ea5]/25 bg-[#e7edf3] px-4 py-3">
-          <svg viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 text-[#2f6ea5]" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
-          </svg>
-          <p className="text-sm font-medium text-[#2f6ea5]">{followUpNote}</p>
-        </div>
-      )}
-
-      {/* Read-only booking recap */}
-      <BookingRecap editable={false} />
-
-      <div className="space-y-6 max-w-3xl">
-
-        {/* Red-flag guard — monitors free text for dangerous keywords */}
-        <RedFlagBanner triggeredSymptoms={triggeredSymptoms} className="rounded-2xl" />
-
-        {/* Common Symptoms */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="mb-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Common Symptoms</h3>
-            <p className="mt-1 text-xs text-slate-500">Select all that apply.</p>
-          </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {BOOKING_SYMPTOMS.map((symptom) => {
-              const isActive = selectedSymptoms.includes(symptom);
-              return (
-                <label
-                  key={symptom}
-                  className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm transition ${
-                    isActive ? "border-[#2f6ea5] bg-[#e7edf3] text-[#1e4d77]" : "border-slate-200 bg-white text-slate-600 hover:border-[#2f6ea5]/40"
-                  }`}
-                >
-                  <input type="checkbox" checked={isActive} onChange={() => toggleSymptom(symptom)} className="rounded border-slate-300 accent-[#2f6ea5]" />
-                  {symptom}
-                </label>
-              );
-            })}
-            <label className={`flex cursor-pointer flex-col rounded-xl border px-3 py-2.5 text-sm transition col-span-2 sm:col-span-1 ${selectedSymptoms.includes("Other") ? "border-[#2f6ea5] bg-[#e7edf3] text-[#1e4d77]" : "border-slate-200 bg-white text-slate-600 hover:border-[#2f6ea5]/40"}`}>
-              <span className="flex items-center gap-2">
-                <input type="checkbox" checked={selectedSymptoms.includes("Other")} onChange={() => toggleSymptom("Other")} className="rounded border-slate-300 accent-[#2f6ea5]" />
-                Other
-              </span>
-              {selectedSymptoms.includes("Other") && (
-                <input
-                  value={otherSymptom}
-                  onChange={(e) => setOtherSymptom(e.target.value)}
-                  placeholder="Describe other symptoms"
-                  className="mt-2 w-full rounded-lg border border-[#2f6ea5]/20 px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none"
-                />
-              )}
-            </label>
-          </div>
-
-          {/* Static callout — always visible, non-blocking */}
-          <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
-            <svg viewBox="0 0 24 24" className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-              <path d="M12 9v4M12 17h.01" />
-            </svg>
-            <span>
-              For chest pain, breathing difficulty, or any life-threatening symptoms — call{" "}
-              <a href="tel:112" className="font-bold underline underline-offset-2">112</a> immediately or use our{" "}
-              <a href="/emergency" className="font-semibold underline underline-offset-2">Urgent Consultation</a> service.
-            </span>
-          </div>
-        </div>
-
-        {/* Notes */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#2f6ea5]">Notes (Optional)</h3>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={4}
-            placeholder="Symptoms, duration, or any remarks for the doctor…"
-            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
-          />
-        </div>
-
-        {error && (
-          <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
-        )}
-
-        {/* Proceed to payment — blocked when red-flag symptoms detected in free text */}
-        <button
-          type="button"
-          onClick={handleProceed}
-          disabled={loading || redFlagBlocked}
-          title={redFlagBlocked ? "Please address the safety warning above before proceeding" : undefined}
-          className="w-full rounded-xl bg-[#2f6ea5] py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#255b8b] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? "Creating booking…" : "Proceed to payment →"}
-        </button>
-        {redFlagBlocked && (
-          <p className="text-center text-xs text-rose-600">
-            Please call 112 or remove the life-threatening symptoms above to continue.
-          </p>
-        )}
-      </div>
     </div>
   );
 }

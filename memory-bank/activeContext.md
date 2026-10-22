@@ -116,20 +116,60 @@ All unauthenticated public endpoint audit findings have been resolved (rate limi
 - `requireFrontDeskSession()` returns `providerIds: null` (admin) | `[]` (no clinics) | `["id"]` (scoped)
 - Frontdesk calendar, appointment reschedule, lab/rx order status routes all scoped
 
+## Cron Routes Fixed (2026-10-22)
+
+### Root cause (found and fixed)
+All `/api/cron/*` routes were returning `FUNCTION_INVOCATION_FAILED` (11ms, zero outgoing
+requests) on Vercel. The Next.js router threw:
+
+> "You cannot use different slug names for the same dynamic path ('id' !== 'orderId')"
+
+as an unhandled rejection at server startup, crashing the serverless function before any
+request handler ran. Two conflicting dynamic segment pairs:
+
+1. `/api/appointments/[appointmentId]/` vs `/api/appointments/[id]/` — the `[id]` dir was
+   empty (ghost dir); deleted.
+2. `/api/patient/rx-orders/[id]/` vs `/api/patient/rx-orders/[orderId]/` — `[orderId]/prescription/`
+   moved into `[id]/prescription/`; internal param renamed from `orderId` to `id`; URL unchanged.
+
+### Commits pushed
+- `c8e1dde` — `automaticVercelMonitors: false` + `force-dynamic` + outer try/catch for two cron routes
+- `c424baa` — dynamic slug conflict fix (the real root cause)
+
+Both pushed to main; Vercel deployment in progress as of 2026-10-22.
+
+### Verified locally
+Production build (`next build` + `next start`) confirms:
+- No router startup crash
+- `GET /api/cron/warm` → HTTP 200 `{"ok":true,"dbMs":2108,"attempts":1}`
+
+## Booking Page Redesign — COMPLETED (2026-10-22)
+
+Combined the 2-step booking wizard into a single side-by-side page.
+
+### What changed
+- **`src/app/book/[providerId]/ui/BookClient.tsx`** — full rewrite
+  - Removed `step` state, `setStep`, and `handleConfirm()` entirely
+  - Layout: `lg:grid-cols-5` — left 3 cols (form), right 2 cols (sticky summary + CTA)
+  - Left column: slot picker, patient details (Myself/Someone else), visit type, prescription delivery, consent
+  - Right column: live booking summary (updates reactively as user fills form), symptoms checklist, notes textarea, error message, "Proceed to payment →" button
+  - Validation from old `handleConfirm` merged into `handleProceed`
+  - `BookingRecap` subcomponent eliminated — replaced with inline summary rows in the right panel
+  - Mobile: single-column stack (left first, right second)
+  - Right column is `lg:sticky lg:top-4` so summary stays visible as user scrolls the form
+
 ## Next Action
-All P0 items from the auth/security hardening sprint are complete.
+Deploy to Vercel; test end-to-end booking flow on production.
 
-**Hard blockers before any production deploy:**
-1. Rotate `CRON_SECRET` — current value `dev-please-change` is explicitly blocked by `cronAuth.ts` in production → all cron jobs return 500.
-2. Rotate `JWT_SECRET` — current value `some-long-random-string` is weak/guessable → all portal tokens can be forged.
-3. Swap Razorpay test keys (`rzp_test_*`) to live keys.
+**Remaining hard blockers before real-money production use:**
+1. Rotate `JWT_SECRET` in Vercel env — current value `some-long-random-string` is weak.
+2. Swap Razorpay test keys (`rzp_test_*`) to live keys.
 
-**Lower priority before deploy:**
-- Add `GET /api/health` endpoint (no health endpoint exists; `/api/dev/health` dir has only `.DS_Store`).
-- Consider `sendDefaultPii: false` in Sentry configs (`sentry.server.config.ts`, `sentry.edge.config.ts`, `instrumentation-client.ts`) — patient phones/names may appear in error reports.
-- `META_WEBHOOK_VERIFY_TOKEN=abc123` is a placeholder — weak webhook verify token.
+**Lower priority:**
+- Add `GET /api/health` endpoint.
+- Consider `sendDefaultPii: false` in Sentry (PHI risk).
+- `META_WEBHOOK_VERIFY_TOKEN=abc123` is a weak placeholder.
 - `PROVIDER_CONFIRM_SECRET=a-long-random-string` is a placeholder.
-- `ADMIN_PHONE`, `RESEND_API_KEY`, `LABS_ADMIN_PHONE` missing → enrollment emails and WhatsApp admin notifications silently skipped.
 
 ## Blockers
-- None (all code issues resolved; remaining items are env/ops).
+- None (code issues resolved; remaining items are env/ops).
