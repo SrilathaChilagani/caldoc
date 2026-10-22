@@ -36,15 +36,45 @@ export default async function VisitPage({ params, searchParams }: Props) {
   const fromParam = sp.from === "provider" ? "provider" : null;
   const backHref = fromParam ? "/provider/appointments" : "/";
 
-  const appt = await prisma.appointment.findUnique({
-    where: { id },
-    include: {
-      provider: true,
-      patient: true,
-      slot: { select: { startsAt: true } },
-      payment: { select: { status: true } },
-    },
-  });
+  let appt;
+  try {
+    appt = await prisma.appointment.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        patientId: true,
+        patientName: true,
+        providerId: true,
+        slotId: true,
+        status: true,
+        videoRoom: true,
+        recordingKey: true,
+        deliveryOpt: true,
+        visitMode: true,
+        feePaise: true,
+        feeCurrency: true,
+        createdAt: true,
+        provider: {
+          select: {
+            name: true,
+            speciality: true,
+            qualification: true,
+            registrationNumber: true,
+            councilName: true,
+            phone: true,
+          },
+        },
+        patient: {
+          select: { name: true, phone: true },
+        },
+        slot: { select: { startsAt: true } },
+        payment: { select: { status: true } },
+      },
+    });
+  } catch (err) {
+    console.error("[visit] DB error:", err);
+    throw err;
+  }
 
   if (!appt) {
     return (

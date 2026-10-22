@@ -28,8 +28,8 @@ const nextConfig: NextConfig = {
               "default-src 'self'; " +
               // scripts (Daily + Razorpay + inline for Next)
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.daily.co https://checkout.razorpay.com https://*.razorpay.com; " +
-              // XHR/WebSocket/fetch endpoints
-              "connect-src 'self' https://api.daily.co https://*.daily.co https://api.razorpay.com https://*.razorpay.com; " +
+              // XHR/WebSocket/fetch endpoints (Sentry ingest added for error reporting)
+              "connect-src 'self' https://api.daily.co https://*.daily.co https://api.razorpay.com https://*.razorpay.com https://*.sentry.io https://o4510435135324160.ingest.us.sentry.io; " +
               // iframes (Daily meeting + Razorpay checkout)
               "frame-src 'self' https://*.daily.co https://checkout.razorpay.com https://*.razorpay.com; " +
               // images (logos from gateways + Next.js image optimization + OpenStreetMap tiles)
