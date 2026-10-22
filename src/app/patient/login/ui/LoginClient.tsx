@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 const OTP_COOLDOWN_SECONDS = Number(process.env.NEXT_PUBLIC_PATIENT_OTP_COOLDOWN ?? "60");
@@ -18,8 +18,13 @@ export default function LoginClient({ next, initialPhone }: Props) {
 
   const [mode, setMode] = useState<Mode>("signin");
   const [step, setStep] = useState<"details" | "otp">("details");
-  const [phone, setPhone] = useState(initialPhone || "");
+  const [countryCode, setCountryCode] = useState("+91");
+  const [localPhone, setLocalPhone] = useState("");
   const [otp, setOtp] = useState("");
+  const phone = useMemo(
+    () => `${countryCode}${localPhone.replace(/\D/g, "")}`,
+    [countryCode, localPhone],
+  );
   const [cooldown, setCooldown] = useState(0);
   const [prefillRequested, setPrefillRequested] = useState(false);
 
@@ -123,17 +128,26 @@ export default function LoginClient({ next, initialPhone }: Props) {
 
   useEffect(() => {
     if (!initialPhone) return;
-    setPhone(initialPhone);
+    const digits = initialPhone.replace(/\D/g, "");
+    if (initialPhone.startsWith("+1") || (digits.length === 11 && digits.startsWith("1"))) {
+      setCountryCode("+1");
+      setLocalPhone(digits.slice(1));
+    } else if (initialPhone.startsWith("+91") || (digits.length === 12 && digits.startsWith("91"))) {
+      setCountryCode("+91");
+      setLocalPhone(digits.slice(2));
+    } else {
+      setLocalPhone(digits || initialPhone);
+    }
   }, [initialPhone]);
 
   // Auto-send OTP when a phone is prefilled (sign-in only).
   useEffect(() => {
-    if (mode !== "signin" || !initialPhone || prefillRequested || step !== "details" || !phone)
+    if (mode !== "signin" || !initialPhone || prefillRequested || step !== "details" || !localPhone)
       return;
     setPrefillRequested(true);
     requestOtp().catch(() => setPrefillRequested(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialPhone, phone, prefillRequested, step, mode]);
+  }, [initialPhone, localPhone, prefillRequested, step, mode]);
 
   function switchMode(m: Mode) {
     setMode(m);
@@ -248,18 +262,28 @@ export default function LoginClient({ next, initialPhone }: Props) {
               </div>
             </>
           )}
-          <label className="block text-sm font-medium text-slate-700">
+          <div className="block text-sm font-medium text-slate-700">
             Mobile number
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              type="tel"
-              autoComplete="tel"
-              className={inputCls}
-              placeholder="+91 9876543210  or  +1 2025551234"
-              required
-            />
-          </label>
+            <div className="mt-1 flex overflow-hidden rounded-xl border border-slate-300 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-200">
+              <select
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className="shrink-0 border-r border-slate-300 bg-white py-2 pl-3 pr-2 text-sm text-slate-800 focus:outline-none"
+              >
+                <option value="+91">🇮🇳 +91</option>
+                <option value="+1">🇺🇸 +1</option>
+              </select>
+              <input
+                value={localPhone}
+                onChange={(e) => setLocalPhone(e.target.value)}
+                type="tel"
+                autoComplete="tel"
+                className="flex-1 bg-white px-3 py-2 text-sm focus:outline-none"
+                placeholder={countryCode === "+91" ? "9876543210" : "2025551234"}
+                required
+              />
+            </div>
+          </div>
           <button
             type="submit"
             disabled={loading || cooldown > 0}

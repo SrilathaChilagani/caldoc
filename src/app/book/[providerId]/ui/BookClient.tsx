@@ -104,6 +104,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [slotIndex, setSlotIndex] = useState(0);
   const [patientName, setPatientName] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
   const [patientPhone, setPatientPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [consentAccepted, setConsentAccepted] = useState(false);
@@ -116,6 +117,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
   const [deliveryOpt, setDeliveryOpt] = useState<"PHONE" | "DELIVERY">("PHONE");
   const [policyModal, setPolicyModal] = useState<null | "disclaimer" | "terms">(null);
   const [bookingFor, setBookingFor] = useState<"self" | "other">("self");
+  const [bookerCountryCode, setBookerCountryCode] = useState("+91");
   const [bookerPhone, setBookerPhone] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [otherSymptom, setOtherSymptom] = useState("");
@@ -154,7 +156,17 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
   }, [prefillName, patientName]);
 
   useEffect(() => {
-    if (prefillPhone && !patientPhone) setPatientPhone(prefillPhone);
+    if (!prefillPhone || patientPhone) return;
+    const digits = prefillPhone.replace(/\D/g, "");
+    if (prefillPhone.startsWith("+1") || (digits.length === 11 && digits.startsWith("1"))) {
+      setCountryCode("+1");
+      setPatientPhone(digits.slice(1));
+    } else if (prefillPhone.startsWith("+91") || (digits.length === 12 && digits.startsWith("91"))) {
+      setCountryCode("+91");
+      setPatientPhone(digits.slice(2));
+    } else {
+      setPatientPhone(digits);
+    }
   }, [prefillPhone, patientPhone]);
 
   useEffect(() => {
@@ -252,11 +264,13 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
           providerId: provider.id,
           slotId: selectedSlot,
           name: patientName.trim(),
-          phone: patientPhone.trim(),
+          phone: `${countryCode}${patientPhone.trim().replace(/\D/g, "")}`,
           notes: finalNotes || undefined,
           consentText: CONSENT_TEXT,
           visitMode,
-          ...(bookingFor === "other" && bookerPhone.trim() ? { bookerPhone: bookerPhone.trim() } : {}),
+          ...(bookingFor === "other" && bookerPhone.trim()
+            ? { bookerPhone: `${bookerCountryCode}${bookerPhone.trim().replace(/\D/g, "")}` }
+            : {}),
         }),
       });
       const data = await res.json();
@@ -406,12 +420,22 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">Mobile number</label>
-                <input
-                  value={patientPhone}
-                  onChange={(e) => setPatientPhone(e.target.value)}
-                  placeholder="+91 9876543210  or  +1 2025551234"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
-                />
+                <div className="flex h-10 overflow-hidden rounded-xl border border-slate-200 bg-white focus-within:border-[#2f6ea5] focus-within:ring-1 focus-within:ring-[#2f6ea5]">
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="shrink-0 border-r border-slate-200 bg-white pl-3 pr-2 text-sm text-slate-800 focus:outline-none"
+                  >
+                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+1">🇺🇸 +1</option>
+                  </select>
+                  <input
+                    value={patientPhone}
+                    onChange={(e) => setPatientPhone(e.target.value)}
+                    placeholder={countryCode === "+91" ? "9876543210" : "2025551234"}
+                    className="flex-1 bg-transparent px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                  />
+                </div>
               </div>
             </div>
             {bookingFor === "other" && (
@@ -420,12 +444,22 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
                   Your mobile number{" "}
                   <span className="text-xs font-normal text-slate-400">(optional — you'll also receive confirmation here)</span>
                 </label>
-                <input
-                  value={bookerPhone}
-                  onChange={(e) => setBookerPhone(e.target.value)}
-                  placeholder="+91 or +1 for international"
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
-                />
+                <div className="flex h-10 overflow-hidden rounded-xl border border-slate-200 bg-white focus-within:border-[#2f6ea5] focus-within:ring-1 focus-within:ring-[#2f6ea5]">
+                  <select
+                    value={bookerCountryCode}
+                    onChange={(e) => setBookerCountryCode(e.target.value)}
+                    className="shrink-0 border-r border-slate-200 bg-white pl-3 pr-2 text-sm text-slate-800 focus:outline-none"
+                  >
+                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+1">🇺🇸 +1</option>
+                  </select>
+                  <input
+                    value={bookerPhone}
+                    onChange={(e) => setBookerPhone(e.target.value)}
+                    placeholder={bookerCountryCode === "+91" ? "9876543210" : "2025551234"}
+                    className="flex-1 bg-transparent px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -568,7 +602,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
                   <p className="text-sm font-semibold text-slate-900">
                     {patientName.trim() || <span className="font-normal text-slate-400">—</span>}
                   </p>
-                  {patientPhone.trim() && <p className="text-xs font-mono text-slate-500">{patientPhone.trim()}</p>}
+                  {patientPhone.trim() && <p className="text-xs font-mono text-slate-500">{countryCode} {patientPhone.trim()}</p>}
                 </div>
               </div>
               <div className="flex items-start justify-between gap-2">
