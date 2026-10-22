@@ -4,7 +4,7 @@ import { readPatientSession } from "@/lib/patientAuth.server";
 import { getSignedS3Url } from "@/lib/s3";
 
 type RouteCtx = {
-  params: Promise<{ orderId: string }>;
+  params: Promise<{ id: string }>;
 };
 
 function buildPhoneCandidates(raw: string | undefined | null) {
@@ -31,9 +31,9 @@ export async function GET(_req: NextRequest, ctx: RouteCtx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { orderId } = await ctx.params;
+  const { id } = await ctx.params;
   const order = await prisma.rxOrder.findUnique({
-    where: { id: orderId },
+    where: { id },
     select: {
       id: true,
       patientPhone: true,
