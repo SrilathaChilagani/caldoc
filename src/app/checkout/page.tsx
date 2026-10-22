@@ -1,14 +1,18 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { readPatientPhone } from "@/lib/patientAuth.server";
 import CheckoutClient from "./ui/CheckoutClient";
 
 type PageProps = {
-  searchParams?: Promise<{ appointmentId?: string; amount?: string }>;
+  searchParams?: Promise<{ appointmentId?: string; amount?: string; embed?: string; returnTo?: string }>;
 };
 
 export default async function CheckoutPage({ searchParams }: PageProps) {
   const sp = (await searchParams) || {};
   const appointmentId = sp.appointmentId;
   const amount = sp.amount ? Number(sp.amount) : undefined;
+  const embed = sp.embed;
+  const returnTo = sp.returnTo;
 
   if (!appointmentId) {
     return (
@@ -20,6 +24,16 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
         </Link>
       </main>
     );
+  }
+
+  // The create-order API requires a patient session — redirect to login if absent
+  const phone = await readPatientPhone();
+  if (!phone) {
+    const params = new URLSearchParams({ appointmentId });
+    if (amount) params.set("amount", String(amount));
+    if (embed) params.set("embed", embed);
+    if (returnTo) params.set("returnTo", returnTo);
+    redirect(`/patient/login?next=${encodeURIComponent(`/checkout?${params}`)}`);
   }
 
   return (
