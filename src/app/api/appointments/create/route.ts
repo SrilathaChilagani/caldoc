@@ -173,7 +173,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Notes must be under 5000 characters" }, { status: 400 });
     }
 
-    // Strict phone validation — must be a valid Indian mobile number
+    // Phone validation — accepts Indian (+91) and international (+1 US, etc.) numbers
     const meta = buildPatientPhoneMeta(phone);
     if (!meta) {
       return NextResponse.json({ error: "Enter a valid phone number with country code (e.g. +91 for India, +1 for US)" }, { status: 400 });

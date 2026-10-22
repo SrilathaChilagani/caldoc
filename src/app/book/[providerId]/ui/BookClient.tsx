@@ -409,7 +409,7 @@ export default function BookClient({ provider, slots, initialSlotId, initialMode
                 <input
                   value={patientPhone}
                   onChange={(e) => setPatientPhone(e.target.value)}
-                  placeholder="+91 98765 43210"
+                  placeholder="+91 9876543210  or  +1 2025551234"
                   className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#2f6ea5] focus:outline-none focus:ring-1 focus:ring-[#2f6ea5]"
                 />
               </div>

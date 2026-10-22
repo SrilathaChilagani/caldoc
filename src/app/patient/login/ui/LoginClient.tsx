@@ -256,7 +256,7 @@ export default function LoginClient({ next, initialPhone }: Props) {
               type="tel"
               autoComplete="tel"
               className={inputCls}
-              placeholder="+91 98765 43210"
+              placeholder="+91 9876543210  or  +1 2025551234"
               required
             />
           </label>
