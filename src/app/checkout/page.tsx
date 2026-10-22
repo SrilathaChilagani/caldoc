@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { readPatientPhone } from "@/lib/patientAuth.server";
+import { prisma } from "@/lib/db";
 import CheckoutClient from "./ui/CheckoutClient";
 
 type PageProps = {
@@ -29,11 +30,20 @@ export default async function CheckoutPage({ searchParams }: PageProps) {
   // The create-order API requires a patient session — redirect to login if absent
   const phone = await readPatientPhone();
   if (!phone) {
-    const params = new URLSearchParams({ appointmentId });
-    if (amount) params.set("amount", String(amount));
-    if (embed) params.set("embed", embed);
-    if (returnTo) params.set("returnTo", returnTo);
-    redirect(`/patient/login?next=${encodeURIComponent(`/checkout?${params}`)}`);
+    const appt = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      select: { patient: { select: { phone: true } } },
+    });
+    const patientPhone = appt?.patient?.phone ?? "";
+
+    const checkoutParams = new URLSearchParams({ appointmentId });
+    if (amount) checkoutParams.set("amount", String(amount));
+    if (embed) checkoutParams.set("embed", embed);
+    if (returnTo) checkoutParams.set("returnTo", returnTo);
+
+    const loginParams = new URLSearchParams({ next: `/checkout?${checkoutParams}` });
+    if (patientPhone) loginParams.set("phone", patientPhone);
+    redirect(`/patient/login?${loginParams}`);
   }
 
   return (
