@@ -30,4 +30,9 @@ Sentry.init({
   sendDefaultPii: true,
 });
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+// captureRouterTransitionStart is undefined in @sentry/nextjs 10.x — guard so Next.js 16
+// doesn't crash calling undefined() on every soft navigation via <Link>.
+export const onRouterTransitionStart =
+  typeof Sentry.captureRouterTransitionStart === "function"
+    ? Sentry.captureRouterTransitionStart
+    : undefined;
