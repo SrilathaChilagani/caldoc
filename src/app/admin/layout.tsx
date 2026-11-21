@@ -80,6 +80,7 @@ const nav: NavSection[] = [
       { href: "/admin/hr/attendance", label: "Attendance" },
       { href: "/admin/hr/attendance/leave", label: "Leave requests" },
       { href: "/hr/clock", label: "Clock-in terminal" },
+      { href: "/admin/hr/payroll", label: "Payroll" },
     ],
   },
   {

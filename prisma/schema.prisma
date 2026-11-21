@@ -276,11 +276,12 @@ model ProviderUser {
 }
 
 model AdminUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String       @id @default(cuid())
+  email        String       @unique
   passwordHash String
-  role         String   @default("SUPER_ADMIN")
-  createdAt    DateTime @default(now())
+  role         String       @default("SUPER_ADMIN")
+  createdAt    DateTime     @default(now())
+  payrollRuns  PayrollRun[]
 }
 
 model FrontDeskUser {
@@ -880,6 +881,7 @@ model Employee {
   directReports    Employee[]     @relation("EmployeeReports")
   attendances      Attendance[]
   leaveRequests    LeaveRequest[]
+  payslips         Payslip[]
 
   @@index([departmentId])
   @@index([status])
@@ -928,4 +930,57 @@ model LeaveRequest {
   @@index([employeeId, status])
   @@index([status, fromDate])
   @@index([fromDate, toDate])
+}
+
+// status: DRAFT | PROCESSING | COMPLETED | CANCELLED
+model PayrollRun {
+  id          String    @id @default(cuid())
+  month       String    // "YYYY-MM"
+  status      String    @default("DRAFT")
+  note        String?
+  createdBy   String
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdByAdmin AdminUser @relation(fields: [createdBy], references: [id])
+  payslips       Payslip[]
+
+  @@unique([month])
+  @@index([status])
+}
+
+// status: PENDING | PAID | HELD
+model Payslip {
+  id               String   @id @default(cuid())
+  payrollRunId     String
+  employeeId       String
+  basicPaise       Int
+  hraPaise         Int      @default(0)
+  daPaise          Int      @default(0)
+  otherAllowPaise  Int      @default(0)
+  tdsDeductPaise   Int      @default(0)
+  absentDeductPaise Int     @default(0)
+  otherDeductPaise Int      @default(0)
+  grossPaise       Int
+  netPaise         Int
+  presentDays      Int      @default(0)
+  absentDays       Int      @default(0)
+  leaveDays        Int      @default(0)
+  halfDays         Int      @default(0)
+  totalWorkingDays Int      @default(0)
+  status           String   @default("PENDING")
+  paidAt           DateTime?
+  paymentRef       String?
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  payrollRun PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employee   Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([payrollRunId, employeeId])
+  @@index([payrollRunId])
+  @@index([employeeId])
+  @@index([status])
 }
