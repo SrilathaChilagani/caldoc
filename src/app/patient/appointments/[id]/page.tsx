@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { readPatientSession } from "@/lib/patientAuth.server";
 import UploadDocumentsForm from "./UploadDocumentsForm";
 import CancelAppointmentButton from "./CancelAppointmentButton";
+import RatingPrompt from "./RatingPrompt";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -77,23 +78,25 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
     redirect(`/patient/login?next=/patient/appointments/${id}`);
   }
 
-  const appointment = await prisma.appointment.findUnique({
-    where: { id },
-    include: {
-      provider: true,
-      slot: true,
-      prescription: true,
-      payment: true,
-      visitNote: true,
-      labOrders: {
-        orderBy: { createdAt: "asc" },
+  const [appointment, existingRating] = await Promise.all([
+    prisma.appointment.findUnique({
+      where: { id },
+      include: {
+        provider: true,
+        slot: true,
+        prescription: true,
+        payment: true,
+        visitNote: true,
+        labOrders: { orderBy: { createdAt: "asc" } },
+        pharmacyFulfillment: true,
+        patientDocuments: { orderBy: { createdAt: "desc" } },
       },
-      pharmacyFulfillment: true,
-      patientDocuments: {
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
+    }),
+    prisma.appointmentRating.findUnique({
+      where: { appointmentId: id },
+      select: { rating: true },
+    }),
+  ]);
 
   if (!appointment || appointment.patientId !== patient.id) {
     redirect("/patient/appointments?err=notfound");
@@ -365,6 +368,17 @@ export default async function PatientAppointmentDetail({ params }: PageProps) {
             symptoms, call local emergency services or visit the nearest hospital immediately.
           </p>
         </section>
+
+        {/* Rating — only show for completed appointments */}
+        {appointment.status === "COMPLETED" && provider && (
+          <section className="pt-2">
+            <RatingPrompt
+              appointmentId={appointment.id}
+              providerName={provider.name}
+              existingRating={existingRating?.rating ?? null}
+            />
+          </section>
+        )}
       </div>
     </main>
   );

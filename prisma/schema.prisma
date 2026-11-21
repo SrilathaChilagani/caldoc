@@ -28,6 +28,7 @@ model Patient {
   rxOrders          RxOrder[]
   passwordResets    PatientPasswordReset[]
   followUpRequests  FollowUpRequest[]
+  ratings           AppointmentRating[]
 }
 
 model Provider {
@@ -54,6 +55,15 @@ model Provider {
   offboardingReason  String?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
+  // Finance & payout fields
+  commissionPct          Int      @default(10)   // platform commission %
+  bankAccountName        String?
+  bankAccountNumber      String?
+  bankIfscCode           String?
+  razorpayContactId      String?
+  razorpayFundAccountId  String?
+  panNumber              String?
+
   appointments       Appointment[]
   ngoReservations    NgoReservation[]
   users              ProviderUser[]
@@ -61,6 +71,9 @@ model Provider {
   clinics            ProviderClinic[]
   followUpRequests   FollowUpRequest[]
   scheduleTemplates  ProviderScheduleTemplate[]
+  ratings            AppointmentRating[]
+  payouts            ProviderPayout[]
+  tdsLedger          TdsLedger[]
 }
 
 model ProviderClinic {
@@ -143,6 +156,8 @@ model Appointment {
   rxOrders                RxOrder[]
   checkInForm             CheckInForm?
   followUpRequests        FollowUpRequest[]
+  rating                  AppointmentRating?
+  providerPayout          ProviderPayout?
 
   @@index([providerId, createdAt])
   @@index([patientId, createdAt])
@@ -166,9 +181,14 @@ model Payment {
   appointment   Appointment?   @relation(fields: [appointmentId], references: [id])
   rxOrder       RxOrder?       @relation("RxOrderPayment", fields: [rxOrderId], references: [id])
   labOrder      LabOrder?      @relation("LabOrderPayment", fields: [labOrderId], references: [id])
-  refundRequests RefundRequest[]
+  refundRequests   RefundRequest[]
+  gstInvoiceNumber String?
+  cgstPaise        Int     @default(0)
+  sgstPaise        Int     @default(0)
+  igstPaise        Int     @default(0)
 
   @@index([status])
+  @@index([gstInvoiceNumber])
 }
 
 model PatientAddress {
@@ -276,12 +296,13 @@ model ProviderUser {
 }
 
 model AdminUser {
-  id           String       @id @default(cuid())
-  email        String       @unique
+  id           String        @id @default(cuid())
+  email        String        @unique
   passwordHash String
-  role         String       @default("SUPER_ADMIN")
-  createdAt    DateTime     @default(now())
+  role         String        @default("SUPER_ADMIN")
+  createdAt    DateTime      @default(now())
   payrollRuns  PayrollRun[]
+  payoutBatches PayoutBatch[]
 }
 
 model FrontDeskUser {
@@ -1031,4 +1052,99 @@ model Payslip {
   @@index([payrollRunId])
   @@index([employeeId])
   @@index([status])
+}
+
+// ─── Finance / Revenue ───────────────────────────────────────────────────────
+
+// Tracks GST invoice sequence: CALDOC/YYYY-YY/NNNNN
+model InvoiceSequence {
+  id      String @id @default(cuid())
+  year    Int    // financial year start, e.g. 2026 for 2026-27
+  month   Int    // calendar month 1-12
+  counter Int    @default(0)
+
+  @@unique([year, month])
+}
+
+// Post-consultation patient rating (1-5 stars)
+model AppointmentRating {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  patientId     String
+  providerId    String
+  rating        Int         // 1–5
+  comment       String?
+  createdAt     DateTime    @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient     Patient     @relation(fields: [patientId], references: [id])
+  provider    Provider    @relation(fields: [providerId], references: [id])
+
+  @@index([providerId])
+  @@index([patientId])
+}
+
+// Provider payout record per completed & paid appointment
+// status: PENDING | PROCESSING | PAID | FAILED | SKIPPED
+model ProviderPayout {
+  id               String    @id @default(cuid())
+  providerId       String
+  appointmentId    String    @unique
+  consultAmtPaise  Int       // full fee collected from patient
+  commissionPaise  Int       // platform cut (consultAmtPaise × commissionPct / 100)
+  grossPayoutPaise Int       // consultAmtPaise - commissionPaise
+  tdsDeductPaise   Int       @default(0) // 10% if annual gross > ₹30 000 threshold
+  netPayoutPaise   Int       // grossPayoutPaise - tdsDeductPaise
+  status           String    @default("PENDING")
+  razorpayPayoutId String?
+  paidAt           DateTime?
+  failureReason    String?
+  payoutBatchId    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  provider     Provider     @relation(fields: [providerId], references: [id])
+  appointment  Appointment  @relation(fields: [appointmentId], references: [id])
+  payoutBatch  PayoutBatch? @relation(fields: [payoutBatchId], references: [id])
+
+  @@index([providerId, status])
+  @@index([status])
+  @@index([payoutBatchId])
+}
+
+// Grouped payout run (admin processes multiple providers at once)
+// status: DRAFT | PROCESSING | COMPLETED | FAILED
+model PayoutBatch {
+  id              String    @id @default(cuid())
+  status          String    @default("DRAFT")
+  totalGrossPaise Int       @default(0)
+  totalTdsPaise   Int       @default(0)
+  totalNetPaise   Int       @default(0)
+  note            String?
+  createdBy       String
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  createdByAdmin AdminUser        @relation(fields: [createdBy], references: [id])
+  payouts        ProviderPayout[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Cumulative TDS ledger per provider per Indian financial year (Apr–Mar)
+// Used to determine when the ₹30 000 threshold is crossed (Section 194J)
+model TdsLedger {
+  id             String   @id @default(cuid())
+  providerId     String
+  financialYear  String   // "2026-27"
+  grossPaidPaise Int      @default(0) // cumulative gross paid out this FY
+  tdsDeducted    Int      @default(0) // cumulative TDS deducted this FY
+  updatedAt      DateTime @updatedAt
+
+  provider Provider @relation(fields: [providerId], references: [id])
+
+  @@unique([providerId, financialYear])
+  @@index([providerId])
 }

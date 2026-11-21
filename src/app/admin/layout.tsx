@@ -85,6 +85,13 @@ const nav: NavSection[] = [
     ],
   },
   {
+    group: "Finance",
+    links: [
+      { href: "/admin/finance", label: "Payouts & refunds", exact: true },
+      { href: "/admin/analytics", label: "Analytics" },
+    ],
+  },
+  {
     group: "System",
     links: [
       { href: "/admin/admin-users", label: "Admin users" },
