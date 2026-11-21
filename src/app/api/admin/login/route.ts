@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { ADMIN_JWT_NAME, MAX_AGE_DAYS, resolveSessionCookieDomain, signSession } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { logAudit } from "@/lib/audit";
+import { issueTotpPendingCookie, TOTP_PENDING_COOKIE } from "@/app/api/admin/auth/totp/validate/route";
 
 export const dynamic = "force-dynamic";
 
@@ -83,9 +84,28 @@ export async function POST(req: NextRequest) {
     return redirectWithError("creds");
   }
 
+  const domain = resolveSessionCookieDomain(req.nextUrl.hostname);
+
+  // If TOTP is enabled, issue a short-lived pending cookie and redirect to TOTP step
+  if (user.totpEnabled) {
+    const pendingToken = await issueTotpPendingCookie(user.id);
+    const res = NextResponse.redirect(
+      new URL(`/admin/login?step=totp&next=${encodeURIComponent(nextUrl)}`, req.nextUrl.origin),
+      303
+    );
+    res.cookies.set(TOTP_PENDING_COOKIE, pendingToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 600, // 10 minutes
+      ...(domain ? { domain } : {}),
+    });
+    return res;
+  }
+
   const token = signSession({ userId: user.id, providerId: "admin", role: "admin", email: user.email });
   const res = NextResponse.redirect(new URL(nextUrl || "/admin", req.nextUrl.origin), 303);
-  const domain = resolveSessionCookieDomain(req.nextUrl.hostname);
   res.cookies.set(ADMIN_JWT_NAME, token, {
     httpOnly: true,
     sameSite: "lax",

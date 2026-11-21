@@ -296,12 +296,14 @@ model ProviderUser {
 }
 
 model AdminUser {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  passwordHash String
-  role         String        @default("SUPER_ADMIN")
-  createdAt    DateTime      @default(now())
-  payrollRuns  PayrollRun[]
+  id            String        @id @default(cuid())
+  email         String        @unique
+  passwordHash  String
+  role          String        @default("SUPER_ADMIN")
+  totpSecret    String?       // base32 TOTP secret; null = not configured
+  totpEnabled   Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  payrollRuns   PayrollRun[]
   payoutBatches PayoutBatch[]
 }
 

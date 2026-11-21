@@ -1,27 +1,42 @@
 import { redirect } from "next/navigation";
 import { readAdminSession } from "@/lib/auth.server";
+import TotpStep from "./TotpStep";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = { next?: string; err?: string; uid?: string };
+type SearchParams = { next?: string; err?: string; uid?: string; step?: string };
 
 export default async function AdminLoginPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const { next = "/admin", err, uid } = (await searchParams) || {};
+  const { next = "/admin", err, uid, step } = (await searchParams) || {};
   const sess = await readAdminSession();
-  if (sess) {
-    redirect(next);
+  if (sess) redirect(next);
+
+  // Step 2: TOTP code entry
+  if (step === "totp") {
+    return (
+      <main className="flex min-h-[80vh] items-center justify-center bg-[#f7f2ea] px-4 py-16">
+        <div className="w-full max-w-md space-y-6 rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-100">
+          <div className="space-y-1 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Admin portal</p>
+            <h1 className="text-2xl font-semibold text-slate-900">Two-factor authentication</h1>
+            <p className="text-sm text-slate-500">Enter the 6-digit code from your authenticator app.</p>
+          </div>
+          <TotpStep nextUrl={next} />
+          <p className="text-center text-xs text-slate-500">
+            <a href="/admin/login" className="underline">Use a different account</a>
+          </p>
+        </div>
+      </main>
+    );
   }
 
   const message =
-    err === "creds"
-      ? "Invalid email or password."
-      : err === "server"
-      ? "Unable to sign in."
-      : undefined;
+    err === "creds" ? "Invalid email or password." :
+    err === "server" ? "Unable to sign in." : undefined;
 
   return (
     <main className="flex min-h-[80vh] items-center justify-center bg-[#f7f2ea] px-4 py-16">
