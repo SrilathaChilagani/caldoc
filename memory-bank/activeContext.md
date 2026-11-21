@@ -158,8 +158,28 @@ Combined the 2-step booking wizard into a single side-by-side page.
   - Mobile: single-column stack (left first, right second)
   - Right column is `lg:sticky lg:top-4` so summary stays visible as user scrolls the form
 
+## HR Portal — Phase 1 COMPLETE (2026-11-20)
+
+New models: `Department` (seeded with 7 defaults) + `Employee` (self-referential reporting chain).
+Migration: `20261120000001_hr_staff_directory` — run `prisma migrate deploy` on Neon before deploying.
+
+New routes:
+- `GET/POST /api/admin/hr/staff`
+- `GET/PATCH /api/admin/hr/staff/[id]`
+- `GET/POST /api/admin/hr/departments`
+
+New pages (all gated by `requireOperationsSession`):
+- `/admin/hr` — dashboard (headcount by dept, recent hires, phase roadmap)
+- `/admin/hr/staff` — searchable/filterable staff directory table
+- `/admin/hr/staff/new` — full onboard form (personal, employment, emergency contact, address)
+- `/admin/hr/staff/[id]` — employee profile + inline update panel (status, dept, salary, exit)
+
+Admin nav: "HR" group added with 3 links.
+
+Phases 2–4 (attendance, payroll, documents/reviews) are planned but not built.
+
 ## Next Action
-Deploy to Vercel; test end-to-end booking flow on production.
+Deploy HR Phase 1: run `prisma migrate deploy` on Neon, then push to Vercel.
 
 **Remaining hard blockers before real-money production use:**
 1. Rotate `JWT_SECRET` in Vercel env — current value `some-long-random-string` is weak.

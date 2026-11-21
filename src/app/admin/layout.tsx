@@ -72,6 +72,14 @@ const nav: NavSection[] = [
     ],
   },
   {
+    group: "HR",
+    links: [
+      { href: "/admin/hr", label: "Dashboard", exact: true },
+      { href: "/admin/hr/staff", label: "Staff directory" },
+      { href: "/admin/hr/staff/new", label: "Onboard employee" },
+    ],
+  },
+  {
     group: "System",
     links: [
       { href: "/admin/admin-users", label: "Admin users" },

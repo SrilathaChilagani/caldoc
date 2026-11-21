@@ -833,3 +833,53 @@ model ProviderScheduleTemplate {
   @@index([providerId, dayOfWeek])
   @@index([providerId, isActive])
 }
+
+model Department {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  employees   Employee[]
+}
+
+model Employee {
+  id                    String     @id @default(cuid())
+  employeeCode          String     @unique
+  name                  String
+  email                 String     @unique
+  phone                 String
+  dob                   DateTime?
+  gender                String?
+  departmentId          String
+  jobTitle              String
+  employeeType          String     @default("FULL_TIME")
+  status                String     @default("ACTIVE")
+  joiningDate           DateTime
+  exitDate              DateTime?
+  exitReason            String?
+  reportingManagerId    String?
+  basicSalaryPaise      Int        @default(0)
+  workLocation          String     @default("OFFICE")
+  systemRole            String?
+  systemAccountId       String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  addressLine1          String?
+  addressLine2          String?
+  city                  String?
+  state                 String?
+  pincode               String?
+  notes                 String?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  department       Department @relation(fields: [departmentId], references: [id])
+  reportingManager Employee?  @relation("EmployeeReports", fields: [reportingManagerId], references: [id])
+  directReports    Employee[] @relation("EmployeeReports")
+
+  @@index([departmentId])
+  @@index([status])
+  @@index([reportingManagerId])
+}
