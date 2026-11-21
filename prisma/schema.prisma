@@ -879,13 +879,61 @@ model Employee {
   department       Department     @relation(fields: [departmentId], references: [id])
   reportingManager Employee?      @relation("EmployeeReports", fields: [reportingManagerId], references: [id])
   directReports    Employee[]     @relation("EmployeeReports")
-  attendances      Attendance[]
-  leaveRequests    LeaveRequest[]
-  payslips         Payslip[]
+  attendances         Attendance[]
+  leaveRequests       LeaveRequest[]
+  payslips            Payslip[]
+  documents           EmployeeDocument[]
+  reviewsAsEmployee   PerformanceReview[] @relation("ReviewEmployee")
+  reviewsAsReviewer   PerformanceReview[] @relation("ReviewReviewer")
 
   @@index([departmentId])
   @@index([status])
   @@index([reportingManagerId])
+}
+
+// documentType: OFFER_LETTER | CONTRACT | ID_PROOF | PAN_CARD | AADHAAR | QUALIFICATION | RELIEVING | OTHER
+model EmployeeDocument {
+  id           String   @id @default(cuid())
+  employeeId   String
+  documentType String
+  name         String
+  s3Key        String
+  fileType     String
+  fileSizeBytes Int?
+  uploadedBy   String
+  createdAt    DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([documentType])
+}
+
+// period e.g. "2026-H1" | "2026-H2" | "2026-Annual"
+// status: DRAFT | SUBMITTED | ACKNOWLEDGED
+model PerformanceReview {
+  id              String    @id @default(cuid())
+  employeeId      String
+  reviewerId      String
+  period          String
+  status          String    @default("DRAFT")
+  overallRating   Int?      // 1–5
+  strengths       String?
+  improvements    String?
+  goalsNextPeriod String?
+  privateNotes    String?
+  submittedAt     DateTime?
+  acknowledgedAt  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  employee Employee @relation("ReviewEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewer Employee @relation("ReviewReviewer", fields: [reviewerId], references: [id])
+
+  @@unique([employeeId, period])
+  @@index([employeeId])
+  @@index([reviewerId])
+  @@index([status])
 }
 
 // status: PRESENT | ABSENT | HALF_DAY | HOLIDAY | WEEKEND | ON_LEAVE

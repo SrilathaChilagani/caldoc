@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireOperationsSession } from "@/lib/auth.server";
 import EmployeeActions from "./EmployeeActions";
+import DocumentsPanel from "./DocumentsPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -157,6 +158,9 @@ export default async function EmployeeProfilePage({ params }: Props) {
               <p className="text-sm text-slate-600 whitespace-pre-line">{employee.notes}</p>
             </div>
           )}
+
+          {/* Documents */}
+          <DocumentsPanel employeeId={id} />
         </div>
 
         {/* Right: actions */}
