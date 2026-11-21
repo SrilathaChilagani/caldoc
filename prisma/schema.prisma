@@ -875,11 +875,57 @@ model Employee {
   createdAt             DateTime   @default(now())
   updatedAt             DateTime   @updatedAt
 
-  department       Department @relation(fields: [departmentId], references: [id])
-  reportingManager Employee?  @relation("EmployeeReports", fields: [reportingManagerId], references: [id])
-  directReports    Employee[] @relation("EmployeeReports")
+  department       Department     @relation(fields: [departmentId], references: [id])
+  reportingManager Employee?      @relation("EmployeeReports", fields: [reportingManagerId], references: [id])
+  directReports    Employee[]     @relation("EmployeeReports")
+  attendances      Attendance[]
+  leaveRequests    LeaveRequest[]
 
   @@index([departmentId])
   @@index([status])
   @@index([reportingManagerId])
+}
+
+// status: PRESENT | ABSENT | HALF_DAY | HOLIDAY | WEEKEND | ON_LEAVE
+model Attendance {
+  id           String    @id @default(cuid())
+  employeeId   String
+  date         DateTime  @db.Date
+  clockIn      DateTime?
+  clockOut     DateTime?
+  status       String    @default("PRESENT")
+  workMinutes  Int?
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@index([employeeId, date])
+  @@index([date])
+}
+
+// leaveType: CASUAL | SICK | EARNED | UNPAID | COMPENSATORY
+// status: PENDING | APPROVED | REJECTED | CANCELLED
+model LeaveRequest {
+  id           String    @id @default(cuid())
+  employeeId   String
+  leaveType    String
+  fromDate     DateTime  @db.Date
+  toDate       DateTime  @db.Date
+  totalDays    Float
+  reason       String
+  status       String    @default("PENDING")
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  reviewNote   String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, status])
+  @@index([status, fromDate])
+  @@index([fromDate, toDate])
 }

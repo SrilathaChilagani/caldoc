@@ -77,6 +77,9 @@ const nav: NavSection[] = [
       { href: "/admin/hr", label: "Dashboard", exact: true },
       { href: "/admin/hr/staff", label: "Staff directory" },
       { href: "/admin/hr/staff/new", label: "Onboard employee" },
+      { href: "/admin/hr/attendance", label: "Attendance" },
+      { href: "/admin/hr/attendance/leave", label: "Leave requests" },
+      { href: "/hr/clock", label: "Clock-in terminal" },
     ],
   },
   {
