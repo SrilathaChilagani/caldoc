@@ -158,28 +158,81 @@ Combined the 2-step booking wizard into a single side-by-side page.
   - Mobile: single-column stack (left first, right second)
   - Right column is `lg:sticky lg:top-4` so summary stays visible as user scrolls the form
 
-## HR Portal — Phase 1 COMPLETE (2026-11-20)
+## HR Portal — ALL 4 PHASES COMPLETE (2026-11-21)
 
-New models: `Department` (seeded with 7 defaults) + `Employee` (self-referential reporting chain).
-Migration: `20261120000001_hr_staff_directory` — run `prisma migrate deploy` on Neon before deploying.
+### Phase 1 — Staff directory (migration: 20261120000001_hr_staff_directory)
+- Department + Employee models, 7 default depts seeded
+- Routes: GET/POST /api/admin/hr/staff, GET/PATCH /api/admin/hr/staff/[id], GET/POST /api/admin/hr/departments
+- Pages: /admin/hr (dashboard), /admin/hr/staff (table), /admin/hr/staff/new (onboard form), /admin/hr/staff/[id] (profile + actions)
 
-New routes:
-- `GET/POST /api/admin/hr/staff`
-- `GET/PATCH /api/admin/hr/staff/[id]`
-- `GET/POST /api/admin/hr/departments`
+### Phase 2 — Attendance & Leave (migration: 20261120000002_hr_attendance)
+- Attendance + LeaveRequest models
+- Routes: GET/POST /api/admin/hr/attendance, /attendance/[employeeId], /leave, PATCH /leave/[id], GET/POST /api/hr/clock
+- Pages: /admin/hr/attendance (overview), /admin/hr/attendance/leave (leave requests), /admin/hr/attendance/[employeeId] (calendar), /hr/clock (kiosk terminal)
 
-New pages (all gated by `requireOperationsSession`):
-- `/admin/hr` — dashboard (headcount by dept, recent hires, phase roadmap)
-- `/admin/hr/staff` — searchable/filterable staff directory table
-- `/admin/hr/staff/new` — full onboard form (personal, employment, emergency contact, address)
-- `/admin/hr/staff/[id]` — employee profile + inline update panel (status, dept, salary, exit)
+### Phase 3 — Payroll (migration: 20261121000001_hr_payroll)
+- PayrollRun + Payslip models; paise for all money; TDS 10% if gross > ₹25k
+- Routes: GET/POST /api/admin/hr/payroll, GET/PATCH /payroll/[runId], PATCH /payroll/[runId]/payslips/[id]
+- Pages: /admin/hr/payroll (run list + create), /admin/hr/payroll/[runId] (payslip table + mark-paid + bulk complete)
 
-Admin nav: "HR" group added with 3 links.
+### Phase 4 — Documents & Reviews (migration: 20261121000002_hr_documents_reviews)
+- EmployeeDocument + PerformanceReview models; S3 presigned upload
+- Routes: GET/POST /api/admin/hr/staff/[id]/documents, DELETE /documents/[docId], GET/POST /api/admin/hr/reviews, GET/PATCH /reviews/[id]
+- Pages: DocumentsPanel on /admin/hr/staff/[id], /admin/hr/reviews (list), /admin/hr/reviews/new (form), /admin/hr/reviews/[id] (detail + status actions)
+- Nav: HR group now has 8 links incl. Reviews
 
-Phases 2–4 (attendance, payroll, documents/reviews) are planned but not built.
+Commit: 446cdf7 — pushed to main 2026-11-21; Vercel deploying.
+
+## Enterprise roadmap progress (2026-11-21)
+
+### Month 1–2 items — COMPLETE
+- AppointmentRating (1–5 star, upsertable after COMPLETED appointment)
+- ProviderPayout + PayoutBatch + TdsLedger (Section 194J, per-FY cumulative)
+- InvoiceSequence (GST invoice counter)
+- Provider: commissionPct (variable per provider), bank details, panNumber
+- Payment: gstInvoiceNumber, cgstPaise, sgstPaise, igstPaise
+- src/lib/finance.ts: GST/TDS helpers
+- POST /api/patient/appointments/[appointmentId]/rate
+- GET /api/providers/[slug]/ratings — public aggregate
+- /admin/analytics — KPI cards, sparkbars, top providers
+- /admin/finance — 4-tab: pending payouts, payout batches, TDS report, refunds
+- TOTP 2FA for admin: setup QR, verify, disable, login step-2
+- /admin/settings/security — TOTP setup/disable UI
+- Commits: 362f330 (finance/ratings/analytics), a06dc56 (TOTP 2FA)
+
+### Registration actions needed in parallel (user)
+- ABDM sandbox registration (sandbox.abdm.gov.in)
+- GST registration (add GST_NUMBER to Vercel env when ready)
+- Leegality account for digital prescription signatures
+- Razorpay Route product approval
+- NHCX registration (Month 5–6, insurance integration)
+
+### Month 3 — COMPLETE (2026-11-26)
+- DataSubjectRequest + BreachNotification models; migration 20261126000001
+- Prescription: signatureStatus / signedAt / signatureDocId for eSign
+- WebhookEvent: status / retryCount / nextRetryAt / lastError for retry tracking
+- src/lib/leegality.ts — Leegality eSign stub (returns stub if LEEGALITY_API_KEY missing)
+- POST /api/admin/rx/[rxId]/esign — trigger eSign for a prescription
+- GET /api/admin/compliance/consent — paginated consent audit
+- GET/POST /api/admin/compliance/dsr + /dsr/[id] — data subject requests CRUD
+- GET/POST /api/admin/compliance/breaches + /breaches/[id] — breach notification log
+- GET /api/admin/compliance/export/[patientId] — full patient data export (JSON)
+- POST+GET /api/patient/dsr — patient submits own DSR
+- GET /api/cron/webhook-retry — cron replays PENDING_RETRY events with exponential backoff
+- Razorpay webhook: now records WebhookEvent on first receipt, marks PROCESSED/PENDING_RETRY
+- /admin/compliance — 4-tab portal: consent audit, DSR, breach log, retention policy
+- vercel.json: webhook-retry cron every 15 min
+- Commit: TBD (pending push)
+
+### Registration actions needed in parallel (user)
+- ABDM sandbox: user emailed abdm@nha.gov.in (waiting for response) — 2026-11-21
+- GST registration (add GST_NUMBER to Vercel env when ready)
+- Leegality account (add LEEGALITY_API_KEY + LEEGALITY_API_URL to Vercel env)
+- Razorpay Route product approval
+- NHCX registration (Month 5–6, insurance integration)
 
 ## Next Action
-Deploy HR Phase 1: run `prisma migrate deploy` on Neon, then push to Vercel.
+Month 4: corporate wellness (B2B employer accounts), WhatsApp booking bot, insurance/TPA prep.
 
 **Remaining hard blockers before real-money production use:**
 1. Rotate `JWT_SECRET` in Vercel env — current value `some-long-random-string` is weak.

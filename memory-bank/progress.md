@@ -56,8 +56,21 @@
 - Confirmed locally: `next build` clean, `GET /api/cron/warm` → HTTP 200 in production mode.
 - Deployed: commits `c8e1dde` + `c424baa` pushed to main 2026-10-22.
 
+## ✅ Done (added 2026-11-21 — HR Portal Phases 1–4 complete)
+- **Phase 1:** Department + Employee models, staff directory, onboard form, profile page. Migration: 20261120000001.
+- **Phase 2:** Attendance + LeaveRequest, monthly calendar, leave approval, clock-in kiosk terminal. Migration: 20261120000002.
+- **Phase 3:** PayrollRun + Payslip, payroll calculation (Basic+HRA+DA, TDS, absent deduct), mark-paid/held, bulk complete. Migration: 20261121000001.
+- **Phase 4:** EmployeeDocument (S3 presigned upload/download) + PerformanceReview (Draft→Submitted→Acknowledged), DocumentsPanel on employee profile, reviews list + create + detail pages. Migration: 20261121000002. Commit: 446cdf7.
+
+## ✅ Done (added 2026-11-26 — Month 3 enterprise features)
+- **DPDP Compliance portal:** DataSubjectRequest + BreachNotification models; migration 20261126000001; consent audit, DSR CRUD, breach log, data export, retention policy display; /admin/compliance.
+- **Digital prescription eSign stub:** src/lib/leegality.ts (graceful no-op when LEEGALITY_API_KEY missing); POST /api/admin/rx/[rxId]/esign; Prescription schema extended with signatureStatus/signedAt/signatureDocId.
+- **Webhook retry reliability:** WebhookEvent extended with status/retryCount/nextRetryAt/lastError; Razorpay webhook records & tracks events; GET /api/cron/webhook-retry (exponential backoff: 5→15→60→240→1440 min, max 5 retries); vercel.json cron every 15 min.
+- **Patient DSR API:** POST+GET /api/patient/dsr — patient submits own erasure/access request from their portal.
+- Commit: (Month 3 pending push)
+
 ## 🚧 In Progress
-- Vercel deployment of `c424baa` in progress (started 2026-10-22T02:36:56Z).
+- Month 3 commit about to be pushed.
 
 ## 🐞 Broken / Known Issues
 - **`JWT_SECRET=some-long-random-string`** — HARD BLOCK: weak/guessable value; all portal tokens forgeable. Must rotate to 64+ char random value in Vercel env.
@@ -79,6 +92,10 @@
 - [ ] **P0:** Swap Razorpay test keys to live keys
 - [ ] **P0:** Ensure `CRON_SECRET` is set in GitHub repo secrets (needed by `cron-jobs.yml`)
 - [ ] Add `GET /api/health` endpoint for uptime monitoring
+- [ ] **Month 4:** Corporate wellness / employer B2B accounts
+- [ ] **Month 4:** WhatsApp booking bot (acquisition channel)
+- [ ] **Month 4:** Insurance/TPA integration prep (NHCX — Month 5-6)
+- [ ] **Registration pending:** Leegality account → add LEEGALITY_API_KEY; ABDM sandbox (waiting for NHA email reply); Razorpay Route approval; GST number
 - [ ] Consider `sendDefaultPii: false` in Sentry (PHI risk)
 - [ ] Perf pass for homepage / providers / booking / checkout
 - [ ] (P1) Provider listing search/filter query optimization

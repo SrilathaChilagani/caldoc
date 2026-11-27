@@ -27,8 +27,9 @@ model Patient {
   labOrders         LabOrder[]
   rxOrders          RxOrder[]
   passwordResets    PatientPasswordReset[]
-  followUpRequests  FollowUpRequest[]
-  ratings           AppointmentRating[]
+  followUpRequests      FollowUpRequest[]
+  ratings               AppointmentRating[]
+  dataSubjectRequests   DataSubjectRequest[]
 }
 
 model Provider {
@@ -249,12 +250,15 @@ model PatientOtp {
 }
 
 model Prescription {
-  id            String      @id @default(cuid())
-  appointmentId String      @unique
-  pdfKey        String
-  meds          Json
-  createdAt     DateTime    @default(now())
-  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  id              String      @id @default(cuid())
+  appointmentId   String      @unique
+  pdfKey          String
+  meds            Json
+  createdAt       DateTime    @default(now())
+  signatureStatus String?     // "PENDING" | "SIGNED" | "FAILED"
+  signedAt        DateTime?
+  signatureDocId  String?     // Leegality document ID
+  appointment     Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
@@ -271,16 +275,21 @@ model AuditLog {
 }
 
 model WebhookEvent {
-  id        String   @id @default(cuid())
-  source    String
-  eventId   String   @unique
-  type      String
-  orderId   String?
-  payload   Json
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  source      String
+  eventId     String    @unique
+  type        String
+  orderId     String?
+  payload     Json
+  status      String    @default("PROCESSED") // "PROCESSED" | "FAILED" | "PENDING_RETRY"
+  retryCount  Int       @default(0)
+  nextRetryAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
 
   @@index([orderId])
   @@index([source, type])
+  @@index([status, nextRetryAt])
 }
 
 model ProviderUser {
@@ -1149,4 +1158,43 @@ model TdsLedger {
 
   @@unique([providerId, financialYear])
   @@index([providerId])
+}
+
+// DPDP Act 2023 — data subject requests (access, erasure, portability)
+model DataSubjectRequest {
+  id          String    @id @default(cuid())
+  patientId   String
+  type        String    // "ERASURE" | "ACCESS" | "PORTABILITY" | "RECTIFICATION"
+  status      String    @default("PENDING") // "PENDING" | "IN_PROGRESS" | "COMPLETED" | "REJECTED"
+  notes       String?
+  handledBy   String?   // AdminUser id
+  requestedAt DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([status])
+  @@index([requestedAt])
+}
+
+// DPDP Act 2023 — breach notification tracking (report to CERT-In / DPA within 72 h)
+model BreachNotification {
+  id            String    @id @default(cuid())
+  title         String
+  description   String
+  severity      String    // "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
+  status        String    @default("DETECTED") // "DETECTED" | "INVESTIGATING" | "CONTAINED" | "RESOLVED" | "REPORTED_TO_AUTHORITY"
+  affectedCount Int?
+  discoveredAt  DateTime
+  containedAt   DateTime?
+  resolvedAt    DateTime?
+  reportedAt    DateTime? // when formally reported to authority
+  createdBy     String    // AdminUser id
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status])
+  @@index([severity])
 }

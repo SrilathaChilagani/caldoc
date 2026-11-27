@@ -97,6 +97,7 @@ const nav: NavSection[] = [
       { href: "/admin/admin-users", label: "Admin users" },
       { href: "/admin/whatsapp", label: "WhatsApp" },
       { href: "/admin/audit-logs", label: "Audit log" },
+      { href: "/admin/compliance", label: "DPDP Compliance" },
       { href: "/admin/settings/security", label: "Security (2FA)" },
     ],
   },

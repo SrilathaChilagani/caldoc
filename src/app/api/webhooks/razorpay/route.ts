@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, ignored: true });
   }
 
+  let webhookEventId: string | null = null;
   try {
     const entity = event.payload?.payment?.entity;
     const orderId: string = entity?.order_id;
@@ -78,6 +79,22 @@ export async function POST(req: NextRequest) {
     if (!orderId || !paymentId) {
       return NextResponse.json({ error: "Missing order_id or payment id" }, { status: 400 });
     }
+
+    // ── Record WebhookEvent for retry tracking (upsert for idempotency) ───
+    const we = await prisma.webhookEvent.upsert({
+      where: { eventId: paymentId },
+      create: {
+        source: "razorpay",
+        eventId: paymentId,
+        type: event.event ?? "payment.captured",
+        orderId,
+        payload: event as object,
+        status: "PROCESSING",
+      },
+      update: { status: "PROCESSING" },
+      select: { id: true },
+    });
+    webhookEventId = we.id;
 
     // ── Idempotency guard ─────────────────────────────────────────────────
     const payment = await prisma.payment.findUnique({
@@ -91,6 +108,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (payment.status === "CAPTURED") {
+      if (webhookEventId) {
+        await prisma.webhookEvent.update({
+          where: { id: webhookEventId },
+          data: { status: "PROCESSED" },
+        });
+      }
       return NextResponse.json({ ok: true });
     }
 
@@ -118,6 +141,9 @@ export async function POST(req: NextRequest) {
         level: "info",
         extra: { rxOrderId: payment.rxOrderId, orderId, paymentId },
       });
+      if (webhookEventId) {
+        await prisma.webhookEvent.update({ where: { id: webhookEventId }, data: { status: "PROCESSED" } });
+      }
       return NextResponse.json({ ok: true });
     }
 
@@ -164,6 +190,9 @@ export async function POST(req: NextRequest) {
         level: "info",
         extra: { labOrderId: payment.labOrderId, orderId, paymentId },
       });
+      if (webhookEventId) {
+        await prisma.webhookEvent.update({ where: { id: webhookEventId }, data: { status: "PROCESSED" } });
+      }
       return NextResponse.json({ ok: true });
     }
 
@@ -319,10 +348,25 @@ export async function POST(req: NextRequest) {
       extra: { appointmentId, orderId, paymentId },
     });
 
+    if (webhookEventId) {
+      await prisma.webhookEvent.update({ where: { id: webhookEventId }, data: { status: "PROCESSED" } });
+    }
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[rzp-webhook] error:", err);
-    // Return 500 so Razorpay retries the webhook
+    // Schedule retry via cron if we recorded the event
+    if (webhookEventId) {
+      const errMsg = getErrorMessage(err);
+      await prisma.webhookEvent.update({
+        where: { id: webhookEventId },
+        data: {
+          status: "PENDING_RETRY",
+          nextRetryAt: new Date(Date.now() + 5 * 60 * 1000), // first retry in 5 min
+          lastError: errMsg,
+        },
+      }).catch(() => {});
+    }
+    // Return 500 so Razorpay also retries on its own (belt-and-suspenders)
     return NextResponse.json({ error: getErrorMessage(err) }, { status: 500 });
   }
 }
